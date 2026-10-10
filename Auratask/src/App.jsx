@@ -13,6 +13,7 @@ import confetti from 'canvas-confetti';
 import { supabase } from './supabaseClient';
 import TaskModal from './TaskModal';
 import LandingPage from './LandingPage';
+import MeetingScratchpad from './MeetingScratchpad';
 
 // --- BRAND LOGO ---
 export const AuraLogo = ({ className = "w-8 h-8" }) => (
@@ -231,9 +232,118 @@ export default function App() {
   const [showKarmaModal, setShowKarmaModal] = useState(false);
   const [showShutdownModal, setShowShutdownModal] = useState(false);
   const [showScratchpad, setShowScratchpad] = useState(false);
-  const [scratchpadText, setScratchpadText] = useState(() => localStorage.getItem('auratask_notes') || '');
   const [expandedTaskSubtasks, setExpandedTaskSubtasks] = useState({});
   const [newSubtaskInputs, setNewSubtaskInputs] = useState({});
+
+  // --- MULTI-NOTE SCRATCHPAD STATE & DATABASE BACKUP ---
+  const [meetingNotes, setMeetingNotes] = useState(() => {
+    try {
+      const saved = localStorage.getItem('auratask_meeting_notes_v1');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+      const legacy = localStorage.getItem('auratask_notes');
+      if (legacy) {
+        return [{
+          id: 'note-legacy',
+          title: 'Meeting Takeaways',
+          content: legacy,
+          updated_at: new Date().toISOString()
+        }];
+      }
+    } catch {}
+    return [
+      {
+        id: 'note-default',
+        title: 'Sprint Planning & Architecture Sync',
+        content: `### Agenda & Objectives
+• Review production deployment checklist
+• Align on low-eyestrain Fey Obsidian theme
+• Validate database persistence and backup logs
+
+### Action Items
+- [x] Configure production domain and SSL
+- [ ] Connect database persistence for meeting notes
+- [ ] Review performance benchmarks and slow query logs
+
+### Key Discussion Points
+> User velocity and frictionless task capture are the highest priorities.`,
+        updated_at: new Date().toISOString()
+      }
+    ];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('auratask_meeting_notes_v1', JSON.stringify(meetingNotes));
+  }, [meetingNotes]);
+
+  const handleSaveMeetingNote = async (updatedNote) => {
+    setMeetingNotes(prev => {
+      const exists = prev.some(n => n.id === updatedNote.id);
+      if (exists) {
+        return prev.map(n => n.id === updatedNote.id ? updatedNote : n);
+      }
+      return [updatedNote, ...prev];
+    });
+
+    if (session?.user) {
+      try {
+        await supabase.from('tasks').upsert({
+          id: updatedNote.id,
+          title: updatedNote.title || 'Untitled Meeting Note',
+          description: updatedNote.content || '',
+          section: 'meeting_notes',
+          priority: 'P2',
+          due_date: new Date().toISOString().split('T')[0],
+          due_time: '',
+          subtasks: [],
+          created_at: updatedNote.updated_at || new Date().toISOString(),
+          user_id: session.user.id
+        });
+      } catch (err) {
+        console.warn("Supabase meeting note sync error:", err);
+      }
+    }
+  };
+
+  const handleDeleteMeetingNote = async (noteId) => {
+    setMeetingNotes(prev => prev.filter(n => n.id !== noteId));
+    showToast('Note deleted');
+    if (session?.user) {
+      try {
+        await supabase.from('tasks').delete().eq('id', noteId);
+      } catch (err) {
+        console.warn("Supabase note delete error:", err);
+      }
+    }
+  };
+
+  const handleCreateMeetingNote = () => {
+    const newNote = {
+      id: `note-${Date.now()}`,
+      title: 'New Meeting Note',
+      content: '### Agenda\n• \n\n### Action Items\n- [ ] ',
+      updated_at: new Date().toISOString()
+    };
+    setMeetingNotes(prev => [newNote, ...prev]);
+    handleSaveMeetingNote(newNote);
+    showToast('New note created');
+  };
+
+  // Helper to sanitize task object for Supabase schema
+  const sanitizeTaskForCloud = (t, userId) => ({
+    id: t.id,
+    title: t.title || '',
+    description: t.description || '',
+    section: t.section || 'todo',
+    priority: t.priority || 'P2',
+    due_date: t.due_date || null,
+    due_time: t.due_time || '',
+    subtasks: Array.isArray(t.subtasks) ? t.subtasks : [],
+    created_at: t.created_at || new Date().toISOString(),
+    user_id: userId
+  });
 
   // --- LANDING PAGE & TASK MODALS STATE ---
   const [showLandingPage, setShowLandingPage] = useState(!session && !isGuest);
@@ -304,10 +414,7 @@ export default function App() {
 
     if (session?.user) {
       try {
-        await supabase.from('tasks').upsert({
-          ...taskPayload,
-          user_id: session.user.id
-        });
+        await supabase.from('tasks').upsert(sanitizeTaskForCloud(taskPayload, session.user.id));
       } catch (err) {
         console.warn("Supabase upsert notice:", err);
       }
@@ -373,14 +480,28 @@ export default function App() {
           .order('created_at', { ascending: false });
 
         if (!error && Array.isArray(data) && data.length > 0) {
-          const normalized = data.map(item => ({
-            ...item,
-            section: item.section || 'todo',
-            priority: item.priority || 'P2',
-            tags: item.tags || ['#Work'],
-            subtasks: Array.isArray(item.subtasks) ? item.subtasks : []
-          }));
-          setTasks(normalized);
+          const regularTasks = data.filter(item => item.section !== 'meeting_notes');
+          const cloudNotes = data.filter(item => item.section === 'meeting_notes');
+
+          if (regularTasks.length > 0) {
+            const normalized = regularTasks.map(item => ({
+              ...item,
+              section: item.section || 'todo',
+              priority: item.priority || 'P2',
+              tags: item.tags || ['#Work'],
+              subtasks: Array.isArray(item.subtasks) ? item.subtasks : []
+            }));
+            setTasks(normalized);
+          }
+
+          if (cloudNotes.length > 0) {
+            setMeetingNotes(cloudNotes.map(item => ({
+              id: item.id,
+              title: item.title,
+              content: item.description,
+              updated_at: item.created_at
+            })));
+          }
         }
       } catch (err) {
         console.warn('Supabase fetch notice (using local offline cache):', err);
@@ -455,7 +576,7 @@ export default function App() {
       try {
         await supabase
           .from('tasks')
-          .insert([{ ...taskObj, user_id: session.user.id }]);
+          .insert([sanitizeTaskForCloud(taskObj, session.user.id)]);
       } catch (err) {
         console.warn("Background cloud sync note:", err);
       }
@@ -1199,6 +1320,9 @@ export default function App() {
               <BookOpen className="w-4 h-4 text-indigo-500" />
               <span>Meeting Scratchpad</span>
             </div>
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 border border-transparent dark:border-indigo-500/20 font-mono">
+              {meetingNotes.length}
+            </span>
           </button>
 
           <button
@@ -2098,32 +2222,17 @@ export default function App() {
         </div>
       </main>
 
-      {/* --- QUICK SCRATCHPAD DRAWER --- */}
-      {showScratchpad && (
-        <div className="fixed right-0 top-0 bottom-0 w-80 sm:w-96 bg-white dark:bg-[#09090b] border-l border-slate-200 dark:border-[#222225] p-5 shadow-2xl flex flex-col z-50 animate-in slide-in-from-right duration-200 backdrop-blur-md">
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center gap-2">
-              <BookOpen className="w-4 h-4 text-indigo-500" />
-              <span className="font-extrabold text-sm text-slate-900 dark:text-[#ededed]">Quick Scratchpad</span>
-            </div>
-            <button onClick={() => setShowScratchpad(false)} className="text-slate-400 dark:text-[#a1a1aa] hover:text-slate-600 dark:hover:text-[#ededed]">
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-          <p className="text-[11px] text-slate-400 dark:text-[#a1a1aa] mb-3">
-            Auto-saves locally. Perfect for meeting takeaways and raw brainstorms.
-          </p>
-          <textarea
-            value={scratchpadText}
-            onChange={(e) => {
-              setScratchpadText(e.target.value);
-              localStorage.setItem('auratask_notes', e.target.value);
-            }}
-            placeholder="• Discuss backlog priorities with lead&#10;• Need API schema by Thursday&#10;• Refactor authentication middleware..."
-            className="flex-1 w-full bg-slate-50 dark:bg-[#121214] border border-slate-200 dark:border-[#222225] text-slate-900 dark:text-[#ededed] placeholder:text-slate-400 dark:placeholder:text-[#52525b] rounded-xl p-3 text-xs leading-relaxed focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none font-mono"
-          />
-        </div>
-      )}
+      {/* --- RICH FORMATTED MEETING SCRATCHPAD DRAWER & CLOUD ARCHIVE --- */}
+      <MeetingScratchpad
+        isOpen={showScratchpad}
+        onClose={() => setShowScratchpad(false)}
+        notes={meetingNotes}
+        onSaveNote={handleSaveMeetingNote}
+        onDeleteNote={handleDeleteMeetingNote}
+        onCreateNote={handleCreateMeetingNote}
+        session={session}
+        darkMode={darkMode}
+      />
 
       {/* --- ACTIVITY HISTORY MODAL (SCREENSHOT 1 ACTION) --- */}
       {showActivityModal && (
