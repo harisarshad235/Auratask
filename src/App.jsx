@@ -1322,7 +1322,7 @@ export default function App() {
   // 2. MAIN APPLICATION WORKSPACE (TAKT MIDNIGHT NAVY / SLATE PALETTE)
   // =========================================================================
   return (
-    <div className={`h-screen w-full flex overflow-hidden selection:bg-red-500 selection:text-white ${darkMode ? 'dark bg-[#080c14] text-[#f1f5f9]' : 'bg-slate-50 text-slate-800'}`}>
+    <div className={`h-screen w-full flex overflow-hidden selection:bg-rose-500 selection:text-white ${darkMode ? 'dark bg-[#090d16] text-[#f8fafc]' : 'bg-[#f8fafc] text-slate-900'}`}>
 
       {/* Hidden File Input for CSV Import */}
       <input
@@ -1350,9 +1350,9 @@ export default function App() {
       )}
 
       {/* --- SIDEBAR NAVIGATION (PERMANENTLY PINNED, NEVER MOVES WITH SCROLL) --- */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-72 h-screen bg-white dark:bg-[#0e1422] border-r border-slate-200/80 dark:border-[#22304e] flex flex-col p-4 transition-transform duration-300 lg:static lg:translate-x-0 shrink-0 overflow-y-auto ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 w-72 h-screen bg-white dark:bg-[#0f172a] border-r border-slate-200/80 dark:border-[#1e293b] flex flex-col p-4 transition-transform duration-300 lg:static lg:translate-x-0 shrink-0 overflow-y-auto ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         {/* Brand & User Profile */}
-        <div className="flex items-center justify-between pb-4 mb-2 border-b border-slate-100 dark:border-[#22304e]">
+        <div className="flex items-center justify-between pb-3.5 mb-2 border-b border-slate-100 dark:border-[#1e293b]">
           <Logo
             subtitle={
               isGuest
@@ -1386,63 +1386,95 @@ export default function App() {
         {/* Global Quick Add Action */}
         <button
           onClick={() => handleOpenTaskModal(null, activeTab === 'inbox' ? 'todo' : 'todo')}
-          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-gradient-to-r from-[#ff4b55] via-[#ec4899] to-[#6366f1] hover:opacity-95 active:scale-[0.98] text-white font-bold text-xs shadow-md shadow-pink-500/20 mb-4 transition-all"
+          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-rose-600 dark:hover:bg-rose-500 text-white font-bold text-xs shadow-xs dark:shadow-sm dark:shadow-rose-600/20 mb-4 transition-all active:scale-[0.98]"
         >
           <Plus className="w-4 h-4 stroke-[3]" />
           <span>Add task</span>
-          <span className="ml-auto text-[10px] bg-white/20 px-1.5 py-0.5 rounded font-mono font-normal">⌘N</span>
+          <span className="ml-auto text-[10px] bg-white/20 dark:bg-white/20 px-1.5 py-0.5 rounded font-mono font-normal">⌘N</span>
         </button>
 
         {/* Primary Views Navigation */}
-        <nav className="space-y-1 text-xs font-semibold">
+        <nav className="space-y-1 text-xs font-medium">
           <button
             onClick={() => { setActiveTab('inbox'); setSelectedTag(null); setMobileMenuOpen(false); }}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all ${activeTab === 'inbox' && !selectedTag ? 'bg-red-50 dark:bg-[#2a1215] text-red-600 dark:text-red-400 font-bold border border-red-200/40 dark:border-red-500/30' : 'text-slate-600 dark:text-[#a1a1aa] hover:bg-slate-100 dark:hover:bg-[#121214] dark:hover:text-[#ededed]'}`}
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group ${
+              activeTab === 'inbox' && !selectedTag
+                ? 'bg-slate-900 text-white dark:bg-[#1a243a] dark:text-white font-bold shadow-2xs'
+                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-white'
+            }`}
           >
             <div className="flex items-center gap-2.5">
-              <Inbox className="w-4 h-4 text-blue-500" />
+              <Inbox className={`w-4 h-4 transition-colors ${activeTab === 'inbox' && !selectedTag ? 'text-rose-500 dark:text-rose-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`} />
               <span>Inbox</span>
             </div>
-            <span className="text-[11px] font-mono text-slate-400 dark:text-[#a1a1aa]">
+            <span className={`text-[11px] font-mono px-1.5 py-0.5 rounded ${
+              activeTab === 'inbox' && !selectedTag
+                ? 'bg-slate-800 text-slate-300 dark:bg-white/10 dark:text-slate-300'
+                : 'text-slate-400 dark:text-slate-500'
+            }`}>
               {tasks.filter(t => t.section !== 'completed').length}
             </span>
           </button>
 
           <button
             onClick={() => { setActiveTab('today'); setSelectedTag(null); setMobileMenuOpen(false); }}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all ${activeTab === 'today' && !selectedTag ? 'bg-red-50 dark:bg-[#2a1215] text-red-600 dark:text-red-400 font-bold border border-red-200/40 dark:border-red-500/30' : 'text-slate-600 dark:text-[#a1a1aa] hover:bg-slate-100 dark:hover:bg-[#121214] dark:hover:text-[#ededed]'}`}
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group ${
+              activeTab === 'today' && !selectedTag
+                ? 'bg-slate-900 text-white dark:bg-[#1a243a] dark:text-white font-bold shadow-2xs'
+                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-white'
+            }`}
           >
             <div className="flex items-center gap-2.5">
-              <Calendar className="w-4 h-4 text-emerald-500" />
+              <Calendar className={`w-4 h-4 transition-colors ${activeTab === 'today' && !selectedTag ? 'text-rose-500 dark:text-rose-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`} />
               <span>Today</span>
             </div>
-            <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-red-100 text-red-600 dark:bg-[#2a1215] dark:text-red-400 border border-transparent dark:border-red-500/30 font-mono">
+            <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded-full font-mono ${
+              activeTab === 'today' && !selectedTag
+                ? 'bg-rose-500 text-white'
+                : todayDueCount > 0 ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400' : 'text-slate-400 dark:text-slate-500'
+            }`}>
               {todayDueCount}
             </span>
           </button>
 
           <button
             onClick={() => { setActiveTab('upcoming'); setSelectedTag(null); setMobileMenuOpen(false); }}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all ${activeTab === 'upcoming' && !selectedTag ? 'bg-red-50 dark:bg-[#2a1215] text-red-600 dark:text-red-400 font-bold border border-red-200/40 dark:border-red-500/30' : 'text-slate-600 dark:text-[#a1a1aa] hover:bg-slate-100 dark:hover:bg-[#121214] dark:hover:text-[#ededed]'}`}
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group ${
+              activeTab === 'upcoming' && !selectedTag
+                ? 'bg-slate-900 text-white dark:bg-[#1a243a] dark:text-white font-bold shadow-2xs'
+                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-white'
+            }`}
           >
             <div className="flex items-center gap-2.5">
-              <Clock className="w-4 h-4 text-purple-500" />
+              <Clock className={`w-4 h-4 transition-colors ${activeTab === 'upcoming' && !selectedTag ? 'text-rose-500 dark:text-rose-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`} />
               <span>Upcoming</span>
             </div>
-            <span className="text-[11px] font-mono text-slate-400 dark:text-[#a1a1aa]">
+            <span className={`text-[11px] font-mono px-1.5 py-0.5 rounded ${
+              activeTab === 'upcoming' && !selectedTag
+                ? 'bg-slate-800 text-slate-300 dark:bg-white/10 dark:text-slate-300'
+                : 'text-slate-400 dark:text-slate-500'
+            }`}>
               {tasks.filter(t => t.due_date > todayDateStr && t.section !== 'completed').length}
             </span>
           </button>
 
           <button
             onClick={() => { setActiveTab('completed'); setSelectedTag(null); setMobileMenuOpen(false); }}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all ${activeTab === 'completed' && !selectedTag ? 'bg-red-50 dark:bg-[#2a1215] text-red-600 dark:text-red-400 font-bold border border-red-200/40 dark:border-red-500/30' : 'text-slate-600 dark:text-[#a1a1aa] hover:bg-slate-100 dark:hover:bg-[#121214] dark:hover:text-[#ededed]'}`}
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group ${
+              activeTab === 'completed' && !selectedTag
+                ? 'bg-slate-900 text-white dark:bg-[#1a243a] dark:text-white font-bold shadow-2xs'
+                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-white'
+            }`}
           >
             <div className="flex items-center gap-2.5">
-              <CheckCircle2 className="w-4 h-4 text-teal-500" />
+              <CheckCircle2 className={`w-4 h-4 transition-colors ${activeTab === 'completed' && !selectedTag ? 'text-rose-500 dark:text-rose-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`} />
               <span>Completed</span>
             </div>
-            <span className="text-[11px] font-mono text-slate-400 dark:text-[#a1a1aa]">
+            <span className={`text-[11px] font-mono px-1.5 py-0.5 rounded ${
+              activeTab === 'completed' && !selectedTag
+                ? 'bg-slate-800 text-slate-300 dark:bg-white/10 dark:text-slate-300'
+                : 'text-slate-400 dark:text-slate-500'
+            }`}>
               {completedCount}
             </span>
           </button>
@@ -1587,18 +1619,18 @@ export default function App() {
       {/* --- MAIN CONTENT CANVAS (FIXED HEADER, SCROLLABLE TASK VIEW) --- */}
       <main className="flex-1 h-screen flex flex-col min-w-0 overflow-hidden">
         {/* TOP HEADER: PERMANENTLY FIXED AT TOP, NEVER MOVES WITH SCROLL */}
-        <header className="h-16 border-b border-slate-200/80 dark:border-[#222225] bg-white/95 dark:bg-[#09090b]/95 backdrop-blur-md px-4 sm:px-8 flex items-center justify-between shrink-0 z-20">
+        <header className="h-16 border-b border-slate-200/80 dark:border-[#1e293b] bg-white/95 dark:bg-[#090d16]/95 backdrop-blur-md px-4 sm:px-8 flex items-center justify-between shrink-0 z-20">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="p-2 -ml-2 text-slate-500 hover:text-slate-800 dark:text-[#a1a1aa] dark:hover:text-[#ededed] lg:hidden rounded-lg"
+              className="p-2 -ml-2 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white lg:hidden rounded-lg"
             >
               <Menu className="w-5 h-5" />
             </button>
             <div>
-              <h2 className="text-base sm:text-lg font-extrabold capitalize text-slate-900 dark:text-[#ededed] flex items-center gap-2">
+              <h2 className="text-base sm:text-lg font-bold capitalize text-slate-900 dark:text-white flex items-center gap-2">
                 <span>{selectedTag ? `Tag: ${selectedTag}` : activeTab}</span>
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-[#121214] border border-slate-200 dark:border-[#222225] text-slate-500 dark:text-[#a1a1aa]">
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-[#151d30] border border-slate-200 dark:border-[#22304e] text-slate-500 dark:text-slate-400 font-mono">
                   {filteredTasks.length}
                 </span>
               </h2>
@@ -1608,21 +1640,21 @@ export default function App() {
           <div className="flex items-center gap-2.5 sm:gap-3">
             {/* Quick Search */}
             <div className="relative hidden sm:block w-48 md:w-56">
-              <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400 dark:text-[#52525b]" />
+              <Search className="w-3.5 h-3.5 absolute left-3 top-3 text-slate-400 dark:text-slate-500" />
               <input
                 type="text"
-                placeholder="Search tasks or #tags..."
+                placeholder="Search tasks (⌘K)..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-100/80 dark:bg-[#121214] text-xs pl-9 pr-3 py-2 rounded-xl border border-transparent dark:border-[#222225] focus:border-red-500 focus:bg-white dark:focus:bg-[#1c1c20] focus:outline-none text-slate-900 dark:text-[#ededed] transition-all placeholder:text-slate-400 dark:placeholder:text-[#52525b]"
+                className="w-full bg-slate-100/90 dark:bg-[#121a2b] text-xs pl-8 pr-3 py-2 rounded-xl border border-slate-200/60 dark:border-[#22304e] focus:border-slate-400 dark:focus:border-slate-500 focus:bg-white dark:focus:bg-[#151f33] focus:outline-none text-slate-900 dark:text-white transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
               />
             </div>
 
             {/* View Mode Switcher: Board, List, Calendar */}
-            <div className="flex items-center bg-slate-100 dark:bg-[#121214] p-0.5 rounded-xl border border-slate-200 dark:border-[#222225]">
+            <div className="flex items-center bg-slate-100 dark:bg-[#121a2b] p-0.5 rounded-xl border border-slate-200/80 dark:border-[#22304e]">
               <button
                 onClick={() => setViewMode('list')}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-[#1c1c20] text-slate-900 dark:text-[#ededed] shadow-2xs' : 'text-slate-500 dark:text-[#a1a1aa] hover:text-slate-800 dark:hover:text-[#ededed]'}`}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-[#1e293b] text-slate-900 dark:text-white shadow-2xs font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
                 title="List View"
               >
                 <ListFilter className="w-3.5 h-3.5" />
@@ -1630,7 +1662,7 @@ export default function App() {
               </button>
               <button
                 onClick={() => setViewMode('board')}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold rounded-lg transition-all ${viewMode === 'board' ? 'bg-white dark:bg-[#1c1c20] text-slate-900 dark:text-[#ededed] shadow-2xs' : 'text-slate-500 dark:text-[#a1a1aa] hover:text-slate-800 dark:hover:text-[#ededed]'}`}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${viewMode === 'board' ? 'bg-white dark:bg-[#1e293b] text-slate-900 dark:text-white shadow-2xs font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
                 title="Board View"
               >
                 <Kanban className="w-3.5 h-3.5" />
@@ -1638,7 +1670,7 @@ export default function App() {
               </button>
               <button
                 onClick={() => setViewMode('calendar')}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold rounded-lg transition-all ${viewMode === 'calendar' ? 'bg-white dark:bg-[#1c1c20] text-slate-900 dark:text-[#ededed] shadow-2xs' : 'text-slate-500 dark:text-[#a1a1aa] hover:text-slate-800 dark:hover:text-[#ededed]'}`}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${viewMode === 'calendar' ? 'bg-white dark:bg-[#1e293b] text-slate-900 dark:text-white shadow-2xs font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
                 title="Day-wise Calendar Horizon"
               >
                 <CalendarDays className="w-3.5 h-3.5" />
@@ -1745,10 +1777,10 @@ export default function App() {
             {/* Quick Add Button Header */}
             <button
               onClick={() => handleOpenTaskModal(null, activeTab === 'inbox' ? 'todo' : 'todo')}
-              className="p-2 sm:px-3 sm:py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm shadow-red-500/20"
+              className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 dark:bg-rose-600 dark:hover:bg-rose-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all active:scale-[0.98]"
             >
-              <Plus className="w-4 h-4 stroke-[3]" />
-              <span className="hidden sm:inline">Add Task</span>
+              <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span className="hidden sm:inline">Add task</span>
             </button>
           </div>
         </header>
@@ -1934,23 +1966,23 @@ export default function App() {
                         : ''
                     }`}
                   >
-                    {/* Section Header (Screenshot 1 & 4 exact layout) */}
-                    <div className="flex items-center justify-between py-1.5">
+                    {/* Section Header */}
+                    <div className="flex items-center justify-between py-1.5 px-1">
                       <button
                         type="button"
                         onClick={() => toggleSectionCollapse(sec.key)}
-                        className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-[#ededed] hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                        className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-[#ededed] hover:text-slate-950 dark:hover:text-white transition-colors"
                       >
-                        <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isCollapsed ? '-rotate-90' : ''}`} />
+                        <ChevronDown className={`w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform ${isCollapsed ? '-rotate-90' : ''}`} />
                         <span className="capitalize">{sec.label}</span>
-                        <span className="text-[11px] font-mono text-slate-400 font-normal">{secTasks.length}</span>
+                        <span className="text-[11px] font-mono text-slate-400 dark:text-slate-500 font-normal">{secTasks.length}</span>
                       </button>
 
                       <div className="flex items-center gap-1">
                         <button
                           type="button"
                           onClick={() => handleOpenTaskModal(null, sec.key)}
-                          className="p-1 text-slate-400 hover:text-red-600 dark:text-[#a1a1aa] dark:hover:text-red-400 rounded hover:bg-slate-100 dark:hover:bg-[#121214]"
+                          className="p-1 text-slate-400 hover:text-slate-800 dark:text-slate-500 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors"
                           title="Add task in section"
                         >
                           <Plus className="w-3.5 h-3.5" />
@@ -2102,13 +2134,13 @@ export default function App() {
                           );
                         })}
 
-                        {/* Inline + Add task Button (Screenshot 1 & 4 style) */}
+                        {/* Inline + Add task Button - subtle, calm, non-intrusive */}
                         <button
                           type="button"
                           onClick={() => handleOpenTaskModal(null, sec.key)}
-                          className="w-full text-left py-2 px-3 text-xs font-semibold text-red-600 dark:text-red-400 hover:text-red-700 flex items-center gap-2 rounded-xl hover:bg-red-50/50 dark:hover:bg-[#2a1215]/50 transition-colors"
+                          className="group w-full text-left py-2 px-3 text-xs font-medium text-slate-400 dark:text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 flex items-center gap-2 rounded-xl hover:bg-slate-100/70 dark:hover:bg-white/[0.04] transition-colors"
                         >
-                          <Plus className="w-4 h-4 stroke-[2.5]" />
+                          <Plus className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-300" />
                           <span>Add task</span>
                         </button>
                       </div>
@@ -2118,10 +2150,19 @@ export default function App() {
               })}
 
               {filteredTasks.length === 0 && (
-                <div className="text-center py-16 bg-white dark:bg-[#09090b] border border-dashed border-slate-200 dark:border-[#222225] rounded-2xl">
-                  <Sparkles className="w-8 h-8 text-amber-400 mx-auto mb-2" />
-                  <h3 className="text-sm font-bold text-slate-800 dark:text-[#ededed]">No tasks in view</h3>
-                  <p className="text-xs text-slate-400 dark:text-[#a1a1aa] mt-1">Add a new task or adjust your search filters.</p>
+                <div className="text-center py-14 px-4 bg-white/70 dark:bg-[#0e1422]/60 border border-slate-200/80 dark:border-[#22304e]/70 rounded-2xl max-w-md mx-auto my-6 shadow-2xs">
+                  <div className="w-11 h-11 rounded-2xl bg-rose-500/10 dark:bg-rose-500/15 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto mb-3 border border-rose-500/20">
+                    <CheckCircle2 className="w-5 h-5 stroke-[2]" />
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">All clear in {selectedTag ? `tag #${selectedTag}` : activeTab}</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xs mx-auto">No active tasks in this view. Press <kbd className="font-mono text-[10px] bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">⌘N</kbd> or click below to add one.</p>
+                  <button
+                    onClick={() => handleOpenTaskModal(null, 'todo')}
+                    className="mt-4 px-4 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-rose-600 dark:hover:bg-rose-500 text-white rounded-xl text-xs font-bold inline-flex items-center gap-2 shadow-xs transition-all active:scale-[0.98]"
+                  >
+                    <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                    <span>Create task</span>
+                  </button>
                 </div>
               )}
             </div>
