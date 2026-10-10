@@ -34,75 +34,141 @@ export const AuraLogo = ({ className = "w-8 h-8" }) => (
   </svg>
 );
 
-// --- INITIAL SEED TASKS FOR FIRST RUN ---
-const INITIAL_SEED_TASKS = [
+// --- DEFAULT WORKFLOW SECTIONS ---
+const DEFAULT_SECTIONS = [
+  { key: 'todo', label: 'To Do', icon: Layers },
+  { key: 'in_progress', label: 'In progress', icon: Flame },
+  { key: 'in_review', label: 'In review', icon: Eye },
+  { key: 'completed', label: 'completed', icon: CheckCircle2 }
+];
+
+// --- GUEST DEMO TASKS (ISOLATED SANDBOX ONLY) ---
+const GUEST_DEMO_TASKS = [
   {
-    id: 'seed-1',
-    title: 'Review production launch checklist with engineering lead',
-    description: 'Ensure SSL certificates, database read-replicas, and Sentry alerts are live.',
+    id: 'guest-task-1',
+    title: 'Explore AuraTask Kanban swimlanes (Guest Sandbox)',
+    description: 'This is a sample task in guest mode. Changes here are saved in your local guest sandbox only.',
     section: 'todo',
     priority: 'P1',
     due_date: new Date().toISOString().split('T')[0],
     due_time: '11:00',
-    tags: ['#Engineering', '#Launch'],
+    tags: ['#Demo'],
     is_focus: true,
-    focused_minutes: 25,
+    focused_minutes: 0,
     subtasks: [
-      { id: 'st-1', text: 'Verify Cloudflare DNS records', completed: true },
-      { id: 'st-2', text: 'Validate database backup snapshots', completed: true },
-      { id: 'st-3', text: 'Run smoke test on staging cluster', completed: false }
+      { id: 'dst-1', text: 'Drag this card to another lane', completed: false },
+      { id: 'dst-2', text: 'Click to open task detail modal', completed: false }
     ],
-    created_at: new Date(Date.now() - 3600000).toISOString()
+    created_at: new Date().toISOString()
   },
   {
-    id: 'seed-2',
-    title: 'Design high-converting onboarding flow for users',
-    description: 'Create high-fidelity wireframes in Figma with modern light accents.',
+    id: 'guest-task-2',
+    title: 'Try the 25m Focus Flow Pomodoro timer',
+    description: 'Click the Play button on this card or in the modal to launch focus timer.',
     section: 'in_progress',
-    priority: 'P1',
+    priority: 'P2',
     due_date: new Date().toISOString().split('T')[0],
-    due_time: '15:30',
-    tags: ['#Design', '#UX'],
-    is_focus: true,
-    focused_minutes: 50,
-    subtasks: [
-      { id: 'st-4', text: 'Component token library setup', completed: true },
-      { id: 'st-5', text: 'Keyboard shortcuts modal prototype', completed: false }
-    ],
-    created_at: new Date(Date.now() - 7200000).toISOString()
+    due_time: '14:30',
+    tags: ['#Focus'],
+    is_focus: false,
+    focused_minutes: 25,
+    subtasks: [],
+    created_at: new Date().toISOString()
   },
   {
-    id: 'seed-3',
-    title: 'Weekly sync with marketing team on product positioning',
-    description: 'Align copy and assets for newsletter broadcast and socials.',
+    id: 'guest-task-3',
+    title: 'Test 7-Day Day-Wise Calendar Horizon',
+    description: 'Switch view mode in top header to Calendar to plan days visually.',
     section: 'in_review',
-    priority: 'P2',
+    priority: 'P3',
     due_date: new Date(Date.now() + 86400000).toISOString().split('T')[0],
-    due_time: '14:00',
-    tags: ['#Marketing'],
+    due_time: '16:00',
+    tags: ['#Planning'],
     is_focus: false,
     focused_minutes: 0,
     subtasks: [],
-    created_at: new Date(Date.now() - 10800000).toISOString()
-  },
-  {
-    id: 'seed-4',
-    title: 'Completed database index optimization on user queries',
-    description: 'Reduced average latency from 180ms down to 14ms across endpoints.',
-    section: 'completed',
-    priority: 'P2',
-    due_date: new Date().toISOString().split('T')[0],
-    due_time: '09:00',
-    tags: ['#Performance'],
-    is_focus: false,
-    focused_minutes: 45,
-    subtasks: [
-      { id: 'st-6', text: 'Analyze slow query log', completed: true },
-      { id: 'st-7', text: 'Create composite index on tasks table', completed: true }
-    ],
-    created_at: new Date(Date.now() - 14400000).toISOString()
+    created_at: new Date().toISOString()
   }
 ];
+
+// --- GUEST DEMO NOTES (ISOLATED SANDBOX ONLY) ---
+const GUEST_DEMO_NOTES = [
+  {
+    id: 'guest-note-1',
+    title: 'Guest Sandbox Meeting Notes',
+    content: `### Welcome to Guest Sandbox
+• This is an isolated demo scratchpad.
+• Your private notes are never visible to guests or other users.
+• Sign up or log in to automatically save your private meeting notes to your encrypted cloud database account.
+
+### Action Items
+- [ ] Try formatting buttons: Bullet, Task checkbox, H2/H3
+- [ ] Create a free account to sync across devices`,
+    updated_at: new Date().toISOString()
+  }
+];
+
+// Helper to safely load isolated user or guest data
+const loadScopedWorkspaceData = (userId = null) => {
+  if (userId) {
+    try {
+      const savedTasks = localStorage.getItem(`auratask_tasks_u_${userId}`);
+      const savedNotes = localStorage.getItem(`auratask_notes_u_${userId}`);
+      const savedSections = localStorage.getItem(`auratask_sections_u_${userId}`);
+      const savedLogs = localStorage.getItem(`auratask_activity_u_${userId}`);
+      return {
+        tasks: savedTasks ? JSON.parse(savedTasks) : [],
+        notes: savedNotes ? JSON.parse(savedNotes) : [
+          {
+            id: `note-${Date.now()}`,
+            title: 'Welcome to your Private Scratchpad',
+            content: '### My Private Meeting Notes\n• Only visible to your account\n• Auto-saved to your personal cloud database\n\n### Action Items\n- [ ] Add your first task',
+            updated_at: new Date().toISOString()
+          }
+        ],
+        sections: savedSections ? JSON.parse(savedSections) : DEFAULT_SECTIONS,
+        activity: savedLogs ? JSON.parse(savedLogs) : []
+      };
+    } catch {
+      return { tasks: [], notes: [], sections: DEFAULT_SECTIONS, activity: [] };
+    }
+  } else {
+    try {
+      const guestTasks = localStorage.getItem('auratask_guest_tasks');
+      const guestNotes = localStorage.getItem('auratask_guest_notes');
+      const guestSections = localStorage.getItem('auratask_guest_sections');
+      const guestLogs = localStorage.getItem('auratask_guest_activity');
+
+      // Strict User Restriction: Filter out any objects that belong to a real user account
+      let parsedTasks = guestTasks ? JSON.parse(guestTasks) : GUEST_DEMO_TASKS;
+      if (Array.isArray(parsedTasks)) {
+        parsedTasks = parsedTasks.filter(t => !t.user_id || t.id.startsWith('guest-'));
+        if (parsedTasks.length === 0) parsedTasks = GUEST_DEMO_TASKS;
+      } else {
+        parsedTasks = GUEST_DEMO_TASKS;
+      }
+
+      let parsedNotes = guestNotes ? JSON.parse(guestNotes) : GUEST_DEMO_NOTES;
+      if (Array.isArray(parsedNotes)) {
+        parsedNotes = parsedNotes.filter(n => !n.user_id || n.id.startsWith('guest-'));
+        if (parsedNotes.length === 0) parsedNotes = GUEST_DEMO_NOTES;
+      } else {
+        parsedNotes = GUEST_DEMO_NOTES;
+      }
+
+      return {
+        tasks: parsedTasks,
+        notes: parsedNotes,
+        sections: guestSections ? JSON.parse(guestSections) : DEFAULT_SECTIONS,
+        activity: guestLogs ? JSON.parse(guestLogs) : [
+          { id: 'act-demo-1', text: 'Started Guest Sandbox session', time: 'Just now', icon: 'sparkle' }
+        ]
+      };
+    } catch {
+      return { tasks: GUEST_DEMO_TASKS, notes: GUEST_DEMO_NOTES, sections: DEFAULT_SECTIONS, activity: [] };
+    }
+  }
+};
 
 export default function App() {
   // --- AUTH STATE ---
@@ -117,40 +183,23 @@ export default function App() {
   const [authSuccessMsg, setAuthSuccessMsg] = useState(null);
   const [authLoading, setAuthLoading] = useState(false);
 
-  // --- TASKS STATE ---
-  const [tasks, setTasks] = useState(() => {
+  // Initialize workspace data based on guest mode or initial session
+  const initialData = useMemo(() => {
     try {
-      const saved = localStorage.getItem('auratask_v3_tasks');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      }
-      return INITIAL_SEED_TASKS;
-    } catch {
-      return INITIAL_SEED_TASKS;
-    }
-  });
-
-  // --- DYNAMIC CUSTOM SECTIONS (SCREENSHOT 1 & 4) ---
-  const [customSections, setCustomSections] = useState(() => {
-    try {
-      const saved = localStorage.getItem('auratask_custom_sections');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      const authStr = localStorage.getItem('sb-zamtslutoccexvqjepqz-auth-token');
+      if (authStr) {
+        const parsed = JSON.parse(authStr);
+        if (parsed?.user?.id) return loadScopedWorkspaceData(parsed.user.id);
       }
     } catch {}
-    return [
-      { key: 'todo', label: 'To Do', icon: Layers },
-      { key: 'in_progress', label: 'In progress', icon: Flame },
-      { key: 'in_review', label: 'In review', icon: Eye },
-      { key: 'completed', label: 'completed', icon: CheckCircle2 }
-    ];
-  });
+    return loadScopedWorkspaceData(null);
+  }, []);
 
-  useEffect(() => {
-    localStorage.setItem('auratask_custom_sections', JSON.stringify(customSections));
-  }, [customSections]);
+  // --- WORKSPACE STATES ---
+  const [tasks, setTasks] = useState(() => initialData.tasks);
+  const [customSections, setCustomSections] = useState(() => initialData.sections);
+  const [meetingNotes, setMeetingNotes] = useState(() => initialData.notes);
+  const [activityLogs, setActivityLogs] = useState(() => initialData.activity);
 
   // --- UI NAVIGATION & VIEW MODES ---
   const [activeTab, setActiveTab] = useState('inbox'); // 'inbox', 'today', 'upcoming', 'completed', 'tag-...'
@@ -165,26 +214,13 @@ export default function App() {
   const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState(false);
   const headerMenuRef = useRef(null);
 
-  // --- MODALS FOR ACTIONS (ACTIVITY, EMAIL INBOX, CALENDAR FEED, ADD SECTION) ---
+  // --- MODALS FOR ACTIONS ---
   const [showActivityModal, setShowActivityModal] = useState(false);
   const [showEmailInboxModal, setShowEmailInboxModal] = useState(false);
   const [showCalendarFeedModal, setShowCalendarFeedModal] = useState(false);
   const [showAddSectionModal, setShowAddSectionModal] = useState(false);
   const [newSectionTitle, setNewSectionTitle] = useState('');
   const csvFileInputRef = useRef(null);
-
-  // --- ACTIVITY HISTORY LOG STATE ---
-  const [activityLogs, setActivityLogs] = useState(() => {
-    try {
-      const saved = localStorage.getItem('auratask_activity_log');
-      if (saved) return JSON.parse(saved);
-    } catch {}
-    return [
-      { id: 'act-1', text: 'Completed "Database index optimization"', time: '2 hours ago', icon: 'check' },
-      { id: 'act-2', text: 'Started 25m Focus Flow session', time: '4 hours ago', icon: 'flame' },
-      { id: 'act-3', text: 'Created task "Review production launch checklist"', time: 'Yesterday', icon: 'plus' }
-    ];
-  });
 
   const recordActivity = (text, icon = 'check') => {
     const newEntry = {
@@ -194,11 +230,7 @@ export default function App() {
       icon,
       timestamp: new Date().toISOString()
     };
-    setActivityLogs(prev => {
-      const updated = [newEntry, ...prev.slice(0, 49)];
-      localStorage.setItem('auratask_activity_log', JSON.stringify(updated));
-      return updated;
-    });
+    setActivityLogs(prev => [newEntry, ...prev.slice(0, 49)]);
   };
 
   // --- DRAG AND DROP & SWIMLANES STATE ---
@@ -235,49 +267,21 @@ export default function App() {
   const [expandedTaskSubtasks, setExpandedTaskSubtasks] = useState({});
   const [newSubtaskInputs, setNewSubtaskInputs] = useState({});
 
-  // --- MULTI-NOTE SCRATCHPAD STATE & DATABASE BACKUP ---
-  const [meetingNotes, setMeetingNotes] = useState(() => {
-    try {
-      const saved = localStorage.getItem('auratask_meeting_notes_v1');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      }
-      const legacy = localStorage.getItem('auratask_notes');
-      if (legacy) {
-        return [{
-          id: 'note-legacy',
-          title: 'Meeting Takeaways',
-          content: legacy,
-          updated_at: new Date().toISOString()
-        }];
-      }
-    } catch {}
-    return [
-      {
-        id: 'note-default',
-        title: 'Sprint Planning & Architecture Sync',
-        content: `### Agenda & Objectives
-• Review production deployment checklist
-• Align on low-eyestrain Fey Obsidian theme
-• Validate database persistence and backup logs
-
-### Action Items
-- [x] Configure production domain and SSL
-- [ ] Connect database persistence for meeting notes
-- [ ] Review performance benchmarks and slow query logs
-
-### Key Discussion Points
-> User velocity and frictionless task capture are the highest priorities.`,
-        updated_at: new Date().toISOString()
-      }
-    ];
+  // Helper to sanitize task object for Supabase schema
+  const sanitizeTaskForCloud = (t, userId) => ({
+    id: t.id,
+    title: t.title || '',
+    description: t.description || '',
+    section: t.section || 'todo',
+    priority: t.priority || 'P2',
+    due_date: t.due_date || null,
+    due_time: t.due_time || '',
+    subtasks: Array.isArray(t.subtasks) ? t.subtasks : [],
+    created_at: t.created_at || new Date().toISOString(),
+    user_id: userId
   });
 
-  useEffect(() => {
-    localStorage.setItem('auratask_meeting_notes_v1', JSON.stringify(meetingNotes));
-  }, [meetingNotes]);
-
+  // --- MEETING SCRATCHPAD HANDLERS ---
   const handleSaveMeetingNote = async (updatedNote) => {
     setMeetingNotes(prev => {
       const exists = prev.some(n => n.id === updatedNote.id);
@@ -287,7 +291,7 @@ export default function App() {
       return [updatedNote, ...prev];
     });
 
-    if (session?.user) {
+    if (session?.user?.id) {
       try {
         await supabase.from('tasks').upsert({
           id: updatedNote.id,
@@ -310,9 +314,9 @@ export default function App() {
   const handleDeleteMeetingNote = async (noteId) => {
     setMeetingNotes(prev => prev.filter(n => n.id !== noteId));
     showToast('Note deleted');
-    if (session?.user) {
+    if (session?.user?.id) {
       try {
-        await supabase.from('tasks').delete().eq('id', noteId);
+        await supabase.from('tasks').delete().eq('id', noteId).eq('user_id', session.user.id);
       } catch (err) {
         console.warn("Supabase note delete error:", err);
       }
@@ -330,20 +334,6 @@ export default function App() {
     handleSaveMeetingNote(newNote);
     showToast('New note created');
   };
-
-  // Helper to sanitize task object for Supabase schema
-  const sanitizeTaskForCloud = (t, userId) => ({
-    id: t.id,
-    title: t.title || '',
-    description: t.description || '',
-    section: t.section || 'todo',
-    priority: t.priority || 'P2',
-    due_date: t.due_date || null,
-    due_time: t.due_time || '',
-    subtasks: Array.isArray(t.subtasks) ? t.subtasks : [],
-    created_at: t.created_at || new Date().toISOString(),
-    user_id: userId
-  });
 
   // --- LANDING PAGE & TASK MODALS STATE ---
   const [showLandingPage, setShowLandingPage] = useState(!session && !isGuest);
@@ -364,33 +354,65 @@ export default function App() {
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, []);
 
-  // --- DAILY BACKUP SYSTEM ---
+  // --- STRICT MULTI-TENANT ISOLATED LOCAL STORAGE SYNC & BACKUPS ---
   useEffect(() => {
-    const todayStr = new Date().toISOString().split('T')[0];
+    const uId = session?.user?.id;
+    const taskKey = uId ? `auratask_tasks_u_${uId}` : 'auratask_guest_tasks';
     try {
-      // 1. Continuous working storage
-      localStorage.setItem('auratask_v3_tasks', JSON.stringify(tasks));
+      localStorage.setItem(taskKey, JSON.stringify(tasks));
       
-      // 2. Day-wise snapshot rolling backup
-      const backupKey = `auratask_backup_${todayStr}`;
+      // Scoped Day-wise snapshot rolling backup
+      const todayStr = new Date().toISOString().split('T')[0];
+      const backupKey = uId ? `auratask_backup_${uId}_${todayStr}` : `auratask_guest_backup_${todayStr}`;
       localStorage.setItem(backupKey, JSON.stringify({
         date: todayStr,
+        userId: uId || 'guest_sandbox',
         saved_at: new Date().toISOString(),
         tasks_count: tasks.length,
         tasks
       }));
 
-      // Update backup registry
-      const manifestStr = localStorage.getItem('auratask_backup_manifest') || '[]';
+      // Scoped backup manifest
+      const manifestKey = uId ? `auratask_backup_manifest_${uId}` : 'auratask_guest_backup_manifest';
+      const manifestStr = localStorage.getItem(manifestKey) || '[]';
       const manifest = JSON.parse(manifestStr);
       if (!manifest.includes(todayStr)) {
         manifest.unshift(todayStr);
-        localStorage.setItem('auratask_backup_manifest', JSON.stringify(manifest.slice(0, 30)));
+        localStorage.setItem(manifestKey, JSON.stringify(manifest.slice(0, 30)));
       }
     } catch (e) {
-      console.warn("Daily storage snapshot notice:", e);
+      console.warn("Storage snapshot notice:", e);
     }
-  }, [tasks]);
+  }, [tasks, session?.user?.id]);
+
+  // Sync Meeting Notes scoped to user
+  useEffect(() => {
+    const uId = session?.user?.id;
+    const noteKey = uId ? `auratask_notes_u_${uId}` : 'auratask_guest_notes';
+    try {
+      localStorage.setItem(noteKey, JSON.stringify(meetingNotes));
+    } catch (e) {
+      console.warn("Meeting notes storage sync notice:", e);
+    }
+  }, [meetingNotes, session?.user?.id]);
+
+  // Sync Sections scoped to user
+  useEffect(() => {
+    const uId = session?.user?.id;
+    const secKey = uId ? `auratask_sections_u_${uId}` : 'auratask_guest_sections';
+    try {
+      localStorage.setItem(secKey, JSON.stringify(customSections));
+    } catch {}
+  }, [customSections, session?.user?.id]);
+
+  // Sync Activity Logs scoped to user
+  useEffect(() => {
+    const uId = session?.user?.id;
+    const actKey = uId ? `auratask_activity_u_${uId}` : 'auratask_guest_activity';
+    try {
+      localStorage.setItem(actKey, JSON.stringify(activityLogs));
+    } catch {}
+  }, [activityLogs, session?.user?.id]);
 
   const handleOpenTaskModal = (taskToEdit = null, defaultSec = 'todo') => {
     setModalTask(taskToEdit);
@@ -447,39 +469,68 @@ export default function App() {
     }
   }, [darkMode]);
 
+  // Switch workspace to authenticated user
+  const handleUserSessionEstablished = (userSession) => {
+    setSession(userSession);
+    setIsGuest(false);
+    localStorage.removeItem('auratask_guest_mode');
+    if (userSession?.user?.id) {
+      const uId = userSession.user.id;
+      const userCached = loadScopedWorkspaceData(uId);
+      setTasks(userCached.tasks);
+      setMeetingNotes(userCached.notes);
+      setCustomSections(userCached.sections);
+      setActivityLogs(userCached.activity);
+    }
+  };
+
+  // Reset workspace completely on sign out
+  const handleUserSignedOut = () => {
+    setSession(null);
+    setIsGuest(false);
+    localStorage.removeItem('auratask_guest_mode');
+    const guestData = loadScopedWorkspaceData(null);
+    setTasks(guestData.tasks);
+    setMeetingNotes(guestData.notes);
+    setCustomSections(guestData.sections);
+    setActivityLogs(guestData.activity);
+  };
+
   // Initial Session Check & Auth Listener
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        setSession(session);
-        setIsGuest(false);
+        handleUserSessionEstablished(session);
       }
     }).catch(err => {
       console.warn("Supabase auth session check notice:", err);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        setSession(session);
-        setIsGuest(false);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
+      if (s) {
+        handleUserSessionEstablished(s);
+      } else if (event === 'SIGNED_OUT') {
+        handleUserSignedOut();
       }
     });
 
     return () => subscription?.unsubscribe();
   }, []);
 
-  // Fetch Tasks from Supabase if logged in
+  // Fetch Tasks from Supabase strictly scoped to user_id (Zero Cross-User Bleed)
   useEffect(() => {
-    if (!session?.user) return;
+    if (!session?.user?.id) return;
+    const currentUserId = session.user.id;
 
     const fetchTasks = async () => {
       try {
         const { data, error } = await supabase
           .from('tasks')
           .select('*')
+          .eq('user_id', currentUserId)
           .order('created_at', { ascending: false });
 
-        if (!error && Array.isArray(data) && data.length > 0) {
+        if (!error && Array.isArray(data)) {
           const regularTasks = data.filter(item => item.section !== 'meeting_notes');
           const cloudNotes = data.filter(item => item.section === 'meeting_notes');
 
@@ -504,12 +555,12 @@ export default function App() {
           }
         }
       } catch (err) {
-        console.warn('Supabase fetch notice (using local offline cache):', err);
+        console.warn('Supabase fetch notice (using scoped local cache):', err);
       }
     };
 
     fetchTasks();
-  }, [session]);
+  }, [session?.user?.id]);
 
   // Pomodoro Timer Interval
   useEffect(() => {
@@ -586,9 +637,20 @@ export default function App() {
   const handleUpdateTask = async (id, updates) => {
     setTasks(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
 
-    if (session?.user) {
+    if (session?.user?.id) {
       try {
-        await supabase.from('tasks').update(updates).eq('id', id);
+        const allowedKeys = ['title', 'description', 'section', 'priority', 'due_date', 'due_time', 'subtasks'];
+        const cloudUpdates = {};
+        for (const k of allowedKeys) {
+          if (updates[k] !== undefined) cloudUpdates[k] = updates[k];
+        }
+        if (Object.keys(cloudUpdates).length > 0) {
+          await supabase
+            .from('tasks')
+            .update(cloudUpdates)
+            .eq('id', id)
+            .eq('user_id', session.user.id);
+        }
       } catch (err) {
         console.warn("Supabase update error:", err);
       }
@@ -603,9 +665,13 @@ export default function App() {
     setTasks(prev => prev.filter(t => t.id !== id));
     showToast('Task removed');
 
-    if (session?.user) {
+    if (session?.user?.id) {
       try {
-        await supabase.from('tasks').delete().eq('id', id);
+        await supabase
+          .from('tasks')
+          .delete()
+          .eq('id', id)
+          .eq('user_id', session.user.id);
       } catch (err) {
         console.warn("Supabase delete error:", err);
       }
@@ -865,8 +931,7 @@ export default function App() {
         if (error) throw error;
 
         if (data?.session) {
-          setSession(data.session);
-          setIsGuest(false);
+          handleUserSessionEstablished(data.session);
           setShowLandingPage(false);
           setShowAuthModal(false);
           showToast(`Welcome to AuraTask, ${authFullName || 'friend'}!`);
@@ -882,8 +947,7 @@ export default function App() {
         if (error) throw error;
 
         if (data?.session) {
-          setSession(data.session);
-          setIsGuest(false);
+          handleUserSessionEstablished(data.session);
           setShowLandingPage(false);
           setShowAuthModal(false);
           showToast('Signed in successfully!');
@@ -898,19 +962,24 @@ export default function App() {
 
   const handleGuestLogin = () => {
     setIsGuest(true);
+    setSession(null);
     localStorage.setItem('auratask_guest_mode', 'true');
+    // Strict isolation: Load fresh guest sandbox state so no user notes or tasks are ever visible
+    const guestData = loadScopedWorkspaceData(null);
+    setTasks(guestData.tasks);
+    setMeetingNotes(guestData.notes);
+    setCustomSections(guestData.sections);
+    setActivityLogs(guestData.activity);
     setShowLandingPage(false);
     setShowAuthModal(false);
-    showToast('Entered Guest Mode. All features active!');
+    showToast('Entered Guest Sandbox. All features active!');
   };
 
   const handleSignOut = async () => {
     try {
       await supabase.auth.signOut();
     } catch {}
-    setSession(null);
-    setIsGuest(false);
-    localStorage.removeItem('auratask_guest_mode');
+    handleUserSignedOut();
     setShowLandingPage(true);
     showToast('Signed out successfully.');
   };

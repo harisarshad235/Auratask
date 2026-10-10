@@ -3,7 +3,9 @@ import {
   CheckCircle2, Circle, Clock, Plus, Search, Calendar, Inbox, Check,
   Sparkles, ArrowRight, Star, Shield, Flame, Kanban, ListFilter,
   Play, Award, ChevronRight, Zap, Target, Layers, FileText, CheckSquare,
-  MessageSquare, ExternalLink, Moon, Sun, Laptop, Smartphone, Users, Download
+  MessageSquare, ExternalLink, Moon, Sun, Laptop, Smartphone, Users, Download,
+  Mail, CalendarDays, Lock, Edit3, Heading, List, Code, Quote, Divide, RefreshCw, Eye,
+  FastForward, BarChart3, Upload, Square
 } from 'lucide-react';
 import { AuraLogo } from './App';
 
@@ -49,9 +51,10 @@ export default function LandingPage({
             {/* Nav Links */}
             <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-neutral-600 dark:text-[#a1a1aa]">
               <a href="#features" className="hover:text-neutral-900 dark:hover:text-[#ededed] transition-colors">Features</a>
-              <a href="#calendar-view" className="hover:text-neutral-900 dark:hover:text-[#ededed] transition-colors">Calendar</a>
+              <a href="#scratchpad" className="hover:text-neutral-900 dark:hover:text-[#ededed] transition-colors">Meeting Scratchpad</a>
+              <a href="#calendar-view" className="hover:text-neutral-900 dark:hover:text-[#ededed] transition-colors">7-Day Horizon</a>
+              <a href="#workflow-suite" className="hover:text-neutral-900 dark:hover:text-[#ededed] transition-colors">Workflow Tools</a>
               <a href="#templates" className="hover:text-neutral-900 dark:hover:text-[#ededed] transition-colors">Templates</a>
-              <a href="#aura-assist" className="hover:text-neutral-900 dark:hover:text-[#ededed] transition-colors">Aura Assist AI</a>
             </nav>
           </div>
 
@@ -273,61 +276,194 @@ export default function LandingPage({
       </section>
 
       {/* =========================================================================
-          4. FEATURE 2: "Stay organized and focused"
+          4. NEW FEATURE: MEETING SCRATCHPAD & RICH LIVE NOTES
+         ========================================================================= */}
+      <section id="scratchpad" className="py-20 border-t border-neutral-200/60 dark:border-[#222225] bg-neutral-50/50 dark:bg-[#09090b]/40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className="space-y-4">
+              <span className="text-xs font-bold uppercase tracking-wider text-red-600 dark:text-red-400 flex items-center gap-1.5">
+                <Edit3 className="w-3.5 h-3.5" /> High-Velocity Note Taking
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-neutral-900 dark:text-[#ededed]">
+                Meeting Scratchpad. Capture minutes without losing focus.
+              </h2>
+              <p className="text-sm sm:text-base text-neutral-600 dark:text-[#a1a1aa] leading-relaxed">
+                Take tactical meeting notes, standup minutes, and sprint agendas directly within your workspace. Format in seconds with a rich markdown toolbar, toggle instant preview, and export to Markdown or let AuraTask auto-save to your encrypted database partition.
+              </p>
+
+              <div className="space-y-3 pt-2">
+                {[
+                  { title: 'Tactile Formatting Toolbar', desc: 'Bullets (•), interactive task checklists (- [ ]), H2/H3 headings, bold, italic, quotes, code blocks, and divider rules.' },
+                  { title: 'Write & Live Preview Toggle', desc: 'Real-time Markdown rendering with checkable interactive checkboxes and syntax styling.' },
+                  { title: 'Multi-Note Archive & Search', desc: 'Search and switch between client meetings, 1-on-1s, and project retro notes instantly.' },
+                  { title: 'Zero Cross-User Visibility', desc: 'Strictly encrypted and isolated to your account. Guests operate in a standalone demo sandbox.' }
+                ].map((item, idx) => (
+                  <div key={idx} className="flex items-start gap-3 text-xs sm:text-sm">
+                    <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-bold text-neutral-900 dark:text-[#ededed]">{item.title}: </span>
+                      <span className="text-neutral-600 dark:text-[#a1a1aa]">{item.desc}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="pt-2 flex gap-3">
+                <button
+                  onClick={onTryDemo}
+                  className="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all"
+                >
+                  Test Scratchpad in Demo
+                </button>
+              </div>
+            </div>
+
+            {/* Simulated Scratchpad UI Mockup */}
+            <div className="bg-white dark:bg-[#09090b] border border-neutral-200 dark:border-[#222225] rounded-3xl p-5 shadow-2xl space-y-3">
+              {/* Toolbar Simulation */}
+              <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-neutral-100 dark:border-[#222225]">
+                <div className="flex items-center gap-1 bg-neutral-100 dark:bg-[#121214] p-1 rounded-xl border border-neutral-200/80 dark:border-[#222225]">
+                  <span className="px-2 py-0.5 text-[10px] font-bold text-neutral-700 dark:text-[#ededed] bg-white dark:bg-[#1c1c20] rounded-md shadow-xs">Write</span>
+                  <span className="px-2 py-0.5 text-[10px] font-semibold text-neutral-500 dark:text-[#a1a1aa]">Preview</span>
+                </div>
+                <div className="flex items-center gap-1 text-[11px] font-mono text-neutral-600 dark:text-[#a1a1aa]">
+                  <span className="px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-[#121214] border border-neutral-200 dark:border-[#222225]">• Bullet</span>
+                  <span className="px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-[#121214] border border-neutral-200 dark:border-[#222225]">☑ Task</span>
+                  <span className="px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-[#121214] border border-neutral-200 dark:border-[#222225]">H2</span>
+                  <span className="px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-[#121214] border border-neutral-200 dark:border-[#222225]">B</span>
+                  <span className="px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-[#121214] border border-neutral-200 dark:border-[#222225]">&lt;/&gt;</span>
+                </div>
+              </div>
+
+              {/* Note Content Simulation */}
+              <div className="p-4 rounded-2xl bg-neutral-50/80 dark:bg-[#121214] border border-neutral-200/80 dark:border-[#222225] font-sans text-xs space-y-2.5">
+                <div className="font-bold text-sm text-neutral-900 dark:text-[#ededed] flex items-center justify-between">
+                  <span>Product Sprint & Architecture Review</span>
+                  <span className="text-[10px] font-mono font-normal text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Auto-Saved to Cloud
+                  </span>
+                </div>
+                <div className="text-[11px] text-neutral-700 dark:text-[#ededed] space-y-1 font-mono">
+                  <p className="text-red-600 dark:text-red-400 font-bold">### Standup Sync</p>
+                  <p className="text-neutral-700 dark:text-[#ededed]">• Resolved multi-tenant isolation; zero cross-user visibility.</p>
+                  <p className="text-neutral-700 dark:text-[#ededed]">• 7-day rolling calendar horizon with 1-click reschedule active.</p>
+                  <p className="text-red-600 dark:text-red-400 font-bold pt-1">### Action Items</p>
+                  <p className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                    <CheckSquare className="w-3.5 h-3.5" /> Deploy release v3.4 to production
+                  </p>
+                  <p className="text-neutral-500 dark:text-[#a1a1aa] flex items-center gap-1.5">
+                    <Square className="w-3.5 h-3.5 text-neutral-400" /> Share meeting summary with team
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between text-[11px] text-neutral-500 dark:text-[#a1a1aa] px-1">
+                <span>124 words • Markdown Formatted</span>
+                <span className="flex items-center gap-1 text-red-600 dark:text-red-400 font-bold">
+                  <Download className="w-3.5 h-3.5" /> Export as .md
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          5. FEATURE: 7-DAY CALENDAR HORIZON & 1-CLICK RESCHEDULE
          ========================================================================= */}
       <section id="calendar-view" className="py-20 bg-neutral-50/60 dark:bg-[#09090b]/50 border-t border-neutral-200/60 dark:border-[#222225]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Visual preview of Structured List View */}
+            {/* Visual preview of 7-Day Horizon Strip & Reschedule */}
             <div className="order-2 lg:order-1 bg-white dark:bg-[#09090b] border border-neutral-200 dark:border-[#222225] rounded-3xl p-6 shadow-xl space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-neutral-100 dark:border-[#222225]">
-                <h3 className="font-extrabold text-base text-neutral-900 dark:text-[#ededed]">Inbox</h3>
-                <span className="text-xs font-semibold text-neutral-500 dark:text-[#a1a1aa] flex items-center gap-1">
-                  <ListFilter className="w-3.5 h-3.5" /> Display
+                <div className="flex items-center gap-2">
+                  <CalendarDays className="w-4 h-4 text-red-600" />
+                  <h3 className="font-extrabold text-base text-neutral-900 dark:text-[#ededed]">7-Day Calendar Horizon</h3>
+                </div>
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-100 dark:bg-[#2a1215] text-red-600 dark:text-red-400">
+                  Rolling Week
                 </span>
               </div>
 
-              {/* Collapsible Section 1 */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs font-bold text-neutral-700 dark:text-[#ededed]">
-                  <span className="flex items-center gap-1.5 cursor-pointer">
-                    <ChevronRight className="w-3.5 h-3.5 rotate-90 text-neutral-400" />
-                    <span>In progress</span>
-                    <span className="text-[11px] font-mono text-neutral-400">2</span>
-                  </span>
-                </div>
-                <div className="space-y-1 pl-4">
-                  <div className="flex items-center gap-2.5 py-1 text-xs text-neutral-800 dark:text-[#ededed] border-b border-neutral-100 dark:border-[#222225] pb-2">
-                    <Circle className="w-4 h-4 text-neutral-300 dark:text-[#52525b]" />
-                    <span>Complete mobile responsive review</span>
+              {/* 7-Day Quick Strip */}
+              <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5 text-center">
+                {['Today', 'Tomorrow', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
+                  <div
+                    key={day}
+                    className={`p-2 rounded-xl border text-[11px] font-bold ${
+                      i === 0
+                        ? 'bg-red-50 dark:bg-[#2a1215] border-red-300 dark:border-red-500/30 text-red-600 dark:text-red-400'
+                        : i === 1
+                        ? 'bg-neutral-100 dark:bg-[#121214] border-neutral-300 dark:border-[#222225] text-neutral-800 dark:text-[#ededed]'
+                        : 'border-transparent text-neutral-400'
+                    }`}
+                  >
+                    <div>{day}</div>
+                    <div className="text-[10px] font-normal text-neutral-400 mt-0.5">{i === 0 ? '4 tasks' : i === 1 ? '2 tasks' : '0'}</div>
                   </div>
-                  <div className="flex items-center gap-2.5 py-1 text-xs text-neutral-800 dark:text-[#ededed] border-b border-neutral-100 dark:border-[#222225] pb-2">
-                    <Circle className="w-4 h-4 text-neutral-300 dark:text-[#52525b]" />
-                    <span>Deploy PostgreSQL database migrations</span>
+                ))}
+              </div>
+
+              {/* Task with 1-Click "Tomorrow" Reschedule */}
+              <div className="space-y-2 pt-2">
+                <div className="p-3 bg-neutral-50 dark:bg-[#121214] border border-neutral-200/80 dark:border-[#222225] rounded-xl flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <Circle className="w-4 h-4 text-neutral-400" />
+                    <div>
+                      <div className="text-xs font-bold text-neutral-900 dark:text-[#ededed]">Finalize sprint retro documentation</div>
+                      <div className="text-[10px] text-red-500 font-medium">Due Today • P1 Urgent</div>
+                    </div>
                   </div>
-                  <button className="text-xs font-semibold text-red-600 dark:text-red-400 flex items-center gap-1 pt-1 hover:underline">
-                    <Plus className="w-3.5 h-3.5" /> Add task
+                  <button className="px-2.5 py-1 text-[10px] font-bold rounded-lg bg-white dark:bg-[#1c1c20] border border-neutral-200 dark:border-[#222225] text-neutral-700 dark:text-[#ededed] hover:border-red-500 hover:text-red-600 dark:hover:text-red-400 transition-colors flex items-center gap-1 shadow-xs">
+                    <FastForward className="w-3 h-3 text-red-600" />
+                    <span>Tomorrow</span>
                   </button>
+                </div>
+
+                <div className="p-3 bg-neutral-50 dark:bg-[#121214] border border-neutral-200/80 dark:border-[#222225] rounded-xl flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                    <div>
+                      <div className="text-xs font-bold line-through text-neutral-400">Deploy isolated tenant schema migrations</div>
+                      <div className="text-[10px] text-emerald-500 font-medium">Completed</div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
             <div className="order-1 lg:order-2 space-y-4">
               <span className="text-xs font-bold uppercase tracking-wider text-red-600 dark:text-red-400">
-                Day-Wise Persistence
+                Effortless Rescheduling
               </span>
               <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-neutral-900 dark:text-[#ededed]">
                 Plan today. Postpone to tomorrow with 1-click.
               </h2>
               <p className="text-sm sm:text-base text-neutral-600 dark:text-[#a1a1aa] leading-relaxed">
-                Tackle high workloads without anxiety. Every task is automatically saved day-wise and backed up. Switch between structured collapsible lists, Kanban swimlanes, and the 7-day Calendar Horizon.
+                Tackle high workloads without anxiety. If tasks roll over, never spend time clicking date pickers. The dedicated 1-click <strong className="text-neutral-900 dark:text-[#ededed]">"⏩ Tomorrow"</strong> button moves overdue or unfinished tasks forward instantly.
               </p>
+              <div className="space-y-2 pt-1 text-xs sm:text-sm font-semibold text-neutral-700 dark:text-[#ededed]">
+                <div className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-emerald-500" />
+                  <span>Rolling 7-day timeline view of upcoming commitments</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-emerald-500" />
+                  <span>1-click quick-action button on every task card</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-emerald-500" />
+                  <span>Seamless sync with external calendar clients via iCal</span>
+                </div>
+              </div>
               <div className="pt-2 flex gap-3">
                 <button
                   onClick={onTryDemo}
                   className="px-4 py-2.5 bg-neutral-900 dark:bg-[#ededed] text-white dark:text-[#000000] text-xs font-bold rounded-xl"
                 >
-                  Explore Live Workspace
+                  Explore Calendar Horizon
                 </button>
               </div>
             </div>
@@ -336,23 +472,84 @@ export default function LandingPage({
       </section>
 
       {/* =========================================================================
-          5. FEATURE 3: "Aura Assist — Smart features that feel magical"
+          6. NEW FEATURE: ADVANCED WORKFLOW TOOLS (SCREENSHOT 1 SUITE)
          ========================================================================= */}
-      <section id="aura-assist" className="py-20 border-t border-neutral-200/60 dark:border-[#222225]">
+      <section id="workflow-suite" className="py-20 border-t border-neutral-200/60 dark:border-[#222225]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-14">
             <span className="text-xs font-bold uppercase tracking-wider text-red-600 dark:text-red-400">
-              Intelligent Flow
+              Power User Suite
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-neutral-900 dark:text-[#ededed] mt-2 mb-4">
-              Aura Assist — Smart features that feel magical
+              Advanced workflows that adapt to your exact stack
             </h2>
             <p className="text-sm sm:text-base text-neutral-600 dark:text-[#a1a1aa]">
-              Everything you need to sustain peak performance without mental fatigue.
+              Everything power users demand: calendar feeds, dynamic swimlanes, email ingestion, and spreadsheet portability.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="p-6 rounded-3xl bg-white dark:bg-[#09090b] border border-neutral-200 dark:border-[#222225] shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-100 dark:bg-[#0d261a] text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-4">
+                <CalendarDays className="w-5 h-5" />
+              </div>
+              <h3 className="font-extrabold text-base text-neutral-900 dark:text-[#ededed] mb-2">Inbox Calendar Feed (iCal)</h3>
+              <p className="text-xs text-neutral-600 dark:text-[#a1a1aa] leading-relaxed">
+                Subscribe to your AuraTask tasks directly inside Apple Calendar, Google Calendar, or Outlook with live webcal feed sync.
+              </p>
+            </div>
+
+            <div className="p-6 rounded-3xl bg-white dark:bg-[#09090b] border border-neutral-200 dark:border-[#222225] shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-10 h-10 rounded-2xl bg-red-100 dark:bg-[#2a1215] text-red-600 dark:text-red-400 flex items-center justify-center mb-4">
+                <Mail className="w-5 h-5" />
+              </div>
+              <h3 className="font-extrabold text-base text-neutral-900 dark:text-[#ededed] mb-2">Email Tasks to Inbox</h3>
+              <p className="text-xs text-neutral-600 dark:text-[#a1a1aa] leading-relaxed">
+                Forward messages from your email client to your private inbox address to convert important emails into actionable tasks.
+              </p>
+            </div>
+
+            <div className="p-6 rounded-3xl bg-white dark:bg-[#09090b] border border-neutral-200 dark:border-[#222225] shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-10 h-10 rounded-2xl bg-blue-100 dark:bg-[#0e2138] text-blue-600 dark:text-blue-400 flex items-center justify-center mb-4">
+                <Layers className="w-5 h-5" />
+              </div>
+              <h3 className="font-extrabold text-base text-neutral-900 dark:text-[#ededed] mb-2">Dynamic Custom Sections</h3>
+              <p className="text-xs text-neutral-600 dark:text-[#a1a1aa] leading-relaxed">
+                Create custom stages like "Client Review", "Blocked", or "Backlog" with 1-click and drag tasks freely across columns.
+              </p>
+            </div>
+
+            <div className="p-6 rounded-3xl bg-white dark:bg-[#09090b] border border-neutral-200 dark:border-[#222225] shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-10 h-10 rounded-2xl bg-purple-100 dark:bg-[#201538] text-purple-600 dark:text-purple-400 flex items-center justify-center mb-4">
+                <BarChart3 className="w-5 h-5" />
+              </div>
+              <h3 className="font-extrabold text-base text-neutral-900 dark:text-[#ededed] mb-2">Audit Log & CSV Tools</h3>
+              <p className="text-xs text-neutral-600 dark:text-[#a1a1aa] leading-relaxed">
+                Audit every change with timestamped activity history. Full data export and import via CSV for complete data freedom.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          7. FEATURE: AURA ASSIST & STRICT MULTI-TENANT PRIVACY
+         ========================================================================= */}
+      <section id="aura-assist" className="py-20 border-t border-neutral-200/60 dark:border-[#222225] bg-neutral-50/40 dark:bg-[#000000]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-14">
+            <span className="text-xs font-bold uppercase tracking-wider text-red-600 dark:text-red-400">
+              Intelligent Flow & Privacy
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-neutral-900 dark:text-[#ededed] mt-2 mb-4">
+              Aura Assist — Focus tools and guaranteed privacy
+            </h2>
+            <p className="text-sm sm:text-base text-neutral-600 dark:text-[#a1a1aa]">
+              Engineered for absolute privacy and peak focus with zero bloat or advertisements.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="p-6 rounded-3xl bg-white dark:bg-[#09090b] border border-neutral-200 dark:border-[#222225] shadow-sm hover:shadow-md transition-shadow">
               <div className="w-10 h-10 rounded-2xl bg-red-100 dark:bg-[#2a1215] text-red-600 dark:text-red-400 flex items-center justify-center mb-4">
                 <Flame className="w-5 h-5" />
@@ -374,12 +571,22 @@ export default function LandingPage({
             </div>
 
             <div className="p-6 rounded-3xl bg-white dark:bg-[#09090b] border border-neutral-200 dark:border-[#222225] shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-10 h-10 rounded-2xl bg-blue-100 dark:bg-[#0e2138] text-blue-600 dark:text-blue-400 flex items-center justify-center mb-4">
+                <Lock className="w-5 h-5" />
+              </div>
+              <h3 className="font-extrabold text-base text-neutral-900 dark:text-[#ededed] mb-2">Zero Cross-User Leakage</h3>
+              <p className="text-xs text-neutral-600 dark:text-[#a1a1aa] leading-relaxed">
+                Strict multi-tenant isolation. Your tasks and meeting scratchpad are visible only to you. Isolated sandbox for guests.
+              </p>
+            </div>
+
+            <div className="p-6 rounded-3xl bg-white dark:bg-[#09090b] border border-neutral-200 dark:border-[#222225] shadow-sm hover:shadow-md transition-shadow">
               <div className="w-10 h-10 rounded-2xl bg-emerald-100 dark:bg-[#0d261a] text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-4">
                 <Download className="w-5 h-5" />
               </div>
-              <h3 className="font-extrabold text-base text-neutral-900 dark:text-[#ededed] mb-2">Daily Auto-Backup & CSV</h3>
+              <h3 className="font-extrabold text-base text-neutral-900 dark:text-[#ededed] mb-2">Daily Auto-Backup & Snapshots</h3>
               <p className="text-xs text-neutral-600 dark:text-[#a1a1aa] leading-relaxed">
-                Never lose a task. Real-time persistent local backup snapshots, cloud sync, and 1-click CSV import and export.
+                Never lose a task. Real-time persistent local backup snapshots, cloud database synchronization, and CSV export.
               </p>
             </div>
           </div>
