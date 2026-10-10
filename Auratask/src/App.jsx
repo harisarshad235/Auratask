@@ -1033,7 +1033,7 @@ export default function App() {
   // 2. MAIN APPLICATION WORKSPACE (FEY OBSIDIAN PURE BLACK PALETTE)
   // =========================================================================
   return (
-    <div className={`min-h-screen flex selection:bg-red-500 selection:text-white ${darkMode ? 'dark bg-[#000000] text-[#ededed]' : 'bg-[#fafafa] text-slate-800'}`}>
+    <div className={`h-screen w-full flex overflow-hidden selection:bg-red-500 selection:text-white ${darkMode ? 'dark bg-[#000000] text-[#ededed]' : 'bg-[#fafafa] text-slate-800'}`}>
 
       {/* Hidden File Input for CSV Import */}
       <input
@@ -1060,8 +1060,8 @@ export default function App() {
         />
       )}
 
-      {/* --- SIDEBAR NAVIGATION (FEY CARBON DESIGN) --- */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-[#09090b] border-r border-slate-200/80 dark:border-[#222225] flex flex-col p-4 transition-transform duration-300 lg:static lg:translate-x-0 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+      {/* --- SIDEBAR NAVIGATION (PERMANENTLY PINNED, NEVER MOVES WITH SCROLL) --- */}
+      <aside className={`fixed inset-y-0 left-0 z-50 w-72 h-screen bg-white dark:bg-[#09090b] border-r border-slate-200/80 dark:border-[#222225] flex flex-col p-4 transition-transform duration-300 lg:static lg:translate-x-0 shrink-0 overflow-y-auto ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         {/* Brand & User Profile */}
         <div className="flex items-center justify-between pb-4 mb-2 border-b border-slate-100 dark:border-[#222225]">
           <div className="flex items-center gap-2.5">
@@ -1294,10 +1294,10 @@ export default function App() {
         </div>
       </aside>
 
-      {/* --- MAIN CONTENT CANVAS --- */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* TOP HEADER */}
-        <header className="h-16 border-b border-slate-200/80 dark:border-[#222225] bg-white/80 dark:bg-[#09090b]/90 backdrop-blur-md px-4 sm:px-8 flex items-center justify-between shrink-0 sticky top-0 z-20">
+      {/* --- MAIN CONTENT CANVAS (FIXED HEADER, SCROLLABLE TASK VIEW) --- */}
+      <main className="flex-1 h-screen flex flex-col min-w-0 overflow-hidden">
+        {/* TOP HEADER: PERMANENTLY FIXED AT TOP, NEVER MOVES WITH SCROLL */}
+        <header className="h-16 border-b border-slate-200/80 dark:border-[#222225] bg-white/95 dark:bg-[#09090b]/95 backdrop-blur-md px-4 sm:px-8 flex items-center justify-between shrink-0 z-20">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setMobileMenuOpen(true)}
@@ -1463,8 +1463,8 @@ export default function App() {
           </div>
         </header>
 
-        {/* WORKSPACE SCROLL AREA */}
-        <div className="flex-1 overflow-auto p-4 sm:p-8">
+        {/* WORKSPACE SCROLL AREA (ONLY TASKS SCROLL, NAV BARS REMAIN PINNED) */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-8">
 
           {/* TODAY'S BIG 3 SPOTLIGHT STRIP */}
           {big3Tasks.length > 0 && activeTab === 'today' && (
