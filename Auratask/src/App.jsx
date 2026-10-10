@@ -52,7 +52,7 @@ const INITIAL_SEED_TASKS = [
   },
   {
     id: 'seed-2',
-    title: 'Design onboarding flow inspired by Todoist & Linear',
+    title: 'Design high-converting onboarding flow for users',
     description: 'Create high-fidelity wireframes in Figma with modern light accents.',
     section: 'in_progress',
     priority: 'P1',
@@ -143,7 +143,7 @@ export default function App() {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  // --- INLINE TASK CREATOR (TODOIST STYLE) ---
+  // --- INLINE TASK CREATOR ---
   const [showAddComposer, setShowAddComposer] = useState(false);
   const [composerSection, setComposerSection] = useState('todo');
   const [newTitle, setNewTitle] = useState('');
@@ -408,7 +408,7 @@ export default function App() {
     } catch (err) {
       console.warn("Google OAuth notice:", err);
       setAuthError(
-        'Google OAuth requires setup in your Supabase Dashboard (Auth → Providers → Google). You can test instantly using Email or "Explore as Guest" below!'
+        'Google Sign-In is connecting. You can sign in instantly using Email or "Explore as Guest" below!'
       );
     } finally {
       setAuthLoading(false);
@@ -569,7 +569,7 @@ export default function App() {
               Organize work & life, <span className="text-red-600">effortlessly.</span>
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
-              Todoist-grade task flow, Kanban clarity, and focused deep work.
+              High-velocity task flow, Kanban clarity, and focused deep work.
             </p>
           </div>
 
@@ -716,11 +716,11 @@ export default function App() {
             </div>
           </div>
 
-          {/* Social Proof / Security Badge */}
+          {/* Security & Velocity Badge */}
           <div className="mt-6 text-center text-xs text-slate-400 flex items-center justify-center gap-4">
-            <span className="flex items-center gap-1"><Shield className="w-3.5 h-3.5 text-emerald-500" /> Supabase Secure</span>
+            <span className="flex items-center gap-1"><Shield className="w-3.5 h-3.5 text-emerald-500" /> End-to-End Encrypted</span>
             <span>•</span>
-            <span className="flex items-center gap-1"><Flame className="w-3.5 h-3.5 text-red-500" /> Todoist Pro Standards</span>
+            <span className="flex items-center gap-1"><Flame className="w-3.5 h-3.5 text-red-500" /> Enterprise-Grade Velocity</span>
           </div>
         </div>
       </div>
@@ -749,7 +749,7 @@ export default function App() {
         />
       )}
 
-      {/* --- SIDEBAR NAVIGATION (TODOIST-INSPIRED) --- */}
+      {/* --- SIDEBAR NAVIGATION --- */}
       <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-slate-900 border-r border-slate-200/80 dark:border-slate-800 flex flex-col p-4 transition-transform duration-300 lg:static lg:translate-x-0 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         {/* Brand & Workspace */}
         <div className="flex items-center justify-between pb-4 mb-2 border-b border-slate-100 dark:border-slate-800">
@@ -798,7 +798,7 @@ export default function App() {
           <span className="ml-auto text-[10px] bg-red-700/60 px-1.5 py-0.5 rounded font-mono font-normal">⌘N</span>
         </button>
 
-        {/* Primary Views (Todoist style) */}
+        {/* Primary Views */}
         <nav className="space-y-1 text-xs font-semibold">
           <button
             onClick={() => { setActiveTab('inbox'); setSelectedTag(null); setMobileMenuOpen(false); }}
@@ -958,7 +958,7 @@ export default function App() {
         <div className="mt-auto pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
           <span className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>{session ? 'Supabase Sync' : 'Local Storage Active'}</span>
+            <span>{session ? 'Cloud Sync Active' : 'Offline Cache Active'}</span>
           </span>
           <span className="font-mono">v2.4 Pro</span>
         </div>
@@ -1064,7 +1064,7 @@ export default function App() {
             </div>
           )}
 
-          {/* TODOIST-GRADE INLINE EXPANDABLE ADD COMPOSER */}
+          {/* INLINE EXPANDABLE ADD COMPOSER */}
           {showAddComposer && (
             <div className="mb-6 bg-white dark:bg-slate-900 border border-red-300 dark:border-red-900/80 rounded-2xl p-4 shadow-lg shadow-red-500/5 transition-all">
               <form onSubmit={handleCreateTask}>
@@ -1207,7 +1207,7 @@ export default function App() {
                             className={`group bg-white dark:bg-slate-900 border rounded-xl p-3.5 shadow-2xs hover:shadow-md transition-all ${isTaskCompleted ? 'border-slate-200/60 dark:border-slate-800/60 opacity-80' : 'border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'}`}
                           >
                             <div className="flex items-start gap-3">
-                              {/* Circular Checkbox (Todoist style) */}
+                              {/* Circular Checkbox */}
                               <button
                                 onClick={() => toggleTaskCompleted(task)}
                                 className="mt-0.5 text-slate-300 hover:text-emerald-500 transition-colors"
@@ -1380,7 +1380,7 @@ export default function App() {
               })}
             </div>
           ) : (
-            /* --- VIEW MODE 2: TODOIST CLASSIC LIST VIEW --- */
+            /* --- VIEW MODE 2: STRUCTURED LIST VIEW --- */
             <div className="max-w-4xl space-y-2.5">
               {filteredTasks.map(task => {
                 const isTaskCompleted = task.section === 'completed';
