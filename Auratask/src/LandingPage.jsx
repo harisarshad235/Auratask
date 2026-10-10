@@ -5,9 +5,8 @@ import {
   Play, Award, ChevronRight, Zap, Target, Layers, FileText, CheckSquare,
   MessageSquare, ExternalLink, Moon, Sun, Laptop, Smartphone, Users, Download,
   Mail, CalendarDays, Lock, Edit3, Heading, List, Code, Quote, Divide, RefreshCw, Eye,
-  FastForward, BarChart3, Upload, Square
+  FastForward, BarChart3, Upload, Square, CheckCircle
 } from 'lucide-react';
-import { AuraLogo } from './App';
 import Logo from './components/brand/Logo';
 
 export default function LandingPage({
