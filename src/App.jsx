@@ -7,7 +7,7 @@ import {
   BookOpen, ChevronRight, CheckSquare, Zap, Shield, ArrowRight, ArrowLeft,
   ChevronDown, Filter, Flag, Layers, Award, Target, Eye, EyeOff, User,
   Mail, Lock, Sparkle, RefreshCw, Menu, HelpCircle, CheckCircle, GripVertical,
-  CalendarDays, Share2, FileText, Copy, HardDriveDownload, Archive
+  CalendarDays, Share2, FileText, Copy, HardDriveDownload, Archive, MessageSquare
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { supabase } from './supabaseClient';
@@ -2184,6 +2184,11 @@ export default function App() {
                 );
                 const isOver = dragOverColumn === column.key;
 
+                // Dynamic column status dot color (from 21st.dev Kanban pattern)
+                const columnColor = boardGrouping === 'stage'
+                  ? (column.key === 'todo' ? '#38bdf8' : column.key === 'in_progress' ? '#f59e0b' : column.key === 'in_review' ? '#a855f7' : column.key === 'completed' ? '#10b981' : '#64748b')
+                  : (column.key === 'P1' ? '#f43f5e' : column.key === 'P2' ? '#f59e0b' : column.key === 'P3' ? '#3b82f6' : '#94a3b8');
+
                 return (
                   <div
                     key={column.key}
@@ -2203,19 +2208,23 @@ export default function App() {
                       setDragOverColumn(null);
                       setDraggingTaskId(null);
                     }}
-                    className={`w-80 shrink-0 flex flex-col bg-slate-100/80 dark:bg-[#09090b]/80 border rounded-2xl p-3 max-h-full transition-all duration-200 ${
+                    className={`w-80 shrink-0 flex flex-col bg-slate-100/70 dark:bg-[#0c101c]/70 backdrop-blur-md border rounded-2xl p-3.5 max-h-full transition-all duration-200 ${
                       isOver
-                        ? 'ring-2 ring-red-500/70 border-red-400 dark:border-red-600/70 bg-red-50/40 dark:bg-[#121214] shadow-md'
-                        : 'border-slate-200/80 dark:border-[#222225]'
+                        ? 'ring-2 ring-rose-500/50 border-rose-400 dark:border-rose-500/60 bg-rose-50/40 dark:bg-[#1a1020]/50 shadow-lg'
+                        : 'border-slate-200/80 dark:border-[#1e2638] shadow-2xs'
                     }`}
                   >
                     {/* Column Header */}
                     <div className="flex items-center justify-between pb-3 px-1">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2.5">
+                        <span
+                          className="w-2.5 h-2.5 rounded-full shrink-0 shadow-xs ring-2 ring-white/60 dark:ring-black/40"
+                          style={{ backgroundColor: columnColor }}
+                        />
                         <span className="font-extrabold text-xs uppercase tracking-wider text-slate-800 dark:text-[#ededed]">
                           {column.label}
                         </span>
-                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-white dark:bg-[#121214] border border-slate-200 dark:border-[#222225] text-slate-600 dark:text-[#a1a1aa]">
+                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-white/90 dark:bg-[#151d30] border border-slate-200/80 dark:border-[#22304e] text-slate-600 dark:text-[#a1a1aa] shadow-2xs">
                           {columnTasks.length}
                         </span>
                       </div>
@@ -2225,7 +2234,7 @@ export default function App() {
                           if (boardGrouping === 'stage') setComposerSection(column.key);
                           else setNewPriority(column.key);
                         }}
-                        className="p-1 hover:bg-white dark:hover:bg-[#121214] rounded-lg text-slate-400 dark:text-[#a1a1aa] hover:text-red-600 dark:hover:text-red-400"
+                        className="p-1 hover:bg-white dark:hover:bg-[#151d30] rounded-lg text-slate-400 dark:text-[#a1a1aa] hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
                         title={`Add task to ${column.label}`}
                       >
                         <Plus className="w-4 h-4" />
@@ -2235,7 +2244,7 @@ export default function App() {
                     {/* Column Task Cards */}
                     <div className="flex-1 overflow-y-auto space-y-3 min-h-[120px]">
                       {isOver && draggingTaskId && (
-                        <div className="border-2 border-dashed border-red-400 dark:border-red-500/80 rounded-xl p-3.5 text-center text-xs font-bold text-red-500 dark:text-red-400 bg-red-50/60 dark:bg-[#2a1215]/40 animate-pulse flex items-center justify-center gap-2">
+                        <div className="border-2 border-dashed border-rose-400 dark:border-rose-500/80 rounded-xl p-3.5 text-center text-xs font-bold text-rose-500 dark:text-rose-400 bg-rose-50/60 dark:bg-[#20121d]/40 animate-pulse flex items-center justify-center gap-2">
                           <Sparkles className="w-3.5 h-3.5" />
                           <span>Drop task into {column.label}</span>
                         </div>
@@ -2245,7 +2254,6 @@ export default function App() {
                         const isTaskCompleted = task.section === 'completed';
                         const subtasks = task.subtasks || [];
                         const completedSubtasks = subtasks.filter(st => st.completed).length;
-                        const isSubtasksExpanded = expandedTaskSubtasks[task.id];
                         const isBeingDragged = draggingTaskId === task.id;
 
                         return (
@@ -2261,12 +2269,12 @@ export default function App() {
                               setDraggingTaskId(null);
                               setDragOverColumn(null);
                             }}
-                            className={`group bg-white dark:bg-[#121214] border rounded-xl p-3.5 shadow-2xs hover:shadow-md transition-all cursor-grab active:cursor-grabbing select-none ${
+                            className={`group bg-white dark:bg-[#101626] border rounded-xl p-3.5 shadow-2xs hover:shadow-md transition-all duration-200 cursor-grab active:cursor-grabbing select-none ${
                               isBeingDragged
-                                ? 'opacity-30 scale-95 border-dashed border-red-500 shadow-xl'
+                                ? 'opacity-30 scale-95 border-dashed border-rose-500 shadow-xl'
                                 : isTaskCompleted
-                                  ? 'border-slate-200/60 dark:border-[#222225]/70 opacity-80'
-                                  : 'border-slate-200/90 dark:border-[#222225] hover:border-slate-300 dark:hover:border-[#38383e] dark:hover:bg-[#1c1c20]'
+                                  ? 'border-slate-200/60 dark:border-[#1e2638]/70 opacity-75'
+                                  : 'border-slate-200/90 dark:border-[#1e2638] hover:border-slate-300 dark:hover:border-slate-700/80 dark:hover:bg-[#141b2e]'
                             }`}
                           >
                             <div className="flex items-start gap-2.5">
@@ -2303,24 +2311,38 @@ export default function App() {
                                 <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
                                   <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 ${
                                     task.priority === 'P1'
-                                      ? 'bg-red-500/10 dark:bg-[#2a1215] text-red-600 dark:text-red-400 border border-red-500/20 dark:border-red-500/30'
+                                      ? 'bg-rose-500/10 dark:bg-[#2a1215] text-rose-600 dark:text-rose-400 border border-rose-500/20 dark:border-rose-500/30'
                                       : task.priority === 'P2'
                                         ? 'bg-amber-500/10 dark:bg-[#281a0b] text-amber-600 dark:text-amber-400 border border-amber-500/20 dark:border-amber-500/30'
-                                        : 'bg-slate-500/10 dark:bg-[#121214] text-slate-500 dark:text-[#a1a1aa] border border-slate-500/20 dark:border-[#222225]'
+                                        : 'bg-slate-500/10 dark:bg-[#121724] text-slate-500 dark:text-[#a1a1aa] border border-slate-500/20 dark:border-[#22304e]'
                                   }`}>
                                     <Flag className="w-2.5 h-2.5" />
                                     <span>{task.priority}</span>
                                   </span>
 
                                   {task.due_date && (
-                                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded flex items-center gap-1 bg-slate-100 dark:bg-[#1c1c20] text-slate-500 dark:text-[#a1a1aa]">
+                                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded flex items-center gap-1 bg-slate-100 dark:bg-[#151d30] border border-slate-200/60 dark:border-[#22304e] text-slate-500 dark:text-[#a1a1aa]">
                                       <Clock className="w-2.5 h-2.5" />
                                       <span>{task.due_date === todayDateStr ? 'Today' : task.due_date}</span>
                                     </span>
                                   )}
 
+                                  {subtasks.length > 0 && (
+                                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded flex items-center gap-1 bg-slate-100 dark:bg-[#151d30] border border-slate-200/60 dark:border-[#22304e] text-slate-500 dark:text-[#a1a1aa]" title={`${completedSubtasks} of ${subtasks.length} subtasks completed`}>
+                                      <CheckSquare className="w-2.5 h-2.5 text-slate-400" />
+                                      <span>{completedSubtasks}/{subtasks.length}</span>
+                                    </span>
+                                  )}
+
+                                  {task.comments && task.comments.length > 0 && (
+                                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded flex items-center gap-1 bg-slate-100 dark:bg-[#151d30] border border-slate-200/60 dark:border-[#22304e] text-slate-500 dark:text-[#a1a1aa]" title={`${task.comments.length} comments`}>
+                                      <MessageSquare className="w-2.5 h-2.5 text-slate-400" />
+                                      <span>{task.comments.length}</span>
+                                    </span>
+                                  )}
+
                                   {task.tags && task.tags.map(tag => (
-                                    <span key={tag} className="text-[10px] font-semibold text-slate-500 dark:text-[#a1a1aa] bg-slate-100 dark:bg-[#1c1c20] px-1.5 py-0.5 rounded">
+                                    <span key={tag} className="text-[10px] font-semibold text-slate-500 dark:text-[#a1a1aa] bg-slate-100 dark:bg-[#151d30] border border-slate-200/60 dark:border-[#22304e] px-1.5 py-0.5 rounded">
                                       {tag}
                                     </span>
                                   ))}
@@ -2329,18 +2351,18 @@ export default function App() {
                             </div>
 
                             {/* Card Footer: Quick Actions */}
-                            <div className="mt-3 pt-2 border-t border-slate-100 dark:border-[#222225] flex items-center justify-between">
+                            <div className="mt-3 pt-2 border-t border-slate-100 dark:border-[#1e2638] flex items-center justify-between">
                               <div className="flex items-center gap-1">
                                 <button
                                   onClick={() => moveTaskSection(task.id, 'prev')}
-                                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-[#1c1c20] text-slate-400 dark:text-[#52525b] hover:text-slate-700 dark:hover:text-[#ededed]"
+                                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-[#151d30] text-slate-400 dark:text-[#52525b] hover:text-slate-700 dark:hover:text-[#ededed] transition-colors"
                                   title="Previous section"
                                 >
                                   <ArrowLeft className="w-3 h-3" />
                                 </button>
                                 <button
                                   onClick={() => moveTaskSection(task.id, 'next')}
-                                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-[#1c1c20] text-slate-400 dark:text-[#52525b] hover:text-slate-700 dark:hover:text-[#ededed]"
+                                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-[#151d30] text-slate-400 dark:text-[#52525b] hover:text-slate-700 dark:hover:text-[#ededed] transition-colors"
                                   title="Next section"
                                 >
                                   <ArrowRight className="w-3 h-3" />
@@ -2350,28 +2372,28 @@ export default function App() {
                               <div className="flex items-center gap-1">
                                 <button
                                   onClick={(e) => handlePostponeToTomorrow(task.id, e)}
-                                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-[#1c1c20] text-slate-400 dark:text-[#a1a1aa] hover:text-amber-500"
+                                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-[#151d30] text-slate-400 dark:text-[#a1a1aa] hover:text-amber-500 transition-colors"
                                   title="Postpone to Tomorrow (⏩)"
                                 >
                                   <Clock className="w-3.5 h-3.5" />
                                 </button>
                                 <button
                                   onClick={() => handleUpdateTask(task.id, { is_focus: !task.is_focus })}
-                                  className={`p-1 rounded hover:bg-slate-100 dark:hover:bg-[#1c1c20] ${task.is_focus ? 'text-amber-500 fill-amber-500' : 'text-slate-300 dark:text-[#52525b] hover:text-amber-400'}`}
+                                  className={`p-1 rounded hover:bg-slate-100 dark:hover:bg-[#151d30] transition-colors ${task.is_focus ? 'text-amber-500 fill-amber-500' : 'text-slate-300 dark:text-[#52525b] hover:text-amber-400'}`}
                                   title="Pin to Big 3"
                                 >
                                   <Star className={`w-3.5 h-3.5 ${task.is_focus ? 'fill-current' : ''}`} />
                                 </button>
                                 <button
                                   onClick={() => { setActiveTimerTask(task); setTimerSeconds(25 * 60); setIsTimerRunning(true); }}
-                                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-[#1c1c20] text-slate-300 dark:text-[#52525b] hover:text-red-500 dark:hover:text-red-400"
+                                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-[#151d30] text-slate-300 dark:text-[#52525b] hover:text-rose-500 dark:hover:text-rose-400 transition-colors"
                                   title="Focus Flow Timer"
                                 >
                                   <Play className="w-3.5 h-3.5" />
                                 </button>
                                 <button
                                   onClick={() => handleDeleteTask(task.id)}
-                                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-[#1c1c20] text-slate-300 dark:text-[#52525b] hover:text-red-500 dark:hover:text-red-400"
+                                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-[#151d30] text-slate-300 dark:text-[#52525b] hover:text-rose-500 dark:hover:text-rose-400 transition-colors"
                                   title="Delete"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
@@ -2383,7 +2405,7 @@ export default function App() {
                       })}
 
                       {columnTasks.length === 0 && !isOver && (
-                        <div className="border border-dashed border-slate-200 dark:border-[#222225] rounded-xl p-6 text-center text-xs text-slate-400 dark:text-[#52525b]">
+                        <div className="border border-dashed border-slate-200 dark:border-[#1e2638] rounded-xl p-6 text-center text-xs text-slate-400 dark:text-[#52525b] bg-slate-50/40 dark:bg-[#0e1424]/40">
                           <span>No tasks in {column.label}</span>
                         </div>
                       )}
@@ -2391,7 +2413,7 @@ export default function App() {
                       <button
                         type="button"
                         onClick={() => handleOpenTaskModal(null, column.key)}
-                        className="w-full mt-2 py-2 text-xs font-semibold text-slate-500 dark:text-[#a1a1aa] hover:text-red-600 dark:hover:text-red-400 flex items-center justify-center gap-1.5 hover:bg-slate-200/50 dark:hover:bg-[#121214] rounded-xl transition-colors"
+                        className="w-full mt-2 py-2 text-xs font-semibold text-slate-500 dark:text-[#a1a1aa] hover:text-rose-600 dark:hover:text-rose-400 flex items-center justify-center gap-1.5 hover:bg-slate-200/50 dark:hover:bg-[#151d30] rounded-xl transition-colors"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         <span>Add task</span>
