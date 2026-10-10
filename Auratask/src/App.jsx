@@ -179,7 +179,8 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [isGuest, setIsGuest] = useState(() => localStorage.getItem('auratask_guest_mode') === 'true');
   const [authMode, setAuthMode] = useState('register'); // 'register' or 'login'
-  const [authEmail, setAuthEmail] = useState('');
+  const [rememberMe, setRememberMe] = useState(() => localStorage.getItem('auratask_remember_me') !== 'false');
+  const [authEmail, setAuthEmail] = useState(() => localStorage.getItem('auratask_remembered_email') || '');
   const [authPassword, setAuthPassword] = useState('');
   const [authFullName, setAuthFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -985,6 +986,14 @@ export default function App() {
     setAuthSuccessMsg(null);
 
     try {
+      if (rememberMe) {
+        localStorage.setItem('auratask_remember_me', 'true');
+        localStorage.setItem('auratask_remembered_email', authEmail.trim());
+      } else {
+        localStorage.setItem('auratask_remember_me', 'false');
+        localStorage.removeItem('auratask_remembered_email');
+      }
+
       if (authMode === 'register') {
         const { data, error } = await supabase.auth.signUp({
           email: authEmail,
@@ -1250,6 +1259,21 @@ export default function App() {
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
+                  </div>
+
+                  {/* REMEMBER ME CHECKBOX */}
+                  <div className="flex items-center justify-between pt-0.5">
+                    <label className="inline-flex items-center gap-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                        className="w-4 h-4 rounded border-slate-300 dark:border-[#38383e] text-red-600 focus:ring-red-500/30 accent-red-600 cursor-pointer"
+                      />
+                      <span className="text-xs font-medium text-slate-600 dark:text-[#a1a1aa] hover:text-slate-900 dark:hover:text-[#ededed] transition-colors">
+                        Remember me
+                      </span>
+                    </label>
                   </div>
 
                   <button
