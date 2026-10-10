@@ -78,3 +78,14 @@ body {
 .dark ::-webkit-scrollbar-thumb:hover {
   background: #3f3f46;
 }
+
+/* Signature takt Ribbon Gradient Utilities */
+.bg-takt-gradient {
+  background: linear-gradient(135deg, #ff4b55 0%, #f43f5e 25%, #ec4899 50%, #a855f7 75%, #4f46e5 100%);
+}
+
+.text-takt-gradient {
+  background: linear-gradient(135deg, #ff4b55 0%, #f43f5e 25%, #ec4899 50%, #a855f7 75%, #4f46e5 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}

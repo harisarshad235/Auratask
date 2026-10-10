@@ -84,7 +84,7 @@ export default function LandingPage({
 
                 <button
                   onClick={onStartForFree}
-                  className="px-4 py-2 text-xs font-bold rounded-xl bg-red-600 hover:bg-red-700 text-white shadow-sm shadow-red-600/20 active:scale-[0.98] transition-all"
+                  className="px-4 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-[#ff4b55] via-[#ec4899] to-[#6366f1] hover:opacity-95 text-white shadow-sm shadow-pink-500/20 active:scale-[0.98] transition-all"
                 >
                   Start for free
                 </button>
@@ -99,11 +99,11 @@ export default function LandingPage({
          ========================================================================= */}
       <section className="relative pt-16 pb-20 sm:pt-24 sm:pb-28 overflow-hidden">
         {/* Subtle Ambient Glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-gradient-to-tr from-neutral-800/20 to-transparent rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-gradient-to-tr from-[#ff4b55]/10 via-[#a855f7]/10 to-transparent rounded-full blur-3xl pointer-events-none"></div>
 
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-neutral-100 dark:bg-[#121214] border border-neutral-200 dark:border-[#222225] text-neutral-700 dark:text-[#a1a1aa] text-xs font-semibold mb-6">
-            <Sparkles className="w-3.5 h-3.5 text-red-500" />
+            <Sparkles className="w-3.5 h-3.5 text-[#ff4b55]" />
             <span>Tactile Task Management & Day-Wise Calendar Planning</span>
           </div>
 
@@ -119,7 +119,7 @@ export default function LandingPage({
             {hasActiveSession ? (
               <button
                 onClick={onOpenApp}
-                className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-extrabold text-sm shadow-md shadow-red-600/25 flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
+                className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-[#ff4b55] via-[#ec4899] to-[#6366f1] hover:opacity-95 text-white font-extrabold text-sm shadow-md shadow-pink-500/25 flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
               >
                 <span>Enter Your Workspace</span>
                 <ArrowRight className="w-4 h-4" />
@@ -128,7 +128,7 @@ export default function LandingPage({
               <>
                 <button
                   onClick={onStartForFree}
-                  className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-extrabold text-sm shadow-md shadow-red-600/25 flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
+                  className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-[#ff4b55] via-[#ec4899] to-[#6366f1] hover:opacity-95 text-white font-extrabold text-sm shadow-md shadow-pink-500/25 flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
                 >
                   <span>Start for free</span>
                   <ArrowRight className="w-4 h-4" />
@@ -685,7 +685,7 @@ export default function LandingPage({
           <div className="flex items-center justify-center gap-3">
             <button
               onClick={onStartForFree}
-              className="px-8 py-3.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-extrabold text-sm shadow-md shadow-red-600/25 active:scale-[0.99] transition-all"
+              className="px-8 py-3.5 rounded-xl bg-gradient-to-r from-[#ff4b55] via-[#ec4899] to-[#6366f1] hover:opacity-95 text-white font-extrabold text-sm shadow-md shadow-pink-500/25 active:scale-[0.99] transition-all"
             >
               Start for free
             </button>

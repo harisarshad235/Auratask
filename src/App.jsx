@@ -1149,6 +1149,14 @@ export default function App() {
               </button>
 
               <div className="bg-white dark:bg-[#121214] border border-slate-200/80 dark:border-[#222225] rounded-3xl p-6 sm:p-8 shadow-2xl">
+                {/* Brand Header */}
+                <div className="flex flex-col items-center mb-6 text-center">
+                  <Logo className="h-8 w-auto mb-2" href="" />
+                  <p className="text-xs text-slate-500 dark:text-[#a1a1aa]">
+                    Precision task command center & cadence workspace
+                  </p>
+                </div>
+
                 {/* Mode Selector Tabs */}
                 <div className="flex p-1 bg-slate-100 dark:bg-[#09090b] border border-slate-200 dark:border-[#222225] rounded-xl mb-6">
                   <button
@@ -1279,7 +1287,7 @@ export default function App() {
                   <button
                     type="submit"
                     disabled={authLoading}
-                    className="w-full mt-2 py-3 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-bold text-sm rounded-xl shadow-md shadow-red-500/20 transition-all flex items-center justify-center gap-2"
+                    className="w-full mt-2 py-3 bg-gradient-to-r from-[#ff4b55] via-[#ec4899] to-[#6366f1] hover:opacity-95 active:scale-[0.99] text-white font-bold text-sm rounded-xl shadow-md shadow-pink-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                   >
                     {authLoading ? (
                       <RefreshCw className="w-4 h-4 animate-spin" />
@@ -1378,11 +1386,11 @@ export default function App() {
         {/* Global Quick Add Action */}
         <button
           onClick={() => handleOpenTaskModal(null, activeTab === 'inbox' ? 'todo' : 'todo')}
-          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-bold text-xs shadow-sm shadow-red-500/20 mb-4 transition-all"
+          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-gradient-to-r from-[#ff4b55] via-[#ec4899] to-[#6366f1] hover:opacity-95 active:scale-[0.98] text-white font-bold text-xs shadow-md shadow-pink-500/20 mb-4 transition-all"
         >
           <Plus className="w-4 h-4 stroke-[3]" />
           <span>Add task</span>
-          <span className="ml-auto text-[10px] bg-red-700/60 px-1.5 py-0.5 rounded font-mono font-normal">⌘N</span>
+          <span className="ml-auto text-[10px] bg-white/20 px-1.5 py-0.5 rounded font-mono font-normal">⌘N</span>
         </button>
 
         {/* Primary Views Navigation */}
