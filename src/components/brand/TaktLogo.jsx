@@ -11,8 +11,8 @@ export const TaktLogo = ({
   const content = (
     <div className={`flex items-center gap-3 select-none ${className}`}>
       <svg
-        viewBox="0 0 160 56"
-        className="h-full w-auto aspect-[160/56] shrink-0"
+        viewBox={showPro ? "8 5 116 25" : "8 5 87 25"}
+        className={`h-full w-auto shrink-0 ${showPro ? 'aspect-[116/25]' : 'aspect-[87/25]'}`}
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
