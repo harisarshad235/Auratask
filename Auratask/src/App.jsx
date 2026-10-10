@@ -10,6 +10,9 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { supabase } from './supabaseClient';
+import TaskModal from './TaskModal';
+import ProPlanModal from './ProPlanModal';
+import LandingPage from './LandingPage';
 
 // --- LOGO: ISOMETRIC PRO DELTA ---
 export const AuraLogo = ({ className = "w-8 h-8" }) => (
@@ -170,6 +173,60 @@ export default function App() {
   const [scratchpadText, setScratchpadText] = useState(() => localStorage.getItem('auratask_notes') || '');
   const [expandedTaskSubtasks, setExpandedTaskSubtasks] = useState({});
   const [newSubtaskInputs, setNewSubtaskInputs] = useState({});
+
+  // --- LANDING PAGE & MODALS STATE ---
+  const [showLandingPage, setShowLandingPage] = useState(!session && !isGuest);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [modalTask, setModalTask] = useState(null);
+  const [modalDefaultSection, setModalDefaultSection] = useState('todo');
+  const [showProPlanModal, setShowProPlanModal] = useState(false);
+  const [collapsedSections, setCollapsedSections] = useState({});
+
+  const handleOpenTaskModal = (taskToEdit = null, defaultSec = 'todo') => {
+    setModalTask(taskToEdit);
+    setModalDefaultSection(defaultSec || 'todo');
+    setIsTaskModalOpen(true);
+  };
+
+  const handleSaveTaskModal = async (taskPayload) => {
+    const existingIndex = tasks.findIndex(t => t.id === taskPayload.id);
+    let updatedTasks = [];
+    if (existingIndex !== -1) {
+      updatedTasks = tasks.map(t => t.id === taskPayload.id ? { ...t, ...taskPayload } : t);
+      showToast('Task updated');
+    } else {
+      updatedTasks = [taskPayload, ...tasks];
+      showToast('Task created');
+    }
+    setTasks(updatedTasks);
+
+    if (session?.user) {
+      try {
+        await supabase.from('tasks').upsert({
+          ...taskPayload,
+          user_id: session.user.id
+        });
+      } catch (err) {
+        console.warn("Supabase upsert notice:", err);
+      }
+    }
+
+    if (taskPayload.section === 'completed' && (!modalTask || modalTask.section !== 'completed')) {
+      triggerCelebration();
+    }
+  };
+
+  const handleDeleteTaskModal = async (taskId) => {
+    handleDeleteTask(taskId);
+  };
+
+  const toggleSectionCollapse = (sectionKey) => {
+    setCollapsedSections(prev => ({
+      ...prev,
+      [sectionKey]: !prev[sectionKey]
+    }));
+  };
 
   // Sync dark mode class to <html> element
   useEffect(() => {
@@ -462,6 +519,8 @@ export default function App() {
         if (data?.session) {
           setSession(data.session);
           setIsGuest(false);
+          setShowLandingPage(false);
+          setShowAuthModal(false);
           showToast(`Welcome to AuraTask, ${authFullName || 'friend'}!`);
         } else {
           setAuthSuccessMsg('Account created successfully! Check your email to verify, or sign in.');
@@ -477,6 +536,8 @@ export default function App() {
         if (data?.session) {
           setSession(data.session);
           setIsGuest(false);
+          setShowLandingPage(false);
+          setShowAuthModal(false);
           showToast('Signed in successfully!');
         }
       }
@@ -490,6 +551,8 @@ export default function App() {
   const handleGuestLogin = () => {
     setIsGuest(true);
     localStorage.setItem('auratask_guest_mode', 'true');
+    setShowLandingPage(false);
+    setShowAuthModal(false);
     showToast('Entered Guest Pro Mode. All features active!');
   };
 
@@ -500,6 +563,7 @@ export default function App() {
     setSession(null);
     setIsGuest(false);
     localStorage.removeItem('auratask_guest_mode');
+    setShowLandingPage(true);
     showToast('Signed out successfully.');
   };
 
@@ -546,210 +610,183 @@ export default function App() {
   const big3Tasks = useMemo(() => tasks.filter(t => t.is_focus && t.section !== 'completed'), [tasks]);
 
   // =========================================================================
-  // 1. FULLSCREEN WORLD-CLASS REGISTRATION & AUTH SCREEN (IF NOT LOGGED IN)
+  // 1. FULLSCREEN LANDING PAGE & PRODUCT SHOWCASE (IF EXPLORING OR LOGGED OUT)
   // =========================================================================
-  if (!session && !isGuest) {
+  if ((!session && !isGuest) || showLandingPage) {
     return (
-      <div className={`min-h-screen flex flex-col justify-center items-center p-4 selection:bg-red-500 selection:text-white ${darkMode ? 'dark bg-[#080c14] text-[#f1f5f9]' : 'bg-slate-50 text-slate-800'}`}>
-        {/* Subtle background glow */}
-        <div className="fixed inset-0 pointer-events-none overflow-hidden flex items-center justify-center opacity-30 dark:opacity-15">
-          <div className="w-[600px] h-[600px] bg-gradient-to-tr from-red-500/20 to-amber-500/10 rounded-full blur-3xl -translate-y-20"></div>
-        </div>
+      <div className={`min-h-screen ${darkMode ? 'dark bg-[#080c14] text-[#f1f5f9]' : 'bg-[#fffdfa] text-slate-900'}`}>
+        <LandingPage
+          onStartForFree={() => { setAuthMode('register'); setShowAuthModal(true); }}
+          onTryDemo={handleGuestLogin}
+          onOpenLogin={() => { setAuthMode('login'); setShowAuthModal(true); }}
+          darkMode={darkMode}
+          setDarkMode={setDarkMode}
+          onOpenProModal={() => setShowProPlanModal(true)}
+        />
 
-        {/* Top Navbar */}
-        <header className="fixed top-0 left-0 right-0 h-16 px-6 flex items-center justify-between z-10 border-b border-transparent dark:border-[#22304e]/60 bg-white/50 dark:bg-[#0e1422]/60 backdrop-blur-md">
-          <div className="flex items-center gap-2.5">
-            <AuraLogo className="w-8 h-8" />
-            <span className="font-extrabold text-lg tracking-tight">
-              Aura<span className="text-red-600">Task</span>
-            </span>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-[#451010] dark:text-red-400 border border-transparent dark:border-red-500/20">
-              PRO
-            </span>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setDarkMode(!darkMode)}
-              className="p-2 rounded-xl text-slate-500 hover:text-slate-800 dark:text-[#8899b5] dark:hover:text-[#f1f5f9] hover:bg-slate-200/50 dark:hover:bg-[#151d30] transition-colors"
-              title="Toggle Theme"
-            >
-              {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </button>
-            <button
-              onClick={handleGuestLogin}
-              className="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-200/70 dark:bg-[#151d30] border border-transparent dark:border-[#22304e] hover:bg-slate-300/80 dark:hover:bg-[#1d2740] text-slate-700 dark:text-[#f1f5f9] transition-all"
-            >
-              Try Demo Mode
-            </button>
-          </div>
-        </header>
-
-        {/* Auth Card Container */}
-        <div className="w-full max-w-md z-10 my-auto">
-          {/* Hero Branding */}
-          <div className="text-center mb-6">
-            <div className="inline-flex p-3 rounded-2xl bg-white dark:bg-[#0e1422] shadow-md border border-slate-200/70 dark:border-[#22304e] mb-3">
-              <AuraLogo className="w-10 h-10" />
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-[#f1f5f9]">
-              Organize work & life, <span className="text-red-600">effortlessly.</span>
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-[#8899b5] mt-1 max-w-sm mx-auto">
-              High-velocity task flow, Kanban clarity, and focused deep work.
-            </p>
-          </div>
-
-          {/* Clean Modern Auth Card */}
-          <div className="bg-white dark:bg-[#0e1422] border border-slate-200/80 dark:border-[#22304e] rounded-3xl p-6 sm:p-8 shadow-xl">
-            {/* Mode Selector Tabs */}
-            <div className="flex p-1 bg-slate-100 dark:bg-[#151d30] border border-slate-200 dark:border-[#22304e] rounded-xl mb-6">
+        {/* --- AUTH MODAL DIALOG OVERLAY --- */}
+        {showAuthModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-in fade-in">
+            <div className="w-full max-w-md relative" onClick={(e) => e.stopPropagation()}>
               <button
-                type="button"
-                onClick={() => { setAuthMode('register'); setAuthError(null); }}
-                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${authMode === 'register' ? 'bg-white dark:bg-[#1d2740] text-slate-900 dark:text-[#f1f5f9] shadow-xs' : 'text-slate-500 dark:text-[#8899b5] hover:text-slate-800 dark:hover:text-[#f1f5f9]'}`}
+                onClick={() => setShowAuthModal(false)}
+                className="absolute -top-12 right-0 p-2 text-white/80 hover:text-white rounded-full bg-slate-900/60 backdrop-blur-md transition-colors"
+                title="Close"
               >
-                Create Account
+                <X className="w-5 h-5" />
               </button>
-              <button
-                type="button"
-                onClick={() => { setAuthMode('login'); setAuthError(null); }}
-                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${authMode === 'login' ? 'bg-white dark:bg-[#1d2740] text-slate-900 dark:text-[#f1f5f9] shadow-xs' : 'text-slate-500 dark:text-[#8899b5] hover:text-slate-800 dark:hover:text-[#f1f5f9]'}`}
-              >
-                Sign In
-              </button>
-            </div>
 
-            {/* Google OAuth Button */}
-            <button
-              onClick={handleGoogleSignIn}
-              disabled={authLoading}
-              className="w-full py-2.5 px-4 rounded-xl border border-slate-300 dark:border-[#22304e] bg-white dark:bg-[#151d30] hover:bg-slate-50 dark:hover:bg-[#1d2740] text-slate-800 dark:text-[#f1f5f9] font-semibold text-sm flex items-center justify-center gap-3 shadow-2xs hover:shadow-xs transition-all active:scale-[0.99]"
-            >
-              <svg className="w-4 h-4" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-              </svg>
-              <span>Continue with Google</span>
-            </button>
-
-            {/* Divider */}
-            <div className="relative my-5 flex items-center justify-center">
-              <div className="border-t border-slate-200 dark:border-[#22304e] w-full"></div>
-              <span className="bg-white dark:bg-[#0e1422] px-3 text-[11px] font-medium text-slate-400 dark:text-[#8899b5] absolute">
-                or with email
-              </span>
-            </div>
-
-            {/* Error / Success Notifications */}
-            {authError && (
-              <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-[#451010]/60 border border-red-200 dark:border-red-900/60 text-red-600 dark:text-red-400 text-xs flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                <span className="leading-snug">{authError}</span>
-              </div>
-            )}
-            {authSuccessMsg && (
-              <div className="mb-4 p-3 rounded-xl bg-emerald-50 dark:bg-[#063820]/70 border border-emerald-200 dark:border-emerald-800/60 text-emerald-600 dark:text-emerald-400 text-xs flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                <span className="leading-snug">{authSuccessMsg}</span>
-              </div>
-            )}
-
-            {/* Form */}
-            <form onSubmit={handleEmailAuth} className="space-y-3.5">
-              {authMode === 'register' && (
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-[#8899b5] mb-1">Full Name</label>
-                  <div className="relative">
-                    <User className="w-4 h-4 absolute left-3 top-3 text-slate-400 dark:text-[#475569]" />
-                    <input
-                      type="text"
-                      required
-                      placeholder="Alex Rivera"
-                      value={authFullName}
-                      onChange={(e) => setAuthFullName(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2.5 bg-slate-50 dark:bg-[#151d30] border border-slate-200 dark:border-[#22304e] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 text-slate-900 dark:text-[#f1f5f9] placeholder:text-slate-400 dark:placeholder:text-[#475569]"
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-[#8899b5] mb-1">Email Address</label>
-                <div className="relative">
-                  <Mail className="w-4 h-4 absolute left-3 top-3 text-slate-400 dark:text-[#475569]" />
-                  <input
-                    type="email"
-                    required
-                    placeholder="alex@acme.com"
-                    value={authEmail}
-                    onChange={(e) => setAuthEmail(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2.5 bg-slate-50 dark:bg-[#151d30] border border-slate-200 dark:border-[#22304e] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 text-slate-900 dark:text-[#f1f5f9] placeholder:text-slate-400 dark:placeholder:text-[#475569]"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-[#8899b5] mb-1">Password</label>
-                <div className="relative">
-                  <Lock className="w-4 h-4 absolute left-3 top-3 text-slate-400 dark:text-[#475569]" />
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    required
-                    minLength={6}
-                    placeholder="••••••••"
-                    value={authPassword}
-                    onChange={(e) => setAuthPassword(e.target.value)}
-                    className="w-full pl-9 pr-10 py-2.5 bg-slate-50 dark:bg-[#151d30] border border-slate-200 dark:border-[#22304e] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 text-slate-900 dark:text-[#f1f5f9] placeholder:text-slate-400 dark:placeholder:text-[#475569]"
-                  />
+              {/* Clean Modern Auth Card */}
+              <div className="bg-white dark:bg-[#0e1422] border border-slate-200/80 dark:border-[#22304e] rounded-3xl p-6 sm:p-8 shadow-2xl">
+                {/* Mode Selector Tabs */}
+                <div className="flex p-1 bg-slate-100 dark:bg-[#151d30] border border-slate-200 dark:border-[#22304e] rounded-xl mb-6">
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3 text-slate-400 dark:text-[#8899b5] hover:text-slate-600 dark:hover:text-[#f1f5f9]"
+                    onClick={() => { setAuthMode('register'); setAuthError(null); }}
+                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${authMode === 'register' ? 'bg-white dark:bg-[#1d2740] text-slate-900 dark:text-[#f1f5f9] shadow-xs' : 'text-slate-500 dark:text-[#8899b5] hover:text-slate-800 dark:hover:text-[#f1f5f9]'}`}
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    Create Account
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setAuthMode('login'); setAuthError(null); }}
+                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${authMode === 'login' ? 'bg-white dark:bg-[#1d2740] text-slate-900 dark:text-[#f1f5f9] shadow-xs' : 'text-slate-500 dark:text-[#8899b5] hover:text-slate-800 dark:hover:text-[#f1f5f9]'}`}
+                  >
+                    Sign In
+                  </button>
+                </div>
+
+                {/* Google OAuth Button */}
+                <button
+                  onClick={handleGoogleSignIn}
+                  disabled={authLoading}
+                  className="w-full py-2.5 px-4 rounded-xl border border-slate-300 dark:border-[#22304e] bg-white dark:bg-[#151d30] hover:bg-slate-50 dark:hover:bg-[#1d2740] text-slate-800 dark:text-[#f1f5f9] font-semibold text-sm flex items-center justify-center gap-3 shadow-2xs hover:shadow-xs transition-all active:scale-[0.99]"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                  </svg>
+                  <span>Continue with Google</span>
+                </button>
+
+                {/* Divider */}
+                <div className="relative my-5 flex items-center justify-center">
+                  <div className="border-t border-slate-200 dark:border-[#22304e] w-full"></div>
+                  <span className="bg-white dark:bg-[#0e1422] px-3 text-[11px] font-medium text-slate-400 dark:text-[#8899b5] absolute">
+                    or continue with email
+                  </span>
+                </div>
+
+                {/* Error / Success Notifications */}
+                {authError && (
+                  <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-[#451010]/60 border border-red-200 dark:border-red-900/60 text-red-600 dark:text-red-400 text-xs flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span className="leading-snug">{authError}</span>
+                  </div>
+                )}
+                {authSuccessMsg && (
+                  <div className="mb-4 p-3 rounded-xl bg-emerald-50 dark:bg-[#063820]/70 border border-emerald-200 dark:border-emerald-800/60 text-emerald-600 dark:text-emerald-400 text-xs flex items-start gap-2">
+                    <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span className="leading-snug">{authSuccessMsg}</span>
+                  </div>
+                )}
+
+                {/* Form */}
+                <form onSubmit={handleEmailAuth} className="space-y-3.5">
+                  {authMode === 'register' && (
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 dark:text-[#8899b5] mb-1">Full Name</label>
+                      <div className="relative">
+                        <User className="w-4 h-4 absolute left-3 top-3 text-slate-400 dark:text-[#475569]" />
+                        <input
+                          type="text"
+                          required
+                          placeholder="Alex Rivera"
+                          value={authFullName}
+                          onChange={(e) => setAuthFullName(e.target.value)}
+                          className="w-full pl-9 pr-3 py-2.5 bg-slate-50 dark:bg-[#151d30] border border-slate-200 dark:border-[#22304e] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 text-slate-900 dark:text-[#f1f5f9] placeholder:text-slate-400 dark:placeholder:text-[#475569]"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-[#8899b5] mb-1">Email Address</label>
+                    <div className="relative">
+                      <Mail className="w-4 h-4 absolute left-3 top-3 text-slate-400 dark:text-[#475569]" />
+                      <input
+                        type="email"
+                        required
+                        placeholder="alex@acme.com"
+                        value={authEmail}
+                        onChange={(e) => setAuthEmail(e.target.value)}
+                        className="w-full pl-9 pr-3 py-2.5 bg-slate-50 dark:bg-[#151d30] border border-slate-200 dark:border-[#22304e] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 text-slate-900 dark:text-[#f1f5f9] placeholder:text-slate-400 dark:placeholder:text-[#475569]"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-[#8899b5] mb-1">Password</label>
+                    <div className="relative">
+                      <Lock className="w-4 h-4 absolute left-3 top-3 text-slate-400 dark:text-[#475569]" />
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        required
+                        minLength={6}
+                        placeholder="••••••••"
+                        value={authPassword}
+                        onChange={(e) => setAuthPassword(e.target.value)}
+                        className="w-full pl-9 pr-10 py-2.5 bg-slate-50 dark:bg-[#151d30] border border-slate-200 dark:border-[#22304e] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 text-slate-900 dark:text-[#f1f5f9] placeholder:text-slate-400 dark:placeholder:text-[#475569]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-3 text-slate-400 dark:text-[#8899b5] hover:text-slate-600 dark:hover:text-[#f1f5f9]"
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={authLoading}
+                    className="w-full mt-2 py-3 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-bold text-sm rounded-xl shadow-md shadow-red-500/20 transition-all flex items-center justify-center gap-2"
+                  >
+                    {authLoading ? (
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>
+                        <span>{authMode === 'register' ? 'Sign Up for Free' : 'Sign In to Workspace'}</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+                </form>
+
+                {/* Instant Guest / Demo Mode Button */}
+                <div className="mt-6 pt-5 border-t border-slate-100 dark:border-[#22304e] text-center">
+                  <button
+                    type="button"
+                    onClick={handleGuestLogin}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-[#8899b5] hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Explore as Guest (No Sign Up Needed)</span>
                   </button>
                 </div>
               </div>
-
-              <button
-                type="submit"
-                disabled={authLoading}
-                className="w-full mt-2 py-3 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-bold text-sm rounded-xl shadow-md shadow-red-500/20 transition-all flex items-center justify-center gap-2"
-              >
-                {authLoading ? (
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                ) : (
-                  <>
-                    <span>{authMode === 'register' ? 'Sign Up for Free' : 'Sign In to Workspace'}</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
-              </button>
-            </form>
-
-            {/* Instant Guest / Demo Mode Button */}
-            <div className="mt-6 pt-5 border-t border-slate-100 dark:border-[#22304e] text-center">
-              <button
-                type="button"
-                onClick={handleGuestLogin}
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-[#8899b5] hover:text-red-600 dark:hover:text-red-400 transition-colors"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                <span>Explore as Guest (No Sign Up Needed)</span>
-              </button>
             </div>
           </div>
+        )}
 
-          {/* Security & Velocity Badge */}
-          <div className="mt-6 text-center text-xs text-slate-400 dark:text-[#475569] flex items-center justify-center gap-4">
-            <span className="flex items-center gap-1"><Shield className="w-3.5 h-3.5 text-emerald-500" /> End-to-End Encrypted</span>
-            <span>•</span>
-            <span className="flex items-center gap-1"><Flame className="w-3.5 h-3.5 text-red-500" /> Enterprise-Grade Velocity</span>
-          </div>
-        </div>
+        {/* PRO PLAN MODAL */}
+        <ProPlanModal
+          isOpen={showProPlanModal}
+          onClose={() => setShowProPlanModal(false)}
+        />
       </div>
     );
   }
@@ -787,9 +824,14 @@ export default function App() {
                 <span className="font-extrabold text-base tracking-tight text-slate-900 dark:text-[#f1f5f9]">
                   Aura<span className="text-red-600">Task</span>
                 </span>
-                <span className="text-[10px] font-extrabold px-1.5 py-0.2 rounded bg-red-100 text-red-600 dark:bg-[#451010] dark:text-red-400 border border-transparent dark:border-red-500/20">
+                <button
+                  type="button"
+                  onClick={() => setShowProPlanModal(true)}
+                  className="text-[10px] font-extrabold px-1.5 py-0.2 rounded bg-red-100 text-red-600 dark:bg-[#451010] dark:text-red-400 border border-transparent dark:border-red-500/20 hover:scale-105 transition-transform"
+                  title="AuraTask Pro Features"
+                >
                   PRO
-                </span>
+                </button>
               </div>
               <p className="text-[11px] text-slate-400 dark:text-[#8899b5] truncate max-w-[130px]">
                 {session?.user?.user_metadata?.full_name || session?.user?.email || (isGuest ? 'Guest Explorer' : 'Personal')}
@@ -817,7 +859,7 @@ export default function App() {
 
         {/* Global Quick Add Action */}
         <button
-          onClick={() => { setShowAddComposer(true); setComposerSection('todo'); }}
+          onClick={() => handleOpenTaskModal(null, activeTab === 'inbox' ? 'todo' : 'todo')}
           className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-bold text-xs shadow-sm shadow-red-500/20 mb-4 transition-all"
         >
           <Plus className="w-4 h-4 stroke-[3]" />
@@ -917,6 +959,28 @@ export default function App() {
               <Shield className="w-4 h-4" />
               <span>Daily Shutdown Ritual</span>
             </div>
+          </button>
+
+          <button
+            onClick={() => setShowProPlanModal(true)}
+            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-amber-700 dark:text-amber-400 bg-amber-50/60 dark:bg-[#452405]/30 hover:bg-amber-100/70 dark:hover:bg-[#452405]/50 border border-amber-200/50 dark:border-amber-500/30"
+          >
+            <div className="flex items-center gap-2.5">
+              <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
+              <span>AuraTask Pro Plan</span>
+            </div>
+            <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-200/80 dark:bg-amber-900/60 font-mono">PRO</span>
+          </button>
+
+          <button
+            onClick={() => setShowLandingPage(true)}
+            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-[#8899b5] hover:bg-slate-100 dark:hover:bg-[#151d30] dark:hover:text-[#f1f5f9]"
+          >
+            <div className="flex items-center gap-2.5">
+              <Sparkles className="w-4 h-4 text-red-500" />
+              <span>Landing Page / Tour</span>
+            </div>
+            <span className="text-[10px] text-slate-400">View</span>
           </button>
         </div>
 
@@ -1065,7 +1129,7 @@ export default function App() {
 
             {/* Quick Add Button Header */}
             <button
-              onClick={() => { setShowAddComposer(true); setComposerSection('todo'); }}
+              onClick={() => handleOpenTaskModal(null, activeTab === 'inbox' ? 'todo' : 'todo')}
               className="p-2 sm:px-3 sm:py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm shadow-red-500/20"
             >
               <Plus className="w-4 h-4 stroke-[3]" />
@@ -1327,7 +1391,10 @@ export default function App() {
                                 )}
                               </button>
 
-                              <div className="flex-1 min-w-0">
+                              <div
+                                className="flex-1 min-w-0 cursor-pointer"
+                                onClick={() => handleOpenTaskModal(task)}
+                              >
                                 <h4 className={`text-xs font-bold leading-snug break-words ${isTaskCompleted ? 'line-through text-slate-400 dark:text-[#475569]' : 'text-slate-900 dark:text-[#f1f5f9]'}`}>
                                   {task.title}
                                 </h4>
@@ -1490,76 +1557,175 @@ export default function App() {
                           <span>No tasks in {column.label}</span>
                         </div>
                       )}
+
+                      {/* Add task button in column */}
+                      <button
+                        type="button"
+                        onClick={() => handleOpenTaskModal(null, column.key)}
+                        className="w-full mt-2 py-2 text-xs font-semibold text-slate-500 dark:text-[#8899b5] hover:text-red-600 dark:hover:text-red-400 flex items-center justify-center gap-1.5 hover:bg-slate-200/50 dark:hover:bg-[#151d30] rounded-xl transition-colors"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Add task</span>
+                      </button>
                     </div>
                   </div>
                 );
               })}
             </div>
           ) : (
-            /* --- VIEW MODE 2: STRUCTURED LIST VIEW --- */
-            <div className="max-w-4xl space-y-2.5">
-              {filteredTasks.map(task => {
-                const isTaskCompleted = task.section === 'completed';
+            /* --- VIEW MODE 2: STRUCTURED COLLAPSIBLE SECTIONS LIST VIEW (Screenshot 4) --- */
+            <div className="max-w-4xl space-y-6">
+              {/* List View Controls Bar */}
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-[#22304e]">
+                <div className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-[#8899b5]">
+                  <span>Grouping: {boardGrouping === 'stage' ? 'Workflow Sections' : 'Priority Swimlanes'}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setBoardGrouping(boardGrouping === 'stage' ? 'priority' : 'stage')}
+                  className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-[#151d30] border border-slate-200 dark:border-[#22304e] hover:bg-slate-200/60 dark:hover:bg-[#1d2740] text-slate-700 dark:text-[#f1f5f9] flex items-center gap-1.5 transition-colors"
+                >
+                  <ListFilter className="w-3.5 h-3.5" />
+                  <span>Display</span>
+                </button>
+              </div>
+
+              {(boardGrouping === 'stage' ? [
+                { key: 'todo', label: 'To Do', icon: Layers },
+                { key: 'in_progress', label: 'In progress', icon: Flame },
+                { key: 'in_review', label: 'In review', icon: Eye },
+                { key: 'completed', label: 'completed', icon: CheckCircle2 }
+              ] : [
+                { key: 'P1', label: 'P1 (Urgent)', icon: Flag },
+                { key: 'P2', label: 'P2 (High)', icon: Flag },
+                { key: 'P3', label: 'P3 (Medium)', icon: Flag },
+                { key: 'P4', label: 'P4 (Low)', icon: Flag }
+              ]).map(sec => {
+                const secTasks = filteredTasks.filter(t =>
+                  boardGrouping === 'stage' ? t.section === sec.key : t.priority === sec.key
+                );
+                const isCollapsed = Boolean(collapsedSections[sec.key]);
 
                 return (
-                  <div
-                    key={task.id}
-                    className="group bg-white dark:bg-[#151d30] border border-slate-200/90 dark:border-[#22304e] hover:border-slate-300 dark:hover:border-[#2f426c] dark:hover:bg-[#1d2740] rounded-xl p-3.5 shadow-2xs hover:shadow-xs transition-all flex items-center justify-between gap-4"
-                  >
-                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div key={sec.key} className="space-y-1.5">
+                    {/* Section Header (Screenshot 4 exact layout) */}
+                    <div className="flex items-center justify-between py-1.5">
                       <button
-                        onClick={() => toggleTaskCompleted(task)}
-                        className="text-slate-300 dark:text-[#475569] hover:text-emerald-500 transition-colors shrink-0"
+                        type="button"
+                        onClick={() => toggleSectionCollapse(sec.key)}
+                        className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-[#f1f5f9] hover:text-red-600 dark:hover:text-red-400 transition-colors"
                       >
-                        {isTaskCompleted ? (
-                          <CheckCircle2 className="w-4 h-4 text-emerald-500 fill-emerald-50 dark:fill-[#063820]" />
-                        ) : (
-                          <Circle className="w-4 h-4 hover:stroke-emerald-500" />
-                        )}
+                        <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isCollapsed ? '-rotate-90' : ''}`} />
+                        <span className="capitalize">{sec.label}</span>
+                        <span className="text-[11px] font-mono text-slate-400 font-normal">{secTasks.length}</span>
                       </button>
 
-                      <div className="min-w-0 flex-1">
-                        <span className={`text-xs font-bold ${isTaskCompleted ? 'line-through text-slate-400 dark:text-[#475569]' : 'text-slate-900 dark:text-[#f1f5f9]'}`}>
-                          {task.title}
-                        </span>
-                        {task.description && (
-                          <p className="text-[11px] text-slate-400 dark:text-[#8899b5] truncate mt-0.5">{task.description}</p>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 shrink-0">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                        task.priority === 'P1'
-                          ? 'bg-red-500/10 dark:bg-[#451010] text-red-600 dark:text-red-400 border border-red-500/20 dark:border-red-500/30'
-                          : task.priority === 'P2'
-                            ? 'bg-amber-500/10 dark:bg-[#452405] text-amber-600 dark:text-amber-400 border border-amber-500/20 dark:border-amber-500/30'
-                            : 'bg-slate-500/10 dark:bg-[#151d30] text-slate-500 dark:text-[#8899b5] border border-slate-500/20 dark:border-[#22304e]'
-                      }`}>
-                        {task.priority}
-                      </span>
-
-                      <span className="text-[11px] font-semibold text-slate-400 dark:text-[#8899b5] capitalize">
-                        {task.section.replace('_', ' ')}
-                      </span>
-
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center gap-1">
                         <button
-                          onClick={() => { setActiveTimerTask(task); setTimerSeconds(25 * 60); setIsTimerRunning(true); }}
-                          className="p-1 text-slate-400 dark:text-[#8899b5] hover:text-red-500 dark:hover:text-red-400 rounded hover:bg-slate-100 dark:hover:bg-[#1d2740]"
-                          title="Start Focus Timer"
+                          type="button"
+                          onClick={() => handleOpenTaskModal(null, sec.key)}
+                          className="p-1 text-slate-400 hover:text-red-600 dark:text-[#8899b5] dark:hover:text-red-400 rounded hover:bg-slate-100 dark:hover:bg-[#151d30]"
+                          title="Add task in section"
                         >
-                          <Play className="w-3.5 h-3.5" />
+                          <Plus className="w-3.5 h-3.5" />
                         </button>
                         <button
-                          onClick={() => handleDeleteTask(task.id)}
-                          className="p-1 text-slate-400 dark:text-[#8899b5] hover:text-red-500 dark:hover:text-red-400 rounded hover:bg-slate-100 dark:hover:bg-[#1d2740]"
-                          title="Delete"
+                          type="button"
+                          className="p-1 text-slate-400 hover:text-slate-700 dark:text-[#8899b5] dark:hover:text-[#f1f5f9] rounded hover:bg-slate-100 dark:hover:bg-[#151d30]"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <MoreHorizontal className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
+
+                    {/* Section Tasks List */}
+                    {!isCollapsed && (
+                      <div className="space-y-1 pl-1">
+                        {secTasks.map(task => {
+                          const isTaskCompleted = task.section === 'completed';
+
+                          return (
+                            <div
+                              key={task.id}
+                              onClick={() => handleOpenTaskModal(task)}
+                              className="group bg-white dark:bg-[#151d30] border border-slate-200/90 dark:border-[#22304e] hover:border-slate-300 dark:hover:border-[#2f426c] dark:hover:bg-[#1d2740] rounded-xl p-3 shadow-2xs hover:shadow-xs transition-all flex items-center justify-between gap-4 cursor-pointer"
+                            >
+                              <div className="flex items-center gap-3 min-w-0 flex-1">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleTaskCompleted(task);
+                                  }}
+                                  className="text-slate-300 dark:text-[#475569] hover:text-emerald-500 transition-colors shrink-0"
+                                >
+                                  {isTaskCompleted ? (
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-500 fill-emerald-50 dark:fill-[#063820]" />
+                                  ) : (
+                                    <Circle className="w-4 h-4 hover:stroke-emerald-500" />
+                                  )}
+                                </button>
+
+                                <div className="min-w-0 flex-1">
+                                  <span className={`text-xs font-semibold ${isTaskCompleted ? 'line-through text-slate-400 dark:text-[#475569]' : 'text-slate-900 dark:text-[#f1f5f9]'}`}>
+                                    {task.title}
+                                  </span>
+                                  {task.description && (
+                                    <p className="text-[11px] text-slate-400 dark:text-[#8899b5] truncate mt-0.5">{task.description}</p>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-2.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                                {/* Priority Flag Pill */}
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                                  task.priority === 'P1'
+                                    ? 'bg-red-500/10 dark:bg-[#451010] text-red-600 dark:text-red-400 border border-red-500/20 dark:border-red-500/30'
+                                    : task.priority === 'P2'
+                                      ? 'bg-amber-500/10 dark:bg-[#452405] text-amber-600 dark:text-amber-400 border border-amber-500/20 dark:border-amber-500/30'
+                                      : 'bg-slate-500/10 dark:bg-[#151d30] text-slate-500 dark:text-[#8899b5] border border-slate-500/20 dark:border-[#22304e]'
+                                }`}>
+                                  {task.priority}
+                                </span>
+
+                                {task.due_date && (
+                                  <span className="text-[10px] text-slate-400 dark:text-[#8899b5] hidden sm:inline">
+                                    {task.due_date}
+                                  </span>
+                                )}
+
+                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <button
+                                    onClick={() => { setActiveTimerTask(task); setTimerSeconds(25 * 60); setIsTimerRunning(true); }}
+                                    className="p-1 text-slate-400 dark:text-[#8899b5] hover:text-red-500 dark:hover:text-red-400 rounded hover:bg-slate-100 dark:hover:bg-[#1d2740]"
+                                    title="Start Focus Timer"
+                                  >
+                                    <Play className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteTask(task.id)}
+                                    className="p-1 text-slate-400 dark:text-[#8899b5] hover:text-red-500 dark:hover:text-red-400 rounded hover:bg-slate-100 dark:hover:bg-[#1d2740]"
+                                    title="Delete"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+
+                        {/* Inline + Add task Button (Screenshot 4 style) */}
+                        <button
+                          type="button"
+                          onClick={() => handleOpenTaskModal(null, sec.key)}
+                          className="w-full text-left py-2 px-3 text-xs font-semibold text-red-600 dark:text-red-400 hover:text-red-700 flex items-center gap-2 rounded-xl hover:bg-red-50/50 dark:hover:bg-[#451010]/30 transition-colors"
+                        >
+                          <Plus className="w-4 h-4 stroke-[2.5]" />
+                          <span>Add task</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -1676,6 +1842,25 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* --- TASK DETAIL & CREATION MODAL (Screenshot 2) --- */}
+      <TaskModal
+        isOpen={isTaskModalOpen}
+        onClose={() => setIsTaskModalOpen(false)}
+        task={modalTask}
+        onSaveTask={handleSaveTaskModal}
+        onDeleteTask={handleDeleteTaskModal}
+        allTasks={filteredTasks}
+        onSelectTask={(t) => setModalTask(t)}
+        defaultSection={modalDefaultSection}
+        darkMode={darkMode}
+      />
+
+      {/* --- PRO PLAN MODAL (Screenshot 1) --- */}
+      <ProPlanModal
+        isOpen={showProPlanModal}
+        onClose={() => setShowProPlanModal(false)}
+      />
 
     </div>
   );
