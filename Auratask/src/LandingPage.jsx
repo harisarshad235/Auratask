@@ -158,7 +158,7 @@ export default function LandingPage({
                   <div className="w-3 h-3 rounded-full bg-neutral-400/80"></div>
                   <div className="w-3 h-3 rounded-full bg-neutral-400/80"></div>
                   <div className="w-3 h-3 rounded-full bg-neutral-400/80"></div>
-                  <span className="ml-2 text-xs font-semibold text-neutral-500 dark:text-[#a1a1aa]">AuraTask Workspace — Day-Wise Inbox</span>
+                  <span className="ml-2 text-xs font-semibold text-neutral-500 dark:text-[#a1a1aa]">Takt Command Center — Day-Wise Inbox</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-[#0d261a] dark:text-emerald-400 border border-transparent dark:border-emerald-500/20">
@@ -310,7 +310,7 @@ export default function LandingPage({
                 Meeting Scratchpad. Capture minutes without losing focus.
               </h2>
               <p className="text-sm sm:text-base text-neutral-600 dark:text-[#a1a1aa] leading-relaxed">
-                Take tactical meeting notes, standup minutes, and sprint agendas directly within your workspace. Format in seconds with a rich markdown toolbar, toggle instant preview, and export to Markdown or let AuraTask auto-save to your encrypted database partition.
+                Take tactical meeting notes, standup minutes, and sprint agendas directly within your workspace. Format in seconds with a rich markdown toolbar, toggle instant preview, and export to Markdown or let Takt auto-save to your encrypted database partition.
               </p>
 
               <div className="space-y-3 pt-2">
@@ -516,7 +516,7 @@ export default function LandingPage({
               </div>
               <h3 className="font-extrabold text-base text-neutral-900 dark:text-[#ededed] mb-2">Inbox Calendar Feed (iCal)</h3>
               <p className="text-xs text-neutral-600 dark:text-[#a1a1aa] leading-relaxed">
-                Subscribe to your AuraTask tasks directly inside Apple Calendar, Google Calendar, or Outlook with live webcal feed sync.
+                Subscribe to your Takt tasks directly inside Apple Calendar, Google Calendar, or Outlook with live webcal feed sync.
               </p>
             </div>
 
@@ -554,16 +554,16 @@ export default function LandingPage({
       </section>
 
       {/* =========================================================================
-          7. FEATURE: AURA ASSIST & STRICT MULTI-TENANT PRIVACY
+          7. FEATURE: TAKT CADENCE & STRICT MULTI-TENANT PRIVACY
          ========================================================================= */}
-      <section id="aura-assist" className="py-20 border-t border-neutral-200/60 dark:border-[#222225] bg-neutral-50/40 dark:bg-[#000000]">
+      <section id="takt-assist" className="py-20 border-t border-neutral-200/60 dark:border-[#222225] bg-neutral-50/40 dark:bg-[#000000]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-14">
             <span className="text-xs font-bold uppercase tracking-wider text-red-600 dark:text-red-400">
               Intelligent Flow & Privacy
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-neutral-900 dark:text-[#ededed] mt-2 mb-4">
-              Aura Assist — Focus tools and guaranteed privacy
+              Takt Cadence — Focus tools and guaranteed privacy
             </h2>
             <p className="text-sm sm:text-base text-neutral-600 dark:text-[#a1a1aa]">
               Engineered for absolute privacy and peak focus with zero bloat or advertisements.
@@ -706,7 +706,7 @@ export default function LandingPage({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Logo onClick={onTryDemo} href="/" />
-            <span className="text-neutral-400 dark:text-[#52525b] border-l border-neutral-200 dark:border-[#222225] pl-3">© {new Date().getFullYear()} AuraTask by Haris Arshad</span>
+            <span className="text-neutral-400 dark:text-[#52525b] border-l border-neutral-200 dark:border-[#222225] pl-3">© {new Date().getFullYear()} Takt by Haris Arshad</span>
           </div>
 
           <div className="flex items-center gap-6 text-xs">

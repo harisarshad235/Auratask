@@ -14,29 +14,10 @@ import { supabase } from './supabaseClient';
 import TaskModal from './TaskModal';
 import LandingPage from './LandingPage';
 import MeetingScratchpad from './MeetingScratchpad';
-import Logo from './components/brand/Logo';
+import TaktLogo, { Logo } from './components/brand/TaktLogo';
 
 // --- BRAND LOGO ---
-export const AuraLogo = ({ className = "w-8 h-8" }) => (
-  <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-    <defs>
-      <linearGradient id="auraGradient" x1="6" y1="6" x2="42" y2="42" gradientUnits="userSpaceOnUse">
-        <stop offset="0%" stopColor="#E11D48" />
-        <stop offset="60%" stopColor="#F43F5E" />
-        <stop offset="100%" stopColor="#FB7185" />
-      </linearGradient>
-      <linearGradient id="auraGradientDark" x1="6" y1="6" x2="42" y2="42" gradientUnits="userSpaceOnUse">
-        <stop offset="0%" stopColor="#38BDF8" />
-        <stop offset="60%" stopColor="#2DD4BF" />
-        <stop offset="100%" stopColor="#0284C7" />
-      </linearGradient>
-    </defs>
-    <rect width="48" height="48" rx="12" className="fill-neutral-900 dark:fill-[#0D1A24]" />
-    <circle cx="24" cy="24" r="15" stroke="currentColor" className="text-rose-500 dark:text-cyan-400" strokeWidth="2.5" strokeLinecap="round" strokeDasharray="64 24" />
-    <path d="M17 24.5L22 29.5L31 19.5" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-    <circle cx="32" cy="15" r="2" className="fill-rose-400 dark:fill-cyan-300" />
-  </svg>
-);
+export const AuraLogo = TaktLogo;
 
 // --- DEFAULT WORKFLOW SECTIONS ---
 const DEFAULT_SECTIONS = [
@@ -50,7 +31,7 @@ const DEFAULT_SECTIONS = [
 const GUEST_DEMO_TASKS = [
   {
     id: 'guest-task-1',
-    title: 'Explore AuraTask Kanban swimlanes (Guest Sandbox)',
+    title: 'Explore Takt Pro Kanban swimlanes (Guest Sandbox)',
     description: 'This is a sample task in guest mode. Changes here are saved in your local guest sandbox only.',
     section: 'todo',
     priority: 'P1',
@@ -116,10 +97,10 @@ const GUEST_DEMO_NOTES = [
 const loadScopedWorkspaceData = (userId = null) => {
   if (userId) {
     try {
-      const savedTasks = localStorage.getItem(`auratask_tasks_u_${userId}`);
-      const savedNotes = localStorage.getItem(`auratask_notes_u_${userId}`);
-      const savedSections = localStorage.getItem(`auratask_sections_u_${userId}`);
-      const savedLogs = localStorage.getItem(`auratask_activity_u_${userId}`);
+      const savedTasks = localStorage.getItem(`takt_tasks_u_${userId}`) || localStorage.getItem(`auratask_tasks_u_${userId}`);
+      const savedNotes = localStorage.getItem(`takt_notes_u_${userId}`) || localStorage.getItem(`auratask_notes_u_${userId}`);
+      const savedSections = localStorage.getItem(`takt_sections_u_${userId}`) || localStorage.getItem(`auratask_sections_u_${userId}`);
+      const savedLogs = localStorage.getItem(`takt_activity_u_${userId}`) || localStorage.getItem(`auratask_activity_u_${userId}`);
       return {
         tasks: savedTasks ? JSON.parse(savedTasks) : [],
         notes: savedNotes ? JSON.parse(savedNotes) : [
@@ -138,10 +119,10 @@ const loadScopedWorkspaceData = (userId = null) => {
     }
   } else {
     try {
-      const guestTasks = localStorage.getItem('auratask_guest_tasks');
-      const guestNotes = localStorage.getItem('auratask_guest_notes');
-      const guestSections = localStorage.getItem('auratask_guest_sections');
-      const guestLogs = localStorage.getItem('auratask_guest_activity');
+      const guestTasks = localStorage.getItem('takt_guest_tasks') || localStorage.getItem('auratask_guest_tasks');
+      const guestNotes = localStorage.getItem('takt_guest_notes') || localStorage.getItem('auratask_guest_notes');
+      const guestSections = localStorage.getItem('takt_guest_sections') || localStorage.getItem('auratask_guest_sections');
+      const guestLogs = localStorage.getItem('takt_guest_activity') || localStorage.getItem('auratask_guest_activity');
 
       // Strict User Restriction: Filter out any objects that belong to a real user account
       let parsedTasks = guestTasks ? JSON.parse(guestTasks) : GUEST_DEMO_TASKS;
@@ -177,10 +158,10 @@ const loadScopedWorkspaceData = (userId = null) => {
 export default function App() {
   // --- AUTH STATE ---
   const [session, setSession] = useState(null);
-  const [isGuest, setIsGuest] = useState(() => localStorage.getItem('auratask_guest_mode') === 'true');
+  const [isGuest, setIsGuest] = useState(() => (localStorage.getItem('takt_guest_mode') || localStorage.getItem('auratask_guest_mode')) === 'true');
   const [authMode, setAuthMode] = useState('register'); // 'register' or 'login'
-  const [rememberMe, setRememberMe] = useState(() => localStorage.getItem('auratask_remember_me') !== 'false');
-  const [authEmail, setAuthEmail] = useState(() => localStorage.getItem('auratask_remembered_email') || '');
+  const [rememberMe, setRememberMe] = useState(() => (localStorage.getItem('takt_remember_me') || localStorage.getItem('auratask_remember_me')) !== 'false');
+  const [authEmail, setAuthEmail] = useState(() => localStorage.getItem('takt_remembered_email') || localStorage.getItem('auratask_remembered_email') || '');
   const [authPassword, setAuthPassword] = useState('');
   const [authFullName, setAuthFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -209,7 +190,7 @@ export default function App() {
   // --- UI NAVIGATION & VIEW MODES ---
   const [activeTab, setActiveTab] = useState('inbox'); // 'inbox', 'today', 'upcoming', 'completed', 'tag-...'
   const [viewMode, setViewMode] = useState('list'); // 'board' | 'list' | 'calendar'
-  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('auratask_theme') === 'dark');
+  const [darkMode, setDarkMode] = useState(() => (localStorage.getItem('takt_theme') || localStorage.getItem('auratask_theme')) === 'dark');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -343,7 +324,7 @@ export default function App() {
 
   // --- LANDING PAGE & TASK MODALS STATE ---
   const [showLandingPage, setShowLandingPage] = useState(() => {
-    if (localStorage.getItem('auratask_guest_mode') === 'true') return false;
+    if ((localStorage.getItem('takt_guest_mode') || localStorage.getItem('auratask_guest_mode')) === 'true') return false;
     try {
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
@@ -375,13 +356,16 @@ export default function App() {
   // --- STRICT MULTI-TENANT ISOLATED LOCAL STORAGE SYNC & BACKUPS ---
   useEffect(() => {
     const uId = session?.user?.id;
-    const taskKey = uId ? `auratask_tasks_u_${uId}` : 'auratask_guest_tasks';
+    const taskKey = uId ? `takt_tasks_u_${uId}` : 'takt_guest_tasks';
+    const legacyKey = uId ? `auratask_tasks_u_${uId}` : 'auratask_guest_tasks';
     try {
-      localStorage.setItem(taskKey, JSON.stringify(tasks));
+      const dataStr = JSON.stringify(tasks);
+      localStorage.setItem(taskKey, dataStr);
+      localStorage.setItem(legacyKey, dataStr);
       
       // Scoped Day-wise snapshot rolling backup
       const todayStr = new Date().toISOString().split('T')[0];
-      const backupKey = uId ? `auratask_backup_${uId}_${todayStr}` : `auratask_guest_backup_${todayStr}`;
+      const backupKey = uId ? `takt_backup_${uId}_${todayStr}` : `takt_guest_backup_${todayStr}`;
       localStorage.setItem(backupKey, JSON.stringify({
         date: todayStr,
         userId: uId || 'guest_sandbox',
@@ -391,7 +375,7 @@ export default function App() {
       }));
 
       // Scoped backup manifest
-      const manifestKey = uId ? `auratask_backup_manifest_${uId}` : 'auratask_guest_backup_manifest';
+      const manifestKey = uId ? `takt_backup_manifest_${uId}` : 'takt_guest_backup_manifest';
       const manifestStr = localStorage.getItem(manifestKey) || '[]';
       const manifest = JSON.parse(manifestStr);
       if (!manifest.includes(todayStr)) {
@@ -406,9 +390,12 @@ export default function App() {
   // Sync Meeting Notes scoped to user
   useEffect(() => {
     const uId = session?.user?.id;
-    const noteKey = uId ? `auratask_notes_u_${uId}` : 'auratask_guest_notes';
+    const noteKey = uId ? `takt_notes_u_${uId}` : 'takt_guest_notes';
+    const legacyKey = uId ? `auratask_notes_u_${uId}` : 'auratask_guest_notes';
     try {
-      localStorage.setItem(noteKey, JSON.stringify(meetingNotes));
+      const dataStr = JSON.stringify(meetingNotes);
+      localStorage.setItem(noteKey, dataStr);
+      localStorage.setItem(legacyKey, dataStr);
     } catch (e) {
       console.warn("Meeting notes storage sync notice:", e);
     }
@@ -417,18 +404,22 @@ export default function App() {
   // Sync Sections scoped to user
   useEffect(() => {
     const uId = session?.user?.id;
-    const secKey = uId ? `auratask_sections_u_${uId}` : 'auratask_guest_sections';
+    const secKey = uId ? `takt_sections_u_${uId}` : 'takt_guest_sections';
     try {
-      localStorage.setItem(secKey, JSON.stringify(customSections));
+      const dataStr = JSON.stringify(customSections);
+      localStorage.setItem(secKey, dataStr);
+      localStorage.setItem(uId ? `auratask_sections_u_${uId}` : 'auratask_guest_sections', dataStr);
     } catch {}
   }, [customSections, session?.user?.id]);
 
   // Sync Activity Logs scoped to user
   useEffect(() => {
     const uId = session?.user?.id;
-    const actKey = uId ? `auratask_activity_u_${uId}` : 'auratask_guest_activity';
+    const actKey = uId ? `takt_activity_u_${uId}` : 'takt_guest_activity';
     try {
-      localStorage.setItem(actKey, JSON.stringify(activityLogs));
+      const dataStr = JSON.stringify(activityLogs);
+      localStorage.setItem(actKey, dataStr);
+      localStorage.setItem(uId ? `auratask_activity_u_${uId}` : 'auratask_guest_activity', dataStr);
     } catch {}
   }, [activityLogs, session?.user?.id]);
 
@@ -480,9 +471,11 @@ export default function App() {
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark');
+      localStorage.setItem('takt_theme', 'dark');
       localStorage.setItem('auratask_theme', 'dark');
     } else {
       document.documentElement.classList.remove('dark');
+      localStorage.setItem('takt_theme', 'light');
       localStorage.setItem('auratask_theme', 'light');
     }
   }, [darkMode]);
@@ -493,6 +486,7 @@ export default function App() {
     setIsGuest(false);
     setShowLandingPage(false);
     setShowAuthModal(false);
+    localStorage.removeItem('takt_guest_mode');
     localStorage.removeItem('auratask_guest_mode');
     if (userSession?.user?.id) {
       const uId = userSession.user.id;
@@ -508,6 +502,7 @@ export default function App() {
   const handleUserSignedOut = () => {
     setSession(null);
     setIsGuest(false);
+    localStorage.removeItem('takt_guest_mode');
     localStorage.removeItem('auratask_guest_mode');
     const guestData = loadScopedWorkspaceData(null);
     setTasks(guestData.tasks);
@@ -873,7 +868,7 @@ export default function App() {
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement('a');
       link.setAttribute('href', encodedUri);
-      link.setAttribute('download', `auratask_export_${new Date().toISOString().split('T')[0]}.csv`);
+      link.setAttribute('download', `takt_export_${new Date().toISOString().split('T')[0]}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -987,9 +982,13 @@ export default function App() {
 
     try {
       if (rememberMe) {
+        localStorage.setItem('takt_remember_me', 'true');
+        localStorage.setItem('takt_remembered_email', authEmail.trim());
         localStorage.setItem('auratask_remember_me', 'true');
         localStorage.setItem('auratask_remembered_email', authEmail.trim());
       } else {
+        localStorage.setItem('takt_remember_me', 'false');
+        localStorage.removeItem('takt_remembered_email');
         localStorage.setItem('auratask_remember_me', 'false');
         localStorage.removeItem('auratask_remembered_email');
       }
@@ -1008,7 +1007,7 @@ export default function App() {
           handleUserSessionEstablished(data.session);
           setShowLandingPage(false);
           setShowAuthModal(false);
-          showToast(`Welcome to AuraTask, ${authFullName || 'friend'}!`);
+          showToast(`Welcome to Takt, ${authFullName || 'friend'}!`);
         } else {
           setAuthSuccessMsg('Account created successfully! Check your email to verify, or sign in.');
           setAuthMode('login');
@@ -1037,6 +1036,7 @@ export default function App() {
   const handleGuestLogin = () => {
     setIsGuest(true);
     setSession(null);
+    localStorage.setItem('takt_guest_mode', 'true');
     localStorage.setItem('auratask_guest_mode', 'true');
     // Strict isolation: Load fresh guest sandbox state so no user notes or tasks are ever visible
     const guestData = loadScopedWorkspaceData(null);
@@ -1311,10 +1311,10 @@ export default function App() {
   }
 
   // =========================================================================
-  // 2. MAIN APPLICATION WORKSPACE (FEY OBSIDIAN PURE BLACK PALETTE)
+  // 2. MAIN APPLICATION WORKSPACE (TAKT MIDNIGHT NAVY / SLATE PALETTE)
   // =========================================================================
   return (
-    <div className={`h-screen w-full flex overflow-hidden selection:bg-red-500 selection:text-white ${darkMode ? 'dark bg-[#000000] text-[#ededed]' : 'bg-[#fafafa] text-slate-800'}`}>
+    <div className={`h-screen w-full flex overflow-hidden selection:bg-red-500 selection:text-white ${darkMode ? 'dark bg-[#080c14] text-[#f1f5f9]' : 'bg-slate-50 text-slate-800'}`}>
 
       {/* Hidden File Input for CSV Import */}
       <input
@@ -1327,7 +1327,7 @@ export default function App() {
 
       {/* TOAST NOTIFICATION */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-neutral-900 text-white dark:bg-[#121214] dark:text-[#ededed] dark:border dark:border-[#222225] px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 text-xs font-semibold animate-in fade-in slide-in-from-bottom-2">
+        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white dark:bg-[#151d30] dark:text-[#f1f5f9] dark:border dark:border-[#22304e] px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 text-xs font-semibold animate-in fade-in slide-in-from-bottom-2">
           <Sparkles className="w-4 h-4 text-amber-400" />
           <span>{toastMessage}</span>
         </div>
@@ -1342,9 +1342,9 @@ export default function App() {
       )}
 
       {/* --- SIDEBAR NAVIGATION (PERMANENTLY PINNED, NEVER MOVES WITH SCROLL) --- */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-72 h-screen bg-white dark:bg-[#09090b] border-r border-slate-200/80 dark:border-[#222225] flex flex-col p-4 transition-transform duration-300 lg:static lg:translate-x-0 shrink-0 overflow-y-auto ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 w-72 h-screen bg-white dark:bg-[#0e1422] border-r border-slate-200/80 dark:border-[#22304e] flex flex-col p-4 transition-transform duration-300 lg:static lg:translate-x-0 shrink-0 overflow-y-auto ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         {/* Brand & User Profile */}
-        <div className="flex items-center justify-between pb-4 mb-2 border-b border-slate-100 dark:border-[#222225]">
+        <div className="flex items-center justify-between pb-4 mb-2 border-b border-slate-100 dark:border-[#22304e]">
           <Logo
             subtitle={
               isGuest
@@ -2565,15 +2565,15 @@ export default function App() {
               <button onClick={() => setShowEmailInboxModal(false)}><X className="w-4 h-4 text-slate-400" /></button>
             </div>
             <p className="text-xs text-slate-500 dark:text-[#a1a1aa] mb-4 leading-relaxed">
-              Forward any email to your private AuraTask address. The subject will become the task title and the email body will be saved as description.
+              Forward any email to your private Takt address. The subject will become the task title and the email body will be saved as description.
             </p>
             <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#09090b] border border-slate-200 dark:border-[#222225] flex items-center justify-between gap-2 mb-4">
               <code className="text-xs font-mono text-red-600 dark:text-red-400 truncate">
-                inbox+{session?.user?.id?.slice(0, 8) || 'guest'}@auratask.harisarshad.site
+                inbox+{session?.user?.id?.slice(0, 8) || 'guest'}@takt.harisarshad.site
               </code>
               <button
                 onClick={() => {
-                  navigator.clipboard.writeText(`inbox+${session?.user?.id?.slice(0, 8) || 'guest'}@auratask.harisarshad.site`);
+                  navigator.clipboard.writeText(`inbox+${session?.user?.id?.slice(0, 8) || 'guest'}@takt.harisarshad.site`);
                   showToast('Copied email address!');
                 }}
                 className="px-2 py-1 rounded bg-slate-200 dark:bg-[#1c1c20] text-[10px] font-bold text-slate-700 dark:text-[#ededed] shrink-0"
@@ -2603,15 +2603,15 @@ export default function App() {
               <button onClick={() => setShowCalendarFeedModal(false)}><X className="w-4 h-4 text-slate-400" /></button>
             </div>
             <p className="text-xs text-slate-500 dark:text-[#a1a1aa] mb-4 leading-relaxed">
-              Subscribe to your AuraTask tasks in Apple Calendar, Google Calendar, or Outlook to view scheduled tasks day-by-day.
+              Subscribe to your Takt tasks in Apple Calendar, Google Calendar, or Outlook to view scheduled tasks day-by-day.
             </p>
             <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#09090b] border border-slate-200 dark:border-[#222225] flex items-center justify-between gap-2 mb-4">
               <code className="text-xs font-mono text-emerald-600 dark:text-emerald-400 truncate">
-                webcal://auratask.harisarshad.site/feed.ics
+                webcal://takt.harisarshad.site/feed.ics
               </code>
               <button
                 onClick={() => {
-                  navigator.clipboard.writeText('webcal://auratask.harisarshad.site/feed.ics');
+                  navigator.clipboard.writeText('webcal://takt.harisarshad.site/feed.ics');
                   showToast('Copied feed URL!');
                 }}
                 className="px-2 py-1 rounded bg-slate-200 dark:bg-[#1c1c20] text-[10px] font-bold text-slate-700 dark:text-[#ededed] shrink-0"
