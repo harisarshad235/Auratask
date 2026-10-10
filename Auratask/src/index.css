@@ -3,18 +3,18 @@
 @variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-midnight-canvas: #080c14;
-  --color-midnight-surface-low: #0e1422;
-  --color-midnight-surface-med: #151d30;
-  --color-midnight-surface-high: #1d2740;
-  --color-midnight-border: #22304e;
-  --color-midnight-text: #f1f5f9;
-  --color-midnight-secondary: #8899b5;
-  --color-midnight-muted: #475569;
+  --color-obsidian-canvas: #000000;
+  --color-obsidian-surface-low: #09090b;
+  --color-obsidian-surface-med: #121214;
+  --color-obsidian-surface-high: #1c1c20;
+  --color-obsidian-border: #222225;
+  --color-obsidian-text: #ededed;
+  --color-obsidian-secondary: #a1a1aa;
+  --color-obsidian-muted: #52525b;
 
-  --color-tint-p1-bg: #451010;
-  --color-tint-p2-bg: #452405;
-  --color-tint-success-bg: #063820;
+  --color-tint-p1-bg: #2a1215;
+  --color-tint-p2-bg: #281a0b;
+  --color-tint-success-bg: #0d261a;
 }
 
 :root {
@@ -24,24 +24,25 @@
   --canvas-bg: #fafafa;
   --surface-low: #ffffff;
   --surface-med: #ffffff;
-  --surface-high: #f1f5f9;
-  --border-subtle: #e2e8f0;
-  --text-main: #0f172a;
-  --text-sub: #64748b;
-  --text-placeholder: #94a3b8;
+  --surface-high: #f4f4f5;
+  --border-subtle: #e4e4e7;
+  --text-main: #09090b;
+  --text-sub: #71717a;
+  --text-placeholder: #a1a1aa;
 }
 
 .dark {
   color-scheme: dark;
 
-  --canvas-bg: #080c14;
-  --surface-low: #0e1422;
-  --surface-med: #151d30;
-  --surface-high: #1d2740;
-  --border-subtle: #22304e;
-  --text-main: #f1f5f9;
-  --text-sub: #8899b5;
-  --text-placeholder: #475569;
+  /* Fey Obsidian Theme (Zero Blue Saturation, Pure Deep Black & Neutral Charcoal) */
+  --canvas-bg: #000000;
+  --surface-low: #09090b;
+  --surface-med: #121214;
+  --surface-high: #1c1c20;
+  --border-subtle: #222225;
+  --text-main: #ededed;
+  --text-sub: #a1a1aa;
+  --text-placeholder: #52525b;
 }
 
 body {
@@ -49,30 +50,31 @@ body {
   font-family: var(--font-sans);
   background-color: var(--canvas-bg);
   color: var(--text-main);
+  letter-spacing: -0.012em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Linear/Midnight Custom Scrollbars */
+/* Fey Obsidian Custom Scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.4);
+  background: rgba(161, 161, 170, 0.35);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 116, 139, 0.6);
+  background: rgba(113, 113, 122, 0.6);
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: #22304e;
+  background: #262626;
   border-radius: 9999px;
 }
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: #34466d;
+  background: #3f3f46;
 }
