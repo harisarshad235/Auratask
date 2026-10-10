@@ -1,18 +1,25 @@
 {
+  "name": "takt",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
   "scripts": {
-    "dev": "npm --prefix Auratask run dev",
-    "build": "npm --prefix Auratask run build"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.3",
-    "@tailwindcss/vite": "^4.3.3",
+    "@tailwindcss/vite": "^4.0.0",
+    "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
     "lucide-react": "^1.54.0",
-    "tailwind-merge": "^3.7.0"
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwind-merge": "^2.5.2"
   },
   "devDependencies": {
-    "autoprefixer": "^10.6.1",
-    "postcss": "^8.5.29",
-    "tailwindcss": "^4.3.3"
+    "@vitejs/plugin-react": "^4.3.1",
+    "vite": "^5.4.2"
   }
 }
