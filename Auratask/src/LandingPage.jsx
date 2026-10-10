@@ -13,6 +13,8 @@ export default function LandingPage({
   onStartForFree,
   onTryDemo,
   onOpenLogin,
+  onOpenApp,
+  hasActiveSession = false,
   darkMode,
   setDarkMode
 }) {
@@ -41,7 +43,7 @@ export default function LandingPage({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Logo & Brand */}
           <div className="flex items-center gap-6">
-            <Logo onClick={onTryDemo} href="/" />
+            <Logo onClick={hasActiveSession && onOpenApp ? onOpenApp : onTryDemo} href="/" />
 
             {/* Nav Links */}
             <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-neutral-600 dark:text-[#a1a1aa]">
@@ -63,19 +65,31 @@ export default function LandingPage({
               {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
 
-            <button
-              onClick={onOpenLogin}
-              className="px-3.5 py-2 text-xs font-semibold text-neutral-700 dark:text-[#a1a1aa] hover:text-neutral-900 dark:hover:text-[#ededed] transition-colors"
-            >
-              Log in
-            </button>
+            {hasActiveSession ? (
+              <button
+                onClick={onOpenApp}
+                className="px-4 py-2 text-xs font-bold rounded-xl bg-red-600 hover:bg-red-700 text-white shadow-sm shadow-red-600/20 active:scale-[0.98] transition-all flex items-center gap-1.5"
+              >
+                <span>Go to Workspace</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={onOpenLogin}
+                  className="px-3.5 py-2 text-xs font-semibold text-neutral-700 dark:text-[#a1a1aa] hover:text-neutral-900 dark:hover:text-[#ededed] transition-colors"
+                >
+                  Log in
+                </button>
 
-            <button
-              onClick={onStartForFree}
-              className="px-4 py-2 text-xs font-bold rounded-xl bg-red-600 hover:bg-red-700 text-white shadow-sm shadow-red-600/20 active:scale-[0.98] transition-all"
-            >
-              Start for free
-            </button>
+                <button
+                  onClick={onStartForFree}
+                  className="px-4 py-2 text-xs font-bold rounded-xl bg-red-600 hover:bg-red-700 text-white shadow-sm shadow-red-600/20 active:scale-[0.98] transition-all"
+                >
+                  Start for free
+                </button>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -102,19 +116,31 @@ export default function LandingPage({
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 max-w-md mx-auto">
-            <button
-              onClick={onStartForFree}
-              className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-extrabold text-sm shadow-md shadow-red-600/25 flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
-            >
-              <span>Start for free</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-            <button
-              onClick={onTryDemo}
-              className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-white dark:bg-[#121214] border border-neutral-200 dark:border-[#222225] hover:bg-neutral-50 dark:hover:bg-[#1c1c20] text-neutral-800 dark:text-[#ededed] font-bold text-sm shadow-xs flex items-center justify-center gap-2 transition-all"
-            >
-              <span>Try Live Interactive Demo</span>
-            </button>
+            {hasActiveSession ? (
+              <button
+                onClick={onOpenApp}
+                className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-extrabold text-sm shadow-md shadow-red-600/25 flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
+              >
+                <span>Enter Your Workspace</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={onStartForFree}
+                  className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-extrabold text-sm shadow-md shadow-red-600/25 flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
+                >
+                  <span>Start for free</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={onTryDemo}
+                  className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-white dark:bg-[#121214] border border-neutral-200 dark:border-[#222225] hover:bg-neutral-50 dark:hover:bg-[#1c1c20] text-neutral-800 dark:text-[#ededed] font-bold text-sm shadow-xs flex items-center justify-center gap-2 transition-all"
+                >
+                  <span>Try Live Interactive Demo</span>
+                </button>
+              </>
+            )}
           </div>
 
           <p className="text-[11px] text-neutral-400 dark:text-[#52525b] mt-3">

@@ -340,7 +340,19 @@ export default function App() {
   };
 
   // --- LANDING PAGE & TASK MODALS STATE ---
-  const [showLandingPage, setShowLandingPage] = useState(!session && !isGuest);
+  const [showLandingPage, setShowLandingPage] = useState(() => {
+    if (localStorage.getItem('auratask_guest_mode') === 'true') return false;
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+          const val = localStorage.getItem(key);
+          if (val && JSON.parse(val)?.user) return false;
+        }
+      }
+    } catch {}
+    return true;
+  });
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [modalTask, setModalTask] = useState(null);
@@ -477,6 +489,8 @@ export default function App() {
   const handleUserSessionEstablished = (userSession) => {
     setSession(userSession);
     setIsGuest(false);
+    setShowLandingPage(false);
+    setShowAuthModal(false);
     localStorage.removeItem('auratask_guest_mode');
     if (userSession?.user?.id) {
       const uId = userSession.user.id;
@@ -1060,6 +1074,8 @@ export default function App() {
           onStartForFree={() => { setAuthMode('register'); setShowAuthModal(true); }}
           onTryDemo={handleGuestLogin}
           onOpenLogin={() => { setAuthMode('login'); setShowAuthModal(true); }}
+          onOpenApp={() => setShowLandingPage(false)}
+          hasActiveSession={Boolean(session || isGuest)}
           darkMode={darkMode}
           setDarkMode={setDarkMode}
         />
@@ -1258,7 +1274,17 @@ export default function App() {
       <aside className={`fixed inset-y-0 left-0 z-50 w-72 h-screen bg-white dark:bg-[#09090b] border-r border-slate-200/80 dark:border-[#222225] flex flex-col p-4 transition-transform duration-300 lg:static lg:translate-x-0 shrink-0 overflow-y-auto ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         {/* Brand & User Profile */}
         <div className="flex items-center justify-between pb-4 mb-2 border-b border-slate-100 dark:border-[#222225]">
-          <Logo subtitle="Harris Arshad" onClick={(e) => { e.preventDefault(); setShowLandingPage(true); }} />
+          <Logo
+            subtitle={
+              isGuest
+                ? 'Guest Sandbox'
+                : (session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || 'Personal Workspace')
+            }
+            onClick={(e) => {
+              e.preventDefault();
+              setActiveTab('inbox');
+            }}
+          />
 
           <div className="flex items-center gap-1">
             <button
