@@ -240,6 +240,7 @@ export default function App() {
   // --- DRAG AND DROP & SWIMLANES STATE ---
   const [draggingTaskId, setDraggingTaskId] = useState(null);
   const [dragOverColumn, setDragOverColumn] = useState(null);
+  const [dragOverTaskId, setDragOverTaskId] = useState(null);
   const [boardGrouping, setBoardGrouping] = useState('stage'); // 'stage' or 'priority'
 
   // --- TOAST NOTIFICATIONS ---
@@ -755,6 +756,52 @@ export default function App() {
       handleUpdateTask(taskId, { priority: targetKey });
       showToast(`Priority updated to ${targetKey}`);
     }
+  };
+
+  // List View Task-to-Task Reorder Handler
+  const handleReorderTaskInList = (draggedId, targetId, targetSectionKey) => {
+    if (!draggedId || draggedId === targetId) return;
+
+    setTasks(prevTasks => {
+      const draggedIndex = prevTasks.findIndex(t => t.id === draggedId);
+      const targetIndex = prevTasks.findIndex(t => t.id === targetId);
+      if (draggedIndex === -1 || targetIndex === -1) return prevTasks;
+
+      const draggedTask = { ...prevTasks[draggedIndex] };
+      let sectionUpdated = false;
+
+      if (boardGrouping === 'stage') {
+        if (draggedTask.section !== targetSectionKey) {
+          draggedTask.section = targetSectionKey;
+          sectionUpdated = true;
+          if (targetSectionKey === 'completed') triggerCelebration();
+        }
+      } else {
+        if (draggedTask.priority !== targetSectionKey) {
+          draggedTask.priority = targetSectionKey;
+          sectionUpdated = true;
+        }
+      }
+
+      const nextTasks = [...prevTasks];
+      nextTasks.splice(draggedIndex, 1);
+      const newTargetIndex = nextTasks.findIndex(t => t.id === targetId);
+      nextTasks.splice(newTargetIndex, 0, draggedTask);
+
+      if (sectionUpdated && session?.user?.id) {
+        supabase
+          .from('tasks')
+          .update(boardGrouping === 'stage' ? { section: targetSectionKey } : { priority: targetSectionKey })
+          .eq('id', draggedId)
+          .eq('user_id', session.user.id)
+          .then();
+      }
+
+      return nextTasks;
+    });
+
+    recordActivity(`Reordered task in list view`, 'edit');
+    showToast('Task position updated');
   };
 
   // Subtasks Checklist Handlers
@@ -1827,9 +1874,34 @@ export default function App() {
                   boardGrouping === 'stage' ? t.section === sec.key : t.priority === sec.key
                 );
                 const isCollapsed = Boolean(collapsedSections[sec.key]);
+                const isSectionOver = dragOverColumn === sec.key;
 
                 return (
-                  <div key={sec.key} className="space-y-1.5">
+                  <div
+                    key={sec.key}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = 'move';
+                      if (dragOverColumn !== sec.key) setDragOverColumn(sec.key);
+                    }}
+                    onDragLeave={(e) => {
+                      if (e.currentTarget.contains(e.relatedTarget)) return;
+                      if (dragOverColumn === sec.key) setDragOverColumn(null);
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const taskId = e.dataTransfer.getData('text/plain') || draggingTaskId;
+                      if (taskId) handleDropTask(taskId, sec.key);
+                      setDragOverColumn(null);
+                      setDraggingTaskId(null);
+                      setDragOverTaskId(null);
+                    }}
+                    className={`space-y-1.5 rounded-2xl p-2 transition-all ${
+                      isSectionOver && draggingTaskId
+                        ? 'bg-red-50/50 dark:bg-[#151214] ring-2 ring-red-500/60 dark:ring-red-500/50'
+                        : ''
+                    }`}
+                  >
                     {/* Section Header (Screenshot 1 & 4 exact layout) */}
                     <div className="flex items-center justify-between py-1.5">
                       <button
@@ -1857,16 +1929,74 @@ export default function App() {
                     {/* Section Tasks List */}
                     {!isCollapsed && (
                       <div className="space-y-1 pl-1">
+                        {isSectionOver && draggingTaskId && (
+                          <div className="border-2 border-dashed border-red-400 dark:border-red-500/80 rounded-xl p-2.5 text-center text-xs font-bold text-red-500 dark:text-red-400 bg-red-50/60 dark:bg-[#2a1215]/40 animate-pulse flex items-center justify-center gap-2">
+                            <Sparkles className="w-3.5 h-3.5" />
+                            <span>Drop task into {sec.label}</span>
+                          </div>
+                        )}
+
                         {secTasks.map(task => {
                           const isTaskCompleted = task.section === 'completed';
+                          const isBeingDragged = draggingTaskId === task.id;
+                          const isTargetOver = dragOverTaskId === task.id && !isBeingDragged;
 
                           return (
                             <div
                               key={task.id}
+                              draggable={true}
+                              onDragStart={(e) => {
+                                e.dataTransfer.setData('text/plain', task.id);
+                                e.dataTransfer.effectAllowed = 'move';
+                                setDraggingTaskId(task.id);
+                              }}
+                              onDragEnd={() => {
+                                setDraggingTaskId(null);
+                                setDragOverColumn(null);
+                                setDragOverTaskId(null);
+                              }}
+                              onDragOver={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                e.dataTransfer.dropEffect = 'move';
+                                if (dragOverTaskId !== task.id) {
+                                  setDragOverTaskId(task.id);
+                                }
+                              }}
+                              onDragLeave={(e) => {
+                                e.stopPropagation();
+                                if (e.currentTarget.contains(e.relatedTarget)) return;
+                                if (dragOverTaskId === task.id) setDragOverTaskId(null);
+                              }}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                const draggedId = e.dataTransfer.getData('text/plain') || draggingTaskId;
+                                if (draggedId && draggedId !== task.id) {
+                                  handleReorderTaskInList(draggedId, task.id, sec.key);
+                                }
+                                setDragOverColumn(null);
+                                setDraggingTaskId(null);
+                                setDragOverTaskId(null);
+                              }}
                               onClick={() => handleOpenTaskModal(task)}
-                              className="group bg-white dark:bg-[#121214] border border-slate-200/90 dark:border-[#222225] hover:border-slate-300 dark:hover:border-[#38383e] dark:hover:bg-[#1c1c20] rounded-xl p-3 shadow-2xs hover:shadow-xs transition-all flex items-center justify-between gap-4 cursor-pointer"
+                              className={`group bg-white dark:bg-[#121214] border rounded-xl p-3 shadow-2xs hover:shadow-xs transition-all flex items-center justify-between gap-4 cursor-pointer select-none ${
+                                isBeingDragged
+                                  ? 'opacity-30 border-dashed border-red-500 scale-[0.98]'
+                                  : isTargetOver
+                                    ? 'ring-2 ring-red-500 border-red-400 dark:border-red-500 bg-red-50/40 dark:bg-[#1c1c20]'
+                                    : 'border-slate-200/90 dark:border-[#222225] hover:border-slate-300 dark:hover:border-[#38383e] dark:hover:bg-[#1c1c20]'
+                              }`}
                             >
                               <div className="flex items-center gap-3 min-w-0 flex-1">
+                                <div
+                                  className="text-slate-300 dark:text-[#52525b] group-hover:text-slate-500 dark:group-hover:text-[#a1a1aa] shrink-0 cursor-grab active:cursor-grabbing p-0.5 rounded hover:bg-slate-100 dark:hover:bg-[#1c1c20] transition-colors"
+                                  title="Drag to reorder or move section"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <GripVertical className="w-3.5 h-3.5" />
+                                </div>
+
                                 <button
                                   type="button"
                                   onClick={(e) => {
