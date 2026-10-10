@@ -6,7 +6,7 @@ import {
   RotateCcw, Star, LogIn, LogOut, Download, SlidersHorizontal, AlertCircle,
   BookOpen, ChevronRight, CheckSquare, Zap, Shield, ArrowRight, ArrowLeft,
   ChevronDown, Filter, Flag, Layers, Award, Target, Eye, EyeOff, User,
-  Mail, Lock, Sparkle, RefreshCw, Menu, HelpCircle, CheckCircle
+  Mail, Lock, Sparkle, RefreshCw, Menu, HelpCircle, CheckCircle, GripVertical
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { supabase } from './supabaseClient';
@@ -135,6 +135,11 @@ export default function App() {
   const [selectedTag, setSelectedTag] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // --- DRAG AND DROP & SWIMLANES STATE ---
+  const [draggingTaskId, setDraggingTaskId] = useState(null);
+  const [dragOverColumn, setDragOverColumn] = useState(null);
+  const [boardGrouping, setBoardGrouping] = useState('stage'); // 'stage' or 'priority'
 
   // --- TOAST NOTIFICATIONS ---
   const [toastMessage, setToastMessage] = useState(null);
@@ -354,6 +359,28 @@ export default function App() {
       const nextSection = sections[targetIndex];
       handleUpdateTask(taskId, { section: nextSection });
       if (nextSection === 'completed') triggerCelebration();
+    }
+  };
+
+  // --- DRAG AND DROP DROP HANDLER ---
+  const handleDropTask = (taskId, targetKey) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    if (boardGrouping === 'stage') {
+      if (task.section === targetKey) return;
+      handleUpdateTask(taskId, { section: targetKey });
+      if (targetKey === 'completed') {
+        triggerCelebration();
+        showToast('Task completed! Keep the momentum going 🔥');
+      } else {
+        const labels = { todo: 'To Do', in_progress: 'In Progress', in_review: 'In Review', completed: 'Completed' };
+        showToast(`Moved to ${labels[targetKey] || targetKey}`);
+      }
+    } else {
+      if (task.priority === targetKey) return;
+      handleUpdateTask(taskId, { priority: targetKey });
+      showToast(`Priority updated to ${targetKey}`);
     }
   };
 
@@ -1016,6 +1043,26 @@ export default function App() {
               </button>
             </div>
 
+            {/* Swimlanes / Group By Toggle (Only visible on Board view) */}
+            {viewMode === 'board' && (
+              <div className="hidden md:flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-0.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold">
+                <button
+                  onClick={() => setBoardGrouping('stage')}
+                  className={`px-2.5 py-1.5 rounded-lg transition-all ${boardGrouping === 'stage' ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
+                  title="Group lanes by Workflow Stages"
+                >
+                  Stages
+                </button>
+                <button
+                  onClick={() => setBoardGrouping('priority')}
+                  className={`px-2.5 py-1.5 rounded-lg transition-all ${boardGrouping === 'priority' ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
+                  title="Group into Priority Swimlanes"
+                >
+                  Priority Swimlanes
+                </button>
+              </div>
+            )}
+
             {/* Quick Add Button Header */}
             <button
               onClick={() => { setShowAddComposer(true); setComposerSection('todo'); }}
@@ -1157,22 +1204,49 @@ export default function App() {
             </div>
           )}
 
-          {/* --- VIEW MODE 1: KANBAN BOARD VIEW --- */}
+          {/* --- VIEW MODE 1: KANBAN BOARD VIEW (WITH DRAG & DROP SWIMLANES) --- */}
           {viewMode === 'board' ? (
             <div className="flex gap-5 pb-6 overflow-x-auto min-h-[550px] items-start">
-              {[
+              {(boardGrouping === 'stage' ? [
                 { key: 'todo', label: 'To Do', icon: Layers, accent: 'border-slate-300 dark:border-slate-700' },
                 { key: 'in_progress', label: 'In Progress', icon: Flame, accent: 'border-amber-400 dark:border-amber-600' },
                 { key: 'in_review', label: 'In Review', icon: Eye, accent: 'border-blue-400 dark:border-blue-600' },
                 { key: 'completed', label: 'Completed', icon: CheckCircle2, accent: 'border-emerald-400 dark:border-emerald-600' }
-              ].map(column => {
-                const columnTasks = filteredTasks.filter(t => t.section === column.key);
-                const IconComponent = column.icon;
+              ] : [
+                { key: 'P1', label: 'P1 (Urgent)', icon: Flag, accent: 'border-red-400 dark:border-red-600' },
+                { key: 'P2', label: 'P2 (High)', icon: Flag, accent: 'border-amber-400 dark:border-amber-600' },
+                { key: 'P3', label: 'P3 (Medium)', icon: Flag, accent: 'border-blue-400 dark:border-blue-600' },
+                { key: 'P4', label: 'P4 (Low)', icon: Flag, accent: 'border-slate-400 dark:border-slate-600' }
+              ]).map(column => {
+                const columnTasks = filteredTasks.filter(t =>
+                  boardGrouping === 'stage' ? t.section === column.key : t.priority === column.key
+                );
+                const isOver = dragOverColumn === column.key;
 
                 return (
                   <div
                     key={column.key}
-                    className="w-80 shrink-0 flex flex-col bg-slate-100/80 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-3 max-h-full"
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = 'move';
+                      if (dragOverColumn !== column.key) setDragOverColumn(column.key);
+                    }}
+                    onDragLeave={(e) => {
+                      if (e.currentTarget.contains(e.relatedTarget)) return;
+                      setDragOverColumn(null);
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const taskId = e.dataTransfer.getData('text/plain') || draggingTaskId;
+                      if (taskId) handleDropTask(taskId, column.key);
+                      setDragOverColumn(null);
+                      setDraggingTaskId(null);
+                    }}
+                    className={`w-80 shrink-0 flex flex-col bg-slate-100/80 dark:bg-slate-900/60 border rounded-2xl p-3 max-h-full transition-all duration-200 ${
+                      isOver
+                        ? 'ring-2 ring-red-500/70 border-red-400 dark:border-red-700 bg-red-50/40 dark:bg-red-950/20 shadow-md'
+                        : 'border-slate-200/80 dark:border-slate-800'
+                    }`}
                   >
                     {/* Column Header */}
                     <div className="flex items-center justify-between pb-3 px-1">
@@ -1185,32 +1259,66 @@ export default function App() {
                         </span>
                       </div>
                       <button
-                        onClick={() => { setShowAddComposer(true); setComposerSection(column.key); }}
+                        onClick={() => {
+                          setShowAddComposer(true);
+                          if (boardGrouping === 'stage') setComposerSection(column.key);
+                          else setNewPriority(column.key);
+                        }}
                         className="p-1 hover:bg-white dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-red-600"
-                        title="Add task to this section"
+                        title={`Add task to ${column.label}`}
                       >
                         <Plus className="w-4 h-4" />
                       </button>
                     </div>
 
-                    {/* Column Task Cards */}
+                    {/* Column Task Cards & Drop Zone */}
                     <div className="flex-1 overflow-y-auto space-y-3 min-h-[120px]">
+                      {/* Active Drop Placeholder Indicator */}
+                      {isOver && draggingTaskId && (
+                        <div className="border-2 border-dashed border-red-400 dark:border-red-500 rounded-xl p-3.5 text-center text-xs font-bold text-red-500 dark:text-red-400 bg-red-50/60 dark:bg-red-950/40 animate-pulse flex items-center justify-center gap-2">
+                          <Sparkles className="w-3.5 h-3.5" />
+                          <span>Drop task into {column.label}</span>
+                        </div>
+                      )}
+
                       {columnTasks.map(task => {
                         const isTaskCompleted = task.section === 'completed';
                         const subtasks = task.subtasks || [];
                         const completedSubtasks = subtasks.filter(st => st.completed).length;
                         const isSubtasksExpanded = expandedTaskSubtasks[task.id];
+                        const isBeingDragged = draggingTaskId === task.id;
 
                         return (
                           <div
                             key={task.id}
-                            className={`group bg-white dark:bg-slate-900 border rounded-xl p-3.5 shadow-2xs hover:shadow-md transition-all ${isTaskCompleted ? 'border-slate-200/60 dark:border-slate-800/60 opacity-80' : 'border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'}`}
+                            draggable={true}
+                            onDragStart={(e) => {
+                              e.dataTransfer.setData('text/plain', task.id);
+                              e.dataTransfer.effectAllowed = 'move';
+                              setDraggingTaskId(task.id);
+                            }}
+                            onDragEnd={() => {
+                              setDraggingTaskId(null);
+                              setDragOverColumn(null);
+                            }}
+                            className={`group bg-white dark:bg-slate-900 border rounded-xl p-3.5 shadow-2xs hover:shadow-md transition-all cursor-grab active:cursor-grabbing select-none ${
+                              isBeingDragged
+                                ? 'opacity-30 scale-95 border-dashed border-red-500 shadow-xl'
+                                : isTaskCompleted
+                                  ? 'border-slate-200/60 dark:border-slate-800/60 opacity-80'
+                                  : 'border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+                            }`}
                           >
-                            <div className="flex items-start gap-3">
+                            <div className="flex items-start gap-2.5">
+                              {/* Drag Grip Handle */}
+                              <div className="text-slate-300 group-hover:text-slate-400 shrink-0 mt-0.5 cursor-grab">
+                                <GripVertical className="w-3.5 h-3.5" />
+                              </div>
+
                               {/* Circular Checkbox */}
                               <button
                                 onClick={() => toggleTaskCompleted(task)}
-                                className="mt-0.5 text-slate-300 hover:text-emerald-500 transition-colors"
+                                className="mt-0.5 text-slate-300 hover:text-emerald-500 transition-colors shrink-0"
                               >
                                 {isTaskCompleted ? (
                                   <CheckCircle2 className="w-4 h-4 text-emerald-500 fill-emerald-50 dark:fill-emerald-950" />
@@ -1313,7 +1421,7 @@ export default function App() {
                               </div>
                             </div>
 
-                            {/* Card Footer: Quick Actions (Star, Flow Timer, Shift Column, Delete) */}
+                            {/* Card Footer: Quick Actions */}
                             <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
                               {/* 1-Click Move Column Arrows */}
                               <div className="flex items-center gap-1">
@@ -1369,7 +1477,7 @@ export default function App() {
                       })}
 
                       {/* Empty Column Placeholder */}
-                      {columnTasks.length === 0 && (
+                      {columnTasks.length === 0 && !isOver && (
                         <div className="border border-dashed border-slate-200 dark:border-slate-800 rounded-xl p-6 text-center text-xs text-slate-400">
                           <span>No tasks in {column.label}</span>
                         </div>
