@@ -63,9 +63,6 @@ export const TaktLogo = ({
         <div className="flex flex-col text-left">
           <div className="flex items-baseline font-bold tracking-tight text-xl leading-none">
             <span className="text-slate-900 dark:text-white">Takt</span>
-            <span className="ml-1.5 text-[10px] tracking-widest uppercase font-semibold text-red-600 bg-red-500/10 border border-red-500/20 px-1.5 py-0.5 rounded">
-              Pro
-            </span>
           </div>
           {subtitle && (
             <span className="text-[11px] font-normal text-slate-500 dark:text-slate-400 mt-1 leading-none truncate max-w-[170px]">

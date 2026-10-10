@@ -31,7 +31,7 @@ const DEFAULT_SECTIONS = [
 const GUEST_DEMO_TASKS = [
   {
     id: 'guest-task-1',
-    title: 'Explore Takt Pro Kanban swimlanes (Guest Sandbox)',
+    title: 'Explore Takt Kanban swimlanes (Guest Sandbox)',
     description: 'This is a sample task in guest mode. Changes here are saved in your local guest sandbox only.',
     section: 'todo',
     priority: 'P1',
