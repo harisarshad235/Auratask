@@ -1,0 +1,18 @@
+{
+  "scripts": {
+    "dev": "npm --prefix Auratask run dev",
+    "build": "npm --prefix Auratask run build"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.117.3",
+    "@tailwindcss/vite": "^4.3.3",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.54.0",
+    "tailwind-merge": "^3.7.0"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.6.1",
+    "postcss": "^8.5.29",
+    "tailwindcss": "^4.3.3"
+  }
+}
