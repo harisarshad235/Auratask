@@ -4,12 +4,15 @@ import {
   Trash2, Edit3, MoreHorizontal, Sparkles, X, Moon, Sun,
   ListFilter, Kanban, Tag, Flame, BarChart3, Bell, Play, Pause,
   RotateCcw, Star, LogIn, LogOut, Download, SlidersHorizontal, AlertCircle,
-  BookOpen, ChevronRight, CheckSquare, Zap, Shield
+  BookOpen, ChevronRight, CheckSquare, Zap, Shield, ArrowRight, ArrowLeft,
+  ChevronDown, Filter, Flag, Layers, Award, Target, Eye, EyeOff, User,
+  Mail, Lock, Sparkle, RefreshCw, Menu, HelpCircle, CheckCircle
 } from 'lucide-react';
+import confetti from 'canvas-confetti';
 import { supabase } from './supabaseClient';
 
-// --- LOGO: MINIMALIST ISOMETRIC DELTA ---
-export const AuraLogo = ({ className = "w-7 h-7" }) => (
+// --- LOGO: ISOMETRIC PRO DELTA ---
+export const AuraLogo = ({ className = "w-8 h-8" }) => (
   <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
     <defs>
       <linearGradient id="auraNavy" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -18,105 +21,216 @@ export const AuraLogo = ({ className = "w-7 h-7" }) => (
       </linearGradient>
       <linearGradient id="auraCrimson" x1="0%" y1="0%" x2="100%" y2="100%">
         <stop offset="0%" stopColor="#ef4444" />
-        <stop offset="100%" stopColor="#b91c1c" />
+        <stop offset="100%" stopColor="#dc2626" />
       </linearGradient>
     </defs>
-    <rect x="6" y="6" width="36" height="36" rx="10" fill="url(#auraNavy)" />
+    <rect x="6" y="6" width="36" height="36" rx="12" fill="url(#auraNavy)" />
     <path d="M14 24L21 31L35 15" stroke="url(#auraCrimson)" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" />
     <circle cx="34" cy="33" r="2.5" fill="#ef4444" />
   </svg>
 );
 
-export default function App() {
-  const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('inbox');
-  const [viewMode, setViewMode] = useState('board');
-  const [darkMode, setDarkMode] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+// --- SEED TASKS FOR PRO FIRST-RUN DEMO ---
+const INITIAL_SEED_TASKS = [
+  {
+    id: 'seed-1',
+    title: 'Review production launch checklist with engineering lead',
+    description: 'Ensure SSL certificates, database read-replicas, and Sentry alerts are live.',
+    section: 'todo',
+    priority: 'P1',
+    due_date: new Date().toISOString().split('T')[0],
+    due_time: '11:00',
+    tags: ['#Engineering', '#Launch'],
+    is_focus: true,
+    focused_minutes: 25,
+    subtasks: [
+      { id: 'st-1', text: 'Verify Cloudflare DNS records', completed: true },
+      { id: 'st-2', text: 'Validate database backup snapshots', completed: true },
+      { id: 'st-3', text: 'Run smoke test on staging cluster', completed: false }
+    ],
+    created_at: new Date(Date.now() - 3600000).toISOString()
+  },
+  {
+    id: 'seed-2',
+    title: 'Design onboarding flow inspired by Todoist & Linear',
+    description: 'Create high-fidelity wireframes in Figma with modern light accents.',
+    section: 'in_progress',
+    priority: 'P1',
+    due_date: new Date().toISOString().split('T')[0],
+    due_time: '15:30',
+    tags: ['#Design', '#UX'],
+    is_focus: true,
+    focused_minutes: 50,
+    subtasks: [
+      { id: 'st-4', text: 'Component token library setup', completed: true },
+      { id: 'st-5', text: 'Keyboard shortcuts modal prototype', completed: false }
+    ],
+    created_at: new Date(Date.now() - 7200000).toISOString()
+  },
+  {
+    id: 'seed-3',
+    title: 'Weekly sync with marketing team on product positioning',
+    description: 'Align copy and assets for newsletter broadcast and socials.',
+    section: 'in_review',
+    priority: 'P2',
+    due_date: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+    due_time: '14:00',
+    tags: ['#Marketing'],
+    is_focus: false,
+    focused_minutes: 0,
+    subtasks: [],
+    created_at: new Date(Date.now() - 10800000).toISOString()
+  },
+  {
+    id: 'seed-4',
+    title: 'Completed database index optimization on user queries',
+    description: 'Reduced average latency from 180ms down to 14ms across endpoints.',
+    section: 'completed',
+    priority: 'P2',
+    due_date: new Date().toISOString().split('T')[0],
+    due_time: '09:00',
+    tags: ['#Performance'],
+    is_focus: false,
+    focused_minutes: 45,
+    subtasks: [
+      { id: 'st-6', text: 'Analyze slow query log', completed: true },
+      { id: 'st-7', text: 'Create composite index on tasks table', completed: true }
+    ],
+    created_at: new Date(Date.now() - 14400000).toISOString()
+  }
+];
 
-  // Auth state
+export default function App() {
+  // --- AUTH STATE ---
   const [session, setSession] = useState(null);
-  const [userProfile, setUserProfile] = useState(null);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authMode, setAuthMode] = useState('login');
+  const [isGuest, setIsGuest] = useState(() => localStorage.getItem('auratask_guest_mode') === 'true');
+  const [authMode, setAuthMode] = useState('register'); // 'register' or 'login'
   const [authEmail, setAuthEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
   const [authFullName, setAuthFullName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState(null);
+  const [authSuccessMsg, setAuthSuccessMsg] = useState(null);
+  const [authLoading, setAuthLoading] = useState(false);
 
-  // Focus Timer
+  // --- TASKS STATE ---
+  const [tasks, setTasks] = useState(() => {
+    try {
+      const saved = localStorage.getItem('auratask_v3_tasks');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+      return INITIAL_SEED_TASKS;
+    } catch {
+      return INITIAL_SEED_TASKS;
+    }
+  });
+
+  // --- UI NAVIGATION & VIEW MODES ---
+  const [activeTab, setActiveTab] = useState('today'); // 'inbox', 'today', 'upcoming', 'completed', 'tag-...'
+  const [viewMode, setViewMode] = useState('board'); // 'board' or 'list'
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('auratask_theme') === 'dark');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTag, setSelectedTag] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // --- TOAST NOTIFICATIONS ---
+  const [toastMessage, setToastMessage] = useState(null);
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  // --- INLINE TASK CREATOR (TODOIST STYLE) ---
+  const [showAddComposer, setShowAddComposer] = useState(false);
+  const [composerSection, setComposerSection] = useState('todo');
+  const [newTitle, setNewTitle] = useState('');
+  const [newDesc, setNewDesc] = useState('');
+  const [newPriority, setNewPriority] = useState('P2');
+  const [newDueDate, setNewDueDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [newDueTime, setNewDueTime] = useState('');
+  const [newTag, setNewTag] = useState('#Work');
+
+  // --- POMODORO FLOW TIMER ---
   const [activeTimerTask, setActiveTimerTask] = useState(null);
   const [timerSeconds, setTimerSeconds] = useState(25 * 60);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
 
-  // Quick Add
-  const [quickTitle, setQuickTitle] = useState('');
-  const [quickSection, setQuickSection] = useState('inbox');
-  const [quickPriority, setQuickPriority] = useState('P2');
-  const [quickDueTime, setQuickDueTime] = useState('');
-
-  // Daily Shutdown Ritual Modal
+  // --- PRO MODALS ---
+  const [showKarmaModal, setShowKarmaModal] = useState(false);
   const [showShutdownModal, setShowShutdownModal] = useState(false);
-
-  // Scratchpad
   const [showScratchpad, setShowScratchpad] = useState(false);
   const [scratchpadText, setScratchpadText] = useState(() => localStorage.getItem('auratask_notes') || '');
+  const [expandedTaskSubtasks, setExpandedTaskSubtasks] = useState({});
+  const [newSubtaskInputs, setNewSubtaskInputs] = useState({});
+
+  // Sync dark mode class to <html> element
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('auratask_theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('auratask_theme', 'light');
+    }
+  }, [darkMode]);
+
+  // Sync tasks to localStorage continuously
+  useEffect(() => {
+    localStorage.setItem('auratask_v3_tasks', JSON.stringify(tasks));
+  }, [tasks]);
 
   // 1. Initial Session Check & Auth Listener
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session?.user) setUserProfile(session.user);
-      setLoading(false);
+      if (session) {
+        setSession(session);
+        setIsGuest(false);
+      }
+    }).catch(err => {
+      console.warn("Supabase auth session check notice:", err);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUserProfile(session?.user || null);
+      if (session) {
+        setSession(session);
+        setIsGuest(false);
+      }
     });
 
-    return () => subscription.unsubscribe();
+    return () => subscription?.unsubscribe();
   }, []);
 
-  // 2. Fetch Tasks & Subscribe to Realtime Updates
+  // 2. Fetch Tasks from Supabase if logged in
   useEffect(() => {
-    if (!session?.user) {
-      // Local fallback for guest
-      const local = localStorage.getItem('auratask_local_tasks');
-      if (local) setTasks(JSON.parse(local));
-      return;
-    }
+    if (!session?.user) return;
 
     const fetchTasks = async () => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('tasks')
-        .select('*')
-        .order('created_at', { ascending: false });
-      if (!error && data) setTasks(data);
-      setLoading(false);
+      try {
+        const { data, error } = await supabase
+          .from('tasks')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (!error && Array.isArray(data) && data.length > 0) {
+          // Normalize column names
+          const normalized = data.map(item => ({
+            ...item,
+            section: item.section || 'todo',
+            priority: item.priority || 'P2',
+            tags: item.tags || ['#Work'],
+            subtasks: Array.isArray(item.subtasks) ? item.subtasks : []
+          }));
+          setTasks(normalized);
+        }
+      } catch (err) {
+        console.warn('Supabase fetch notice (using local offline cache):', err);
+      }
     };
 
     fetchTasks();
-
-    // Supabase Realtime channel
-    const channel = supabase
-      .channel('tasks-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, (payload) => {
-        if (payload.eventType === 'INSERT') {
-          setTasks(prev => [payload.new, ...prev.filter(t => t.id !== payload.new.id)]);
-        } else if (payload.eventType === 'UPDATE') {
-          setTasks(prev => prev.map(t => t.id === payload.new.id ? payload.new : t));
-        } else if (payload.eventType === 'DELETE') {
-          setTasks(prev => prev.filter(t => t.id !== payload.old.id));
-        }
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
   }, [session]);
 
   // Pomodoro Timer Interval
@@ -131,507 +245,1313 @@ export default function App() {
           focused_minutes: (activeTimerTask.focused_minutes || 0) + 25
         });
       }
-      alert('Focus cycle finished! Take a 5-minute break.');
+      try {
+        confetti({ particleCount: 50, spread: 60, origin: { y: 0.8 } });
+      } catch {}
+      showToast('🎉 Focus session complete! Take a well-deserved 5-minute break.');
     }
     return () => clearInterval(interval);
   }, [isTimerRunning, timerSeconds, activeTimerTask]);
 
-  // 3. Database CRUD Operations
-  const handleCreateTask = async (e) => {
-    e.preventDefault();
-    if (!quickTitle.trim()) return;
+  // --- CELEBRATION EFFECT ---
+  const triggerCelebration = () => {
+    try {
+      confetti({
+        particleCount: 80,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6']
+      });
+    } catch {}
+  };
 
-    const newTask = {
-      title: quickTitle.trim(),
-      description: '',
-      section: quickSection,
-      priority: quickPriority,
-      due_date: new Date().toISOString().split('T')[0],
-      due_time: quickDueTime || '12:00',
-      subtasks: [],
+  // --- BULLETPROOF TASK CRUD OPERATIONS ---
+  const handleCreateTask = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (!newTitle.trim()) return;
+
+    const taskObj = {
+      id: `task-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      title: newTitle.trim(),
+      description: newDesc.trim(),
+      section: composerSection || 'todo',
+      priority: newPriority || 'P2',
+      due_date: newDueDate || new Date().toISOString().split('T')[0],
+      due_time: newDueTime || '',
+      tags: [newTag || '#Work'],
       is_focus: false,
       focused_minutes: 0,
+      subtasks: [],
+      created_at: new Date().toISOString()
     };
 
+    // Optimistic Update immediately in UI
+    setTasks(prev => [taskObj, ...prev]);
+    setNewTitle('');
+    setNewDesc('');
+    setNewDueTime('');
+    setShowAddComposer(false);
+    showToast('Task created successfully!');
+
+    // Background Sync to Supabase if logged in
     if (session?.user) {
-      const { data, error } = await supabase
-        .from('tasks')
-        .insert([{ ...newTask, user_id: session.user.id }])
-        .select();
-      if (!error && data) setTasks(prev => [data[0], ...prev]);
-    } else {
-      const localTask = { ...newTask, id: `local-${Date.now()}` };
-      const updated = [localTask, ...tasks];
-      setTasks(updated);
-      localStorage.setItem('auratask_local_tasks', JSON.stringify(updated));
+      try {
+        await supabase
+          .from('tasks')
+          .insert([{ ...taskObj, user_id: session.user.id }]);
+      } catch (err) {
+        console.warn("Background cloud sync note:", err);
+      }
     }
-    setQuickTitle('');
-    setQuickDueTime('');
   };
 
   const handleUpdateTask = async (id, updates) => {
-    if (session?.user) {
-      await supabase.from('tasks').update(updates).eq('id', id);
-    }
     setTasks(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
+
+    if (session?.user) {
+      try {
+        await supabase.from('tasks').update(updates).eq('id', id);
+      } catch (err) {
+        console.warn("Supabase update error:", err);
+      }
+    }
   };
 
   const handleDeleteTask = async (id) => {
+    setTasks(prev => prev.filter(t => t.id !== id));
+    showToast('Task removed');
+
     if (session?.user) {
-      await supabase.from('tasks').delete().eq('id', id);
-    }
-    const updated = tasks.filter(t => t.id !== id);
-    setTasks(updated);
-    if (!session?.user) localStorage.setItem('auratask_local_tasks', JSON.stringify(updated));
-  };
-
-  const toggleTaskStatus = (task) => {
-    const nextSection = task.section === 'completed' ? 'in_progress' : 'completed';
-    handleUpdateTask(task.id, { section: nextSection });
-  };
-
-  // Auth Submit
-  const handleAuth = async (e) => {
-    e.preventDefault();
-    setAuthError(null);
-
-    if (authMode === 'register') {
-      const { error } = await supabase.auth.signUp({
-        email: authEmail,
-        password: authPassword,
-        options: { data: { full_name: authFullName } }
-      });
-      if (error) setAuthError(error.message);
-      else {
-        alert('Registration successful! Please check your email to verify your account.');
-        setShowAuthModal(false);
+      try {
+        await supabase.from('tasks').delete().eq('id', id);
+      } catch (err) {
+        console.warn("Supabase delete error:", err);
       }
-    } else {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: authEmail,
-        password: authPassword
-      });
-      if (error) setAuthError(error.message);
-      else setShowAuthModal(false);
     }
+  };
+
+  const toggleTaskCompleted = (task) => {
+    const isCompleted = task.section === 'completed';
+    const nextSection = isCompleted ? 'todo' : 'completed';
+    handleUpdateTask(task.id, { section: nextSection });
+
+    if (!isCompleted) {
+      triggerCelebration();
+      showToast('Task completed! Keep the momentum going 🔥');
+    }
+  };
+
+  const moveTaskSection = (taskId, direction) => {
+    const sections = ['todo', 'in_progress', 'in_review', 'completed'];
+    const currentTask = tasks.find(t => t.id === taskId);
+    if (!currentTask) return;
+
+    let currentIndex = sections.indexOf(currentTask.section);
+    if (currentIndex === -1) currentIndex = 0;
+
+    let targetIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1;
+    if (targetIndex >= 0 && targetIndex < sections.length) {
+      const nextSection = sections[targetIndex];
+      handleUpdateTask(taskId, { section: nextSection });
+      if (nextSection === 'completed') triggerCelebration();
+    }
+  };
+
+  // --- SUBTASKS CHECKLIST HANDLERS ---
+  const handleToggleSubtask = (taskId, subtaskId) => {
+    setTasks(prev => prev.map(t => {
+      if (t.id === taskId) {
+        const updatedSubtasks = (t.subtasks || []).map(st =>
+          st.id === subtaskId ? { ...st, completed: !st.completed } : st
+        );
+        handleUpdateTask(taskId, { subtasks: updatedSubtasks });
+        return { ...t, subtasks: updatedSubtasks };
+      }
+      return t;
+    }));
+  };
+
+  const handleAddSubtask = (taskId) => {
+    const text = newSubtaskInputs[taskId];
+    if (!text || !text.trim()) return;
+
+    const newSubtask = {
+      id: `st-${Date.now()}`,
+      text: text.trim(),
+      completed: false
+    };
+
+    setTasks(prev => prev.map(t => {
+      if (t.id === taskId) {
+        const updated = [...(t.subtasks || []), newSubtask];
+        handleUpdateTask(taskId, { subtasks: updated });
+        return { ...t, subtasks: updated };
+      }
+      return t;
+    }));
+
+    setNewSubtaskInputs(prev => ({ ...prev, [taskId]: '' }));
+  };
+
+  // --- AUTH HANDLERS ---
+  const handleGoogleSignIn = async () => {
+    setAuthLoading(true);
+    setAuthError(null);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin,
+        }
+      });
+      if (error) throw error;
+    } catch (err) {
+      console.warn("Google OAuth notice:", err);
+      setAuthError(
+        'Google OAuth requires setup in your Supabase Dashboard (Auth → Providers → Google). You can test instantly using Email or "Explore as Guest" below!'
+      );
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleEmailAuth = async (e) => {
+    e.preventDefault();
+    setAuthLoading(true);
+    setAuthError(null);
+    setAuthSuccessMsg(null);
+
+    try {
+      if (authMode === 'register') {
+        const { data, error } = await supabase.auth.signUp({
+          email: authEmail,
+          password: authPassword,
+          options: {
+            data: { full_name: authFullName || authEmail.split('@')[0] }
+          }
+        });
+        if (error) throw error;
+
+        if (data?.session) {
+          setSession(data.session);
+          setIsGuest(false);
+          showToast(`Welcome to AuraTask, ${authFullName || 'friend'}!`);
+        } else {
+          setAuthSuccessMsg('Account created successfully! Check your email to verify, or sign in.');
+          setAuthMode('login');
+        }
+      } else {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: authEmail,
+          password: authPassword,
+        });
+        if (error) throw error;
+
+        if (data?.session) {
+          setSession(data.session);
+          setIsGuest(false);
+          showToast('Signed in successfully!');
+        }
+      }
+    } catch (err) {
+      setAuthError(err.message || 'Authentication failed. Please check credentials or try Guest Mode.');
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleGuestLogin = () => {
+    setIsGuest(true);
+    localStorage.setItem('auratask_guest_mode', 'true');
+    showToast('Entered Guest Pro Mode. All features active!');
   };
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    setTasks([]);
+    try {
+      await supabase.auth.signOut();
+    } catch {}
+    setSession(null);
+    setIsGuest(false);
+    localStorage.removeItem('auratask_guest_mode');
+    showToast('Signed out successfully.');
   };
 
-  // Filter Tasks
+  // --- FILTERED TASKS ENGINE ---
   const todayDateStr = new Date().toISOString().split('T')[0];
+
   const filteredTasks = useMemo(() => {
     return tasks.filter(t => {
-      const matchesSearch = t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (t.description && t.description.toLowerCase().includes(searchQuery.toLowerCase()));
-      if (!matchesSearch) return false;
+      // Search Query
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const matchTitle = t.title.toLowerCase().includes(q);
+        const matchDesc = t.description && t.description.toLowerCase().includes(q);
+        const matchTag = t.tags && t.tags.some(tag => tag.toLowerCase().includes(q));
+        if (!matchTitle && !matchDesc && !matchTag) return false;
+      }
 
-      if (activeTab === 'today') return t.due_date === todayDateStr || t.is_focus;
-      if (activeTab === 'upcoming') return t.due_date && t.due_date > todayDateStr;
+      // Tag Filter
+      if (selectedTag && (!t.tags || !t.tags.includes(selectedTag))) {
+        return false;
+      }
+
+      // Active Tab
+      if (activeTab === 'inbox') {
+        return t.section !== 'completed';
+      }
+      if (activeTab === 'today') {
+        return (t.due_date === todayDateStr || t.is_focus) && t.section !== 'completed';
+      }
+      if (activeTab === 'upcoming') {
+        return t.due_date > todayDateStr && t.section !== 'completed';
+      }
+      if (activeTab === 'completed') {
+        return t.section === 'completed';
+      }
+
       return true;
     });
-  }, [tasks, searchQuery, activeTab, todayDateStr]);
+  }, [tasks, searchQuery, selectedTag, activeTab, todayDateStr]);
 
+  // Productivity Metrics
+  const completedCount = useMemo(() => tasks.filter(t => t.section === 'completed').length, [tasks]);
+  const todayDueCount = useMemo(() => tasks.filter(t => t.due_date === todayDateStr && t.section !== 'completed').length, [tasks, todayDateStr]);
   const big3Tasks = useMemo(() => tasks.filter(t => t.is_focus && t.section !== 'completed'), [tasks]);
 
-  return (
-    <div className={`min-h-screen flex ${darkMode ? 'dark bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-800'}`}>
+  // =========================================================================
+  // 1. FULLSCREEN WORLD-CLASS REGISTRATION & AUTH SCREEN (IF NOT LOGGED IN)
+  // =========================================================================
+  if (!session && !isGuest) {
+    return (
+      <div className={`min-h-screen flex flex-col justify-center items-center p-4 selection:bg-red-500 selection:text-white ${darkMode ? 'dark bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-800'}`}>
+        {/* Subtle background glow */}
+        <div className="fixed inset-0 pointer-events-none overflow-hidden flex items-center justify-center opacity-30 dark:opacity-20">
+          <div className="w-[600px] h-[600px] bg-gradient-to-tr from-red-500/20 to-amber-500/10 rounded-full blur-3xl -translate-y-20"></div>
+        </div>
 
-      {/* SIDEBAR */}
-      <aside className="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col p-4 select-none shrink-0">
-        <div className="flex items-center justify-between mb-6">
+        {/* Top Navbar */}
+        <header className="fixed top-0 left-0 right-0 h-16 px-6 flex items-center justify-between z-10">
           <div className="flex items-center gap-2.5">
             <AuraLogo className="w-8 h-8" />
+            <span className="font-extrabold text-lg tracking-tight">
+              Aura<span className="text-red-600">Task</span>
+            </span>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-950/70 dark:text-red-400">
+              PRO
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className="p-2 rounded-xl text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors"
+              title="Toggle Theme"
+            >
+              {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+            <button
+              onClick={handleGuestLogin}
+              className="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-200/70 dark:bg-slate-800 hover:bg-slate-300/80 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-all"
+            >
+              Try Demo Mode
+            </button>
+          </div>
+        </header>
+
+        {/* Auth Card Container */}
+        <div className="w-full max-w-md z-10 my-auto">
+          {/* Hero Branding */}
+          <div className="text-center mb-6">
+            <div className="inline-flex p-3 rounded-2xl bg-white dark:bg-slate-900 shadow-md border border-slate-200/70 dark:border-slate-800 mb-3">
+              <AuraLogo className="w-10 h-10" />
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+              Organize work & life, <span className="text-red-600">effortlessly.</span>
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
+              Todoist-grade task flow, Kanban clarity, and focused deep work.
+            </p>
+          </div>
+
+          {/* Clean Modern Auth Card */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl">
+            {/* Mode Selector Tabs */}
+            <div className="flex p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl mb-6">
+              <button
+                type="button"
+                onClick={() => { setAuthMode('register'); setAuthError(null); }}
+                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${authMode === 'register' ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
+              >
+                Create Account
+              </button>
+              <button
+                type="button"
+                onClick={() => { setAuthMode('login'); setAuthError(null); }}
+                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${authMode === 'login' ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
+              >
+                Sign In
+              </button>
+            </div>
+
+            {/* Google OAuth Button */}
+            <button
+              onClick={handleGoogleSignIn}
+              disabled={authLoading}
+              className="w-full py-2.5 px-4 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800/90 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-100 font-semibold text-sm flex items-center justify-center gap-3 shadow-2xs hover:shadow-xs transition-all active:scale-[0.99]"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+              </svg>
+              <span>Continue with Google</span>
+            </button>
+
+            {/* Divider */}
+            <div className="relative my-5 flex items-center justify-center">
+              <div className="border-t border-slate-200 dark:border-slate-800 w-full"></div>
+              <span className="bg-white dark:bg-slate-900 px-3 text-[11px] font-medium text-slate-400 absolute">
+                or with email
+              </span>
+            </div>
+
+            {/* Error / Success Notifications */}
+            {authError && (
+              <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 text-red-600 dark:text-red-400 text-xs flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span className="leading-snug">{authError}</span>
+              </div>
+            )}
+            {authSuccessMsg && (
+              <div className="mb-4 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60 text-emerald-600 dark:text-emerald-400 text-xs flex items-start gap-2">
+                <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span className="leading-snug">{authSuccessMsg}</span>
+              </div>
+            )}
+
+            {/* Form */}
+            <form onSubmit={handleEmailAuth} className="space-y-3.5">
+              {authMode === 'register' && (
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Full Name</label>
+                  <div className="relative">
+                    <User className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+                    <input
+                      type="text"
+                      required
+                      placeholder="Alex Rivera"
+                      value={authFullName}
+                      onChange={(e) => setAuthFullName(e.target.value)}
+                      className="w-full pl-9 pr-3 py-2.5 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 dark:text-white"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Email Address</label>
+                <div className="relative">
+                  <Mail className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+                  <input
+                    type="email"
+                    required
+                    placeholder="alex@acme.com"
+                    value={authEmail}
+                    onChange={(e) => setAuthEmail(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2.5 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Password</label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    minLength={6}
+                    placeholder="••••••••"
+                    value={authPassword}
+                    onChange={(e) => setAuthPassword(e.target.value)}
+                    className="w-full pl-9 pr-10 py-2.5 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 dark:text-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={authLoading}
+                className="w-full mt-2 py-3 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-bold text-sm rounded-xl shadow-md shadow-red-500/20 transition-all flex items-center justify-center gap-2"
+              >
+                {authLoading ? (
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                ) : (
+                  <>
+                    <span>{authMode === 'register' ? 'Sign Up for Free' : 'Sign In to Workspace'}</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </form>
+
+            {/* Instant Guest / Demo Mode Button */}
+            <div className="mt-6 pt-5 border-t border-slate-100 dark:border-slate-800 text-center">
+              <button
+                type="button"
+                onClick={handleGuestLogin}
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                <span>Explore as Guest (No Sign Up Needed)</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Social Proof / Security Badge */}
+          <div className="mt-6 text-center text-xs text-slate-400 flex items-center justify-center gap-4">
+            <span className="flex items-center gap-1"><Shield className="w-3.5 h-3.5 text-emerald-500" /> Supabase Secure</span>
+            <span>•</span>
+            <span className="flex items-center gap-1"><Flame className="w-3.5 h-3.5 text-red-500" /> Todoist Pro Standards</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // =========================================================================
+  // 2. MAIN APPLICATION WORKSPACE (LOGGED IN / GUEST DEMO MODE)
+  // =========================================================================
+  return (
+    <div className={`min-h-screen flex selection:bg-red-500 selection:text-white ${darkMode ? 'dark bg-slate-950 text-slate-100' : 'bg-[#fafafa] text-slate-800'}`}>
+
+      {/* TOAST POPUP */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white dark:bg-white dark:text-slate-900 px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 text-xs font-semibold animate-in fade-in slide-in-from-bottom-2">
+          <Sparkles className="w-4 h-4 text-amber-400" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
+      {/* MOBILE DRAWER BACKDROP */}
+      {mobileMenuOpen && (
+        <div
+          onClick={() => setMobileMenuOpen(false)}
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 lg:hidden"
+        />
+      )}
+
+      {/* --- SIDEBAR NAVIGATION (TODOIST-INSPIRED) --- */}
+      <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-slate-900 border-r border-slate-200/80 dark:border-slate-800 flex flex-col p-4 transition-transform duration-300 lg:static lg:translate-x-0 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+        {/* Brand & Workspace */}
+        <div className="flex items-center justify-between pb-4 mb-2 border-b border-slate-100 dark:border-slate-800">
+          <div className="flex items-center gap-2.5">
+            <AuraLogo className="w-7 h-7" />
             <div>
-              <h1 className="font-bold text-base tracking-tight leading-tight flex items-center gap-1">
-                Aura<span className="text-red-600">Task</span>
-                <span className="text-[10px] bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 font-bold px-1 rounded">PRO</span>
-              </h1>
+              <div className="flex items-center gap-1.5">
+                <span className="font-extrabold text-base tracking-tight text-slate-900 dark:text-white">
+                  Aura<span className="text-red-600">Task</span>
+                </span>
+                <span className="text-[10px] font-extrabold px-1.5 py-0.2 rounded bg-red-100 text-red-600 dark:bg-red-950 dark:text-red-400">
+                  PRO
+                </span>
+              </div>
               <p className="text-[11px] text-slate-400 truncate max-w-[130px]">
-                {session ? (userProfile?.user_metadata?.full_name || userProfile?.email) : 'Guest Mode'}
+                {session?.user?.user_metadata?.full_name || session?.user?.email || (isGuest ? 'Guest Explorer' : 'Personal')}
               </p>
             </div>
           </div>
-          {session ? (
-            <button onClick={handleSignOut} title="Sign Out" className="p-1.5 text-slate-400 hover:text-red-600">
+
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+              title="Toggle Theme"
+            >
+              {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+            <button
+              onClick={handleSignOut}
+              className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/40"
+              title="Sign Out"
+            >
               <LogOut className="w-4 h-4" />
             </button>
-          ) : (
-            <button onClick={() => setShowAuthModal(true)} title="Sign In" className="p-1.5 text-slate-400 hover:text-red-600">
-              <LogIn className="w-4 h-4" />
-            </button>
-          )}
+          </div>
         </div>
 
-        {/* Global Search */}
-        <div className="relative mb-4">
-          <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search tasks..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-100 dark:bg-slate-800 text-sm pl-9 pr-3 py-1.5 rounded-lg border border-transparent focus:border-red-500 focus:outline-none dark:text-slate-100 placeholder:text-slate-400"
-          />
-        </div>
+        {/* Global Quick Add Action */}
+        <button
+          onClick={() => { setShowAddComposer(true); setComposerSection('todo'); }}
+          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-bold text-xs shadow-sm shadow-red-500/20 mb-4 transition-all"
+        >
+          <Plus className="w-4 h-4 stroke-[3]" />
+          <span>Add task</span>
+          <span className="ml-auto text-[10px] bg-red-700/60 px-1.5 py-0.5 rounded font-mono font-normal">⌘N</span>
+        </button>
 
-        {/* Nav Links */}
-        <nav className="space-y-1 text-sm font-medium">
+        {/* Primary Views (Todoist style) */}
+        <nav className="space-y-1 text-xs font-semibold">
           <button
-            onClick={() => setActiveTab('inbox')}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors ${activeTab === 'inbox' ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 font-semibold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+            onClick={() => { setActiveTab('inbox'); setSelectedTag(null); setMobileMenuOpen(false); }}
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all ${activeTab === 'inbox' && !selectedTag ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60'}`}
           >
             <div className="flex items-center gap-2.5">
-              <Inbox className="w-4 h-4" />
+              <Inbox className="w-4 h-4 text-blue-500" />
               <span>Inbox</span>
             </div>
-            <span className="text-xs text-slate-400 font-normal">{tasks.length}</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('today')}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors ${activeTab === 'today' ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 font-semibold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
-          >
-            <div className="flex items-center gap-2.5">
-              <Calendar className="w-4 h-4 text-red-500" />
-              <span>Today</span>
-            </div>
-            <span className="text-xs font-semibold bg-red-100 dark:bg-red-900/60 text-red-600 dark:text-red-300 px-1.5 py-0.5 rounded-full">
-              {tasks.filter(t => t.due_date === todayDateStr || t.is_focus).length}
+            <span className="text-[11px] font-mono text-slate-400">
+              {tasks.filter(t => t.section !== 'completed').length}
             </span>
           </button>
 
           <button
-            onClick={() => setActiveTab('upcoming')}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors ${activeTab === 'upcoming' ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 font-semibold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+            onClick={() => { setActiveTab('today'); setSelectedTag(null); setMobileMenuOpen(false); }}
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all ${activeTab === 'today' && !selectedTag ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60'}`}
           >
             <div className="flex items-center gap-2.5">
-              <Clock className="w-4 h-4 text-indigo-500" />
+              <Calendar className="w-4 h-4 text-emerald-500" />
+              <span>Today</span>
+            </div>
+            <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-red-100 text-red-600 dark:bg-red-950/80 dark:text-red-400 font-mono">
+              {todayDueCount}
+            </span>
+          </button>
+
+          <button
+            onClick={() => { setActiveTab('upcoming'); setSelectedTag(null); setMobileMenuOpen(false); }}
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all ${activeTab === 'upcoming' && !selectedTag ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60'}`}
+          >
+            <div className="flex items-center gap-2.5">
+              <Clock className="w-4 h-4 text-purple-500" />
               <span>Upcoming</span>
             </div>
+            <span className="text-[11px] font-mono text-slate-400">
+              {tasks.filter(t => t.due_date > todayDateStr && t.section !== 'completed').length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => { setActiveTab('completed'); setSelectedTag(null); setMobileMenuOpen(false); }}
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all ${activeTab === 'completed' && !selectedTag ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60'}`}
+          >
+            <div className="flex items-center gap-2.5">
+              <CheckCircle2 className="w-4 h-4 text-teal-500" />
+              <span>Completed</span>
+            </div>
+            <span className="text-[11px] font-mono text-slate-400">
+              {completedCount}
+            </span>
           </button>
         </nav>
 
-        {/* Scratchpad Trigger */}
-        <button
-          onClick={() => setShowScratchpad(!showScratchpad)}
-          className="mt-4 w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg border border-dashed border-slate-300 dark:border-slate-700"
-        >
-          <BookOpen className="w-3.5 h-3.5 text-slate-400" />
-          <span>Quick Scratchpad</span>
-        </button>
+        {/* Productivity & Pro Features Section */}
+        <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 space-y-1">
+          <div className="px-3 pb-1.5 text-[10px] font-bold tracking-wider uppercase text-slate-400">
+            Pro Features
+          </div>
 
-        {/* Focus Timer Widget */}
-        {activeTimerTask && (
-          <div className="mt-4 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-xl">
-            <div className="flex items-center justify-between text-xs text-red-600 dark:text-red-400 font-semibold mb-1">
-              <span className="flex items-center gap-1"><Flame className="w-3.5 h-3.5" /> Flow Timer</span>
-              <button onClick={() => setActiveTimerTask(null)}><X className="w-3.5 h-3.5" /></button>
+          <button
+            onClick={() => setShowKarmaModal(true)}
+            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60"
+          >
+            <div className="flex items-center gap-2.5">
+              <Flame className="w-4 h-4 text-amber-500" />
+              <span>Karma & Streaks</span>
             </div>
-            <p className="text-xs font-medium text-slate-800 dark:text-slate-200 truncate mb-2">{activeTimerTask.title}</p>
-            <div className="flex items-center justify-between">
-              <span className="text-xl font-bold font-mono tracking-tight text-red-600 dark:text-red-400">
-                {Math.floor(timerSeconds / 60)}:{(timerSeconds % 60).toString().padStart(2, '0')}
-              </span>
-              <div className="flex gap-1">
-                <button onClick={() => setIsTimerRunning(!isTimerRunning)} className="p-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg">
-                  {isTimerRunning ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-                </button>
-                <button onClick={() => { setIsTimerRunning(false); setTimerSeconds(25 * 60); }} className="p-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg">
-                  <RotateCcw className="w-3.5 h-3.5" />
-                </button>
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400">
+              4 Days 🔥
+            </span>
+          </button>
+
+          <button
+            onClick={() => setShowScratchpad(!showScratchpad)}
+            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60"
+          >
+            <div className="flex items-center gap-2.5">
+              <BookOpen className="w-4 h-4 text-indigo-500" />
+              <span>Meeting Scratchpad</span>
+            </div>
+          </button>
+
+          <button
+            onClick={() => setShowShutdownModal(true)}
+            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50/70 dark:bg-emerald-950/30 hover:bg-emerald-100/70 border border-emerald-200/50 dark:border-emerald-900/50"
+          >
+            <div className="flex items-center gap-2.5">
+              <Shield className="w-4 h-4" />
+              <span>Daily Shutdown Ritual</span>
+            </div>
+          </button>
+        </div>
+
+        {/* Tags / Projects Filters */}
+        <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800">
+          <div className="px-3 pb-2 text-[10px] font-bold tracking-wider uppercase text-slate-400 flex items-center justify-between">
+            <span>Tags & Projects</span>
+            {selectedTag && (
+              <button onClick={() => setSelectedTag(null)} className="text-[10px] text-red-500 hover:underline">
+                Clear
+              </button>
+            )}
+          </div>
+          <div className="space-y-1">
+            {['#Engineering', '#Design', '#Launch', '#Marketing', '#UX', '#Performance'].map(tag => (
+              <button
+                key={tag}
+                onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
+                className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${selectedTag === tag ? 'bg-red-50 dark:bg-red-950/60 text-red-600 dark:text-red-400 font-bold' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
+              >
+                <div className="flex items-center gap-2">
+                  <Tag className="w-3.5 h-3.5 opacity-60" />
+                  <span>{tag}</span>
+                </div>
+                <span className="text-[10px] font-mono text-slate-400">
+                  {tasks.filter(t => t.tags && t.tags.includes(tag)).length}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Active Focus Flow Timer Widget */}
+        {activeTimerTask && (
+          <div className="mt-auto pt-3">
+            <div className="p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/60 rounded-2xl shadow-sm">
+              <div className="flex items-center justify-between text-xs font-bold text-red-600 dark:text-red-400 mb-1">
+                <span className="flex items-center gap-1.5"><Flame className="w-3.5 h-3.5" /> Flow Session</span>
+                <button onClick={() => setActiveTimerTask(null)}><X className="w-3.5 h-3.5" /></button>
+              </div>
+              <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate mb-2">{activeTimerTask.title}</p>
+              <div className="flex items-center justify-between">
+                <span className="text-xl font-bold font-mono tracking-tight text-red-600 dark:text-red-400">
+                  {Math.floor(timerSeconds / 60)}:{(timerSeconds % 60).toString().padStart(2, '0')}
+                </span>
+                <div className="flex gap-1.5">
+                  <button
+                    onClick={() => setIsTimerRunning(!isTimerRunning)}
+                    className="p-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg shadow-2xs"
+                  >
+                    {isTimerRunning ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                  </button>
+                  <button
+                    onClick={() => { setIsTimerRunning(false); setTimerSeconds(25 * 60); }}
+                    className="p-1.5 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-lg"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Daily Shutdown Ritual Button */}
-        <div className="mt-auto pt-4 space-y-2 border-t border-slate-200 dark:border-slate-800">
-          <button
-            onClick={() => setShowShutdownModal(true)}
-            className="w-full flex items-center justify-center gap-1.5 py-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 rounded-lg border border-emerald-200 dark:border-emerald-900/60"
-          >
-            <Shield className="w-3.5 h-3.5" />
-            <span>Complete My Day</span>
-          </button>
-
-          <div className="flex items-center justify-between">
-            <button
-              onClick={() => setDarkMode(!darkMode)}
-              className="flex items-center gap-2 text-xs text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100"
-            >
-              {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
-            </button>
-            <span className="text-[10px] text-slate-400 font-mono">Supabase Sync</span>
-          </div>
+        {/* Sync Status Footer */}
+        <div className="mt-auto pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>{session ? 'Supabase Sync' : 'Local Storage Active'}</span>
+          </span>
+          <span className="font-mono">v2.4 Pro</span>
         </div>
       </aside>
 
-      {/* MAIN WORKSPACE */}
-      <main className="flex-1 flex flex-col overflow-hidden">
-
-        {/* HEADER */}
-        <header className="h-14 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 flex items-center justify-between shrink-0">
+      {/* --- MAIN CONTENT CANVAS --- */}
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* TOP HEADER */}
+        <header className="h-16 border-b border-slate-200/80 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md px-4 sm:px-8 flex items-center justify-between shrink-0 sticky top-0 z-20">
           <div className="flex items-center gap-3">
-            <h2 className="text-lg font-bold capitalize text-slate-900 dark:text-white">{activeTab}</h2>
-            <span className="text-xs text-slate-400">{filteredTasks.length} tasks</span>
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className="p-2 -ml-2 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 lg:hidden rounded-lg"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <div>
+              <h2 className="text-base sm:text-lg font-extrabold capitalize text-slate-900 dark:text-white flex items-center gap-2">
+                <span>{selectedTag ? `Tag: ${selectedTag}` : activeTab}</span>
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500">
+                  {filteredTasks.length}
+                </span>
+              </h2>
+            </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700">
+            {/* Quick Search */}
+            <div className="relative hidden sm:block w-52 md:w-64">
+              <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search tasks or #tags..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-slate-100/80 dark:bg-slate-800 text-xs pl-9 pr-3 py-2 rounded-xl border border-transparent focus:border-red-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none dark:text-white transition-all placeholder:text-slate-400"
+              />
+            </div>
+
+            {/* View Mode Switcher */}
+            <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-0.5 rounded-xl border border-slate-200 dark:border-slate-700">
               <button
                 onClick={() => setViewMode('board')}
-                className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-md ${viewMode === 'board' ? 'bg-white dark:bg-slate-900 shadow-sm' : 'text-slate-500'}`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${viewMode === 'board' ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
               >
                 <Kanban className="w-3.5 h-3.5" />
-                <span>Board</span>
+                <span className="hidden sm:inline">Board</span>
               </button>
               <button
                 onClick={() => setViewMode('list')}
-                className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-md ${viewMode === 'list' ? 'bg-white dark:bg-slate-900 shadow-sm' : 'text-slate-500'}`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
               >
                 <ListFilter className="w-3.5 h-3.5" />
-                <span>List</span>
+                <span className="hidden sm:inline">List</span>
               </button>
             </div>
+
+            {/* Quick Add Button Header */}
+            <button
+              onClick={() => { setShowAddComposer(true); setComposerSection('todo'); }}
+              className="p-2 sm:px-3 sm:py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm shadow-red-500/20"
+            >
+              <Plus className="w-4 h-4 stroke-[3]" />
+              <span className="hidden sm:inline">Add Task</span>
+            </button>
           </div>
         </header>
 
-        {/* TODAY'S BIG 3 SPOTLIGHT STRIP */}
-        {big3Tasks.length > 0 && (
-          <div className="px-6 pt-4">
-            <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 rounded-xl p-3">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-400 mb-2">
-                <Star className="w-3.5 h-3.5 fill-current" />
-                <span>Today's Big 3 Non-Negotiables</span>
+        {/* WORKSPACE SCROLL AREA */}
+        <div className="flex-1 overflow-auto p-4 sm:p-8">
+
+          {/* TODAY'S BIG 3 SPOTLIGHT STRIP */}
+          {big3Tasks.length > 0 && activeTab === 'today' && (
+            <div className="mb-6 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 border border-amber-200/80 dark:border-amber-900/50 rounded-2xl p-4 shadow-2xs">
+              <div className="flex items-center justify-between mb-2.5">
+                <div className="flex items-center gap-2 text-xs font-extrabold text-amber-800 dark:text-amber-400">
+                  <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
+                  <span>Today's Big 3 Priority Spotlight</span>
+                </div>
+                <span className="text-[11px] font-semibold text-amber-700 dark:text-amber-400">
+                  {big3Tasks.length} non-negotiables
+                </span>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 {big3Tasks.slice(0, 3).map(task => (
-                  <div key={task.id} className="bg-white dark:bg-slate-900 border border-amber-200/60 dark:border-amber-900/40 p-2.5 rounded-lg flex items-center justify-between">
-                    <span className="text-xs font-medium truncate flex-1">{task.title}</span>
-                    <button onClick={() => toggleTaskStatus(task)} className="ml-2 text-slate-400 hover:text-emerald-500">
-                      <CheckCircle2 className="w-4 h-4" />
+                  <div
+                    key={task.id}
+                    className="bg-white dark:bg-slate-900 border border-amber-200/70 dark:border-amber-900/40 p-3 rounded-xl shadow-xs flex items-center justify-between gap-3"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{task.title}</p>
+                      <span className="text-[10px] text-amber-600 font-semibold">{task.priority} Priority</span>
+                    </div>
+                    <button
+                      onClick={() => toggleTaskCompleted(task)}
+                      className="p-1 rounded-lg text-slate-300 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+                    >
+                      <Circle className="w-4 h-4 hover:fill-emerald-500" />
                     </button>
                   </div>
                 ))}
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* QUICK ADD BAR */}
-        <div className="p-6 pb-2">
-          <form onSubmit={handleCreateTask} className="flex gap-2">
-            <input
-              type="text"
-              placeholder="+ Add task title..."
-              value={quickTitle}
-              onChange={(e) => setQuickTitle(e.target.value)}
-              className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 shadow-sm"
-            />
-            <select
-              value={quickSection}
-              onChange={(e) => setQuickSection(e.target.value)}
-              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs font-medium"
-            >
-              <option value="inbox">Inbox</option>
-              <option value="backlog">Backlog</option>
-              <option value="in_progress">In-Progress</option>
-            </select>
-            <select
-              value={quickPriority}
-              onChange={(e) => setQuickPriority(e.target.value)}
-              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-2.5 py-2 text-xs font-medium"
-            >
-              <option value="P1">P1 (Urgent)</option>
-              <option value="P2">P2 (High)</option>
-              <option value="P3">P3 (Medium)</option>
-              <option value="P4">P4 (Low)</option>
-            </select>
-            <button type="submit" className="bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2 rounded-xl text-sm transition-colors shadow-sm">
-              Add Task
-            </button>
-          </form>
-        </div>
+          {/* TODOIST-GRADE INLINE EXPANDABLE ADD COMPOSER */}
+          {showAddComposer && (
+            <div className="mb-6 bg-white dark:bg-slate-900 border border-red-300 dark:border-red-900/80 rounded-2xl p-4 shadow-lg shadow-red-500/5 transition-all">
+              <form onSubmit={handleCreateTask}>
+                <input
+                  type="text"
+                  autoFocus
+                  required
+                  placeholder="Task name, e.g. 'Deploy Redis caching cluster'..."
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  className="w-full bg-transparent text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none mb-2"
+                />
+                <textarea
+                  rows={2}
+                  placeholder="Description, markdown notes, or checklist specs..."
+                  value={newDesc}
+                  onChange={(e) => setNewDesc(e.target.value)}
+                  className="w-full bg-transparent text-xs text-slate-600 dark:text-slate-300 placeholder:text-slate-400 focus:outline-none resize-none mb-3"
+                />
 
-        {/* TASKS VIEW */}
-        <div className="flex-1 overflow-auto p-6 pt-2">
-          {viewMode === 'board' ? (
-            /* KANBAN BOARD */
-            <div className="flex gap-6 h-full items-start">
-              {['backlog', 'in_progress', 'completed'].map(colKey => {
-                const colTasks = filteredTasks.filter(t => t.section === colKey);
-                const colLabel = colKey === 'in_progress' ? 'In-Progress' : colKey.charAt(0).toUpperCase() + colKey.slice(1);
-
-                return (
-                  <div key={colKey} className="w-80 shrink-0 flex flex-col max-h-full bg-slate-100/70 dark:bg-slate-900/40 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl p-3">
-                    <div className="flex items-center justify-between pb-3 px-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-sm text-slate-800 dark:text-slate-200">{colLabel}</span>
-                        <span className="text-xs text-slate-400 font-semibold px-2 py-0.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                          {colTasks.length}
-                        </span>
-                      </div>
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {/* Due Date Presets */}
+                    <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg text-xs">
+                      <Calendar className="w-3.5 h-3.5 text-emerald-500" />
+                      <input
+                        type="date"
+                        value={newDueDate}
+                        onChange={(e) => setNewDueDate(e.target.value)}
+                        className="bg-transparent text-xs font-semibold focus:outline-none dark:text-slate-200"
+                      />
                     </div>
 
-                    <div className="flex-1 overflow-y-auto space-y-2.5">
-                      {colTasks.map(task => (
-                        <div key={task.id} className="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5 shadow-xs hover:shadow-md transition-all">
-                          <div className="flex items-start gap-2.5">
-                            <button onClick={() => toggleTaskStatus(task)} className="mt-0.5 text-slate-400 hover:text-red-500">
-                              {task.section === 'completed' ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <Circle className="w-4 h-4" />}
-                            </button>
-                            <div className="flex-1 min-w-0">
-                              <p className={`text-sm font-medium ${task.section === 'completed' ? 'line-through text-slate-400' : ''}`}>{task.title}</p>
+                    {/* Priority Selector */}
+                    <select
+                      value={newPriority}
+                      onChange={(e) => setNewPriority(e.target.value)}
+                      className="bg-slate-100 dark:bg-slate-800 text-xs font-bold px-2.5 py-1 rounded-lg focus:outline-none dark:text-slate-200"
+                    >
+                      <option value="P1">🚩 P1 (Urgent)</option>
+                      <option value="P2">🔶 P2 (High)</option>
+                      <option value="P3">🔷 P3 (Medium)</option>
+                      <option value="P4">⚪ P4 (Low)</option>
+                    </select>
 
-                              <div className="flex flex-wrap items-center gap-2 mt-2">
-                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${task.priority === 'P1' ? 'bg-red-100 dark:bg-red-950 text-red-600' :
-                                  task.priority === 'P2' ? 'bg-amber-100 dark:bg-amber-950 text-amber-600' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
-                                  }`}>
-                                  {task.priority}
-                                </span>
-                                {task.focused_minutes > 0 && (
-                                  <span className="text-[10px] text-red-600 flex items-center gap-0.5 font-semibold">
-                                    <Flame className="w-3 h-3" /> {task.focused_minutes}m
+                    {/* Stage Column Selector */}
+                    <select
+                      value={composerSection}
+                      onChange={(e) => setComposerSection(e.target.value)}
+                      className="bg-slate-100 dark:bg-slate-800 text-xs font-bold px-2.5 py-1 rounded-lg focus:outline-none dark:text-slate-200"
+                    >
+                      <option value="todo">📋 To Do</option>
+                      <option value="in_progress">⚡ In Progress</option>
+                      <option value="in_review">👀 In Review</option>
+                      <option value="completed">✅ Completed</option>
+                    </select>
+
+                    {/* Tag Selector */}
+                    <select
+                      value={newTag}
+                      onChange={(e) => setNewTag(e.target.value)}
+                      className="bg-slate-100 dark:bg-slate-800 text-xs font-bold px-2 py-1 rounded-lg focus:outline-none dark:text-slate-200"
+                    >
+                      <option value="#Engineering">#Engineering</option>
+                      <option value="#Design">#Design</option>
+                      <option value="#Launch">#Launch</option>
+                      <option value="#Marketing">#Marketing</option>
+                      <option value="#UX">#UX</option>
+                      <option value="#Performance">#Performance</option>
+                    </select>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowAddComposer(false)}
+                      className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-1.5 rounded-lg text-xs font-bold bg-red-600 hover:bg-red-700 text-white shadow-sm"
+                    >
+                      Add task
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* --- VIEW MODE 1: KANBAN BOARD VIEW --- */}
+          {viewMode === 'board' ? (
+            <div className="flex gap-5 pb-6 overflow-x-auto min-h-[550px] items-start">
+              {[
+                { key: 'todo', label: 'To Do', icon: Layers, accent: 'border-slate-300 dark:border-slate-700' },
+                { key: 'in_progress', label: 'In Progress', icon: Flame, accent: 'border-amber-400 dark:border-amber-600' },
+                { key: 'in_review', label: 'In Review', icon: Eye, accent: 'border-blue-400 dark:border-blue-600' },
+                { key: 'completed', label: 'Completed', icon: CheckCircle2, accent: 'border-emerald-400 dark:border-emerald-600' }
+              ].map(column => {
+                const columnTasks = filteredTasks.filter(t => t.section === column.key);
+                const IconComponent = column.icon;
+
+                return (
+                  <div
+                    key={column.key}
+                    className="w-80 shrink-0 flex flex-col bg-slate-100/80 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-3 max-h-full"
+                  >
+                    {/* Column Header */}
+                    <div className="flex items-center justify-between pb-3 px-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-extrabold text-xs uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                          {column.label}
+                        </span>
+                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">
+                          {columnTasks.length}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => { setShowAddComposer(true); setComposerSection(column.key); }}
+                        className="p-1 hover:bg-white dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-red-600"
+                        title="Add task to this section"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    {/* Column Task Cards */}
+                    <div className="flex-1 overflow-y-auto space-y-3 min-h-[120px]">
+                      {columnTasks.map(task => {
+                        const isTaskCompleted = task.section === 'completed';
+                        const subtasks = task.subtasks || [];
+                        const completedSubtasks = subtasks.filter(st => st.completed).length;
+                        const isSubtasksExpanded = expandedTaskSubtasks[task.id];
+
+                        return (
+                          <div
+                            key={task.id}
+                            className={`group bg-white dark:bg-slate-900 border rounded-xl p-3.5 shadow-2xs hover:shadow-md transition-all ${isTaskCompleted ? 'border-slate-200/60 dark:border-slate-800/60 opacity-80' : 'border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'}`}
+                          >
+                            <div className="flex items-start gap-3">
+                              {/* Circular Checkbox (Todoist style) */}
+                              <button
+                                onClick={() => toggleTaskCompleted(task)}
+                                className="mt-0.5 text-slate-300 hover:text-emerald-500 transition-colors"
+                              >
+                                {isTaskCompleted ? (
+                                  <CheckCircle2 className="w-4 h-4 text-emerald-500 fill-emerald-50 dark:fill-emerald-950" />
+                                ) : (
+                                  <Circle className="w-4 h-4 hover:stroke-emerald-500" />
+                                )}
+                              </button>
+
+                              <div className="flex-1 min-w-0">
+                                <h4 className={`text-xs font-bold leading-snug break-words ${isTaskCompleted ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-slate-100'}`}>
+                                  {task.title}
+                                </h4>
+
+                                {task.description && (
+                                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 line-clamp-2 leading-relaxed">
+                                    {task.description}
+                                  </p>
+                                )}
+
+                                {/* Metadata Badges */}
+                                <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
+                                  {/* Priority Flag */}
+                                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 ${task.priority === 'P1' ? 'bg-red-50 dark:bg-red-950/70 text-red-600 dark:text-red-400' :
+                                    task.priority === 'P2' ? 'bg-amber-50 dark:bg-amber-950/70 text-amber-600 dark:text-amber-400' :
+                                      task.priority === 'P3' ? 'bg-blue-50 dark:bg-blue-950/70 text-blue-600 dark:text-blue-400' :
+                                        'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                                    }`}>
+                                    <Flag className="w-2.5 h-2.5" />
+                                    <span>{task.priority}</span>
                                   </span>
+
+                                  {/* Due Date */}
+                                  {task.due_date && (
+                                    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded flex items-center gap-1 ${task.due_date === todayDateStr ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
+                                      <Clock className="w-2.5 h-2.5" />
+                                      <span>{task.due_date === todayDateStr ? 'Today' : task.due_date}</span>
+                                    </span>
+                                  )}
+
+                                  {/* Tags */}
+                                  {task.tags && task.tags.map(tag => (
+                                    <span key={tag} className="text-[10px] font-semibold text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
+                                      {tag}
+                                    </span>
+                                  ))}
+
+                                  {/* Focus Minutes Badge */}
+                                  {task.focused_minutes > 0 && (
+                                    <span className="text-[10px] font-bold text-red-600 dark:text-red-400 flex items-center gap-0.5">
+                                      <Flame className="w-3 h-3" /> {task.focused_minutes}m
+                                    </span>
+                                  )}
+                                </div>
+
+                                {/* Subtasks Progress Bar & Toggle */}
+                                {subtasks.length > 0 && (
+                                  <div className="mt-2.5">
+                                    <button
+                                      type="button"
+                                      onClick={() => setExpandedTaskSubtasks(prev => ({ ...prev, [task.id]: !prev[task.id] }))}
+                                      className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                                    >
+                                      <CheckSquare className="w-3 h-3" />
+                                      <span>Subtasks ({completedSubtasks}/{subtasks.length})</span>
+                                      <ChevronDown className={`w-3 h-3 transition-transform ${isSubtasksExpanded ? 'rotate-180' : ''}`} />
+                                    </button>
+
+                                    {/* Expanded Subtasks List */}
+                                    {isSubtasksExpanded && (
+                                      <div className="mt-2 pl-2 space-y-1.5 border-l-2 border-slate-200 dark:border-slate-800">
+                                        {subtasks.map(st => (
+                                          <div key={st.id} className="flex items-center gap-2">
+                                            <input
+                                              type="checkbox"
+                                              checked={st.completed}
+                                              onChange={() => handleToggleSubtask(task.id, st.id)}
+                                              className="w-3 h-3 accent-red-600 rounded cursor-pointer"
+                                            />
+                                            <span className={`text-[11px] ${st.completed ? 'line-through text-slate-400' : 'text-slate-700 dark:text-slate-300'}`}>
+                                              {st.text}
+                                            </span>
+                                          </div>
+                                        ))}
+
+                                        {/* Inline Add Subtask */}
+                                        <div className="flex items-center gap-1.5 pt-1">
+                                          <input
+                                            type="text"
+                                            placeholder="+ add subtask..."
+                                            value={newSubtaskInputs[task.id] || ''}
+                                            onChange={(e) => setNewSubtaskInputs({ ...newSubtaskInputs, [task.id]: e.target.value })}
+                                            onKeyDown={(e) => { if (e.key === 'Enter') handleAddSubtask(task.id); }}
+                                            className="bg-transparent text-[10px] text-slate-700 dark:text-slate-300 focus:outline-none border-b border-slate-200 dark:border-slate-700 pb-0.5 flex-1"
+                                          />
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
                                 )}
                               </div>
                             </div>
 
-                            <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-opacity">
-                              <button onClick={() => handleUpdateTask(task.id, { is_focus: !task.is_focus })} className={`p-1 ${task.is_focus ? 'text-amber-500' : 'text-slate-400'}`}>
-                                <Star className="w-3.5 h-3.5 fill-current" />
-                              </button>
-                              <button onClick={() => { setActiveTimerTask(task); setTimerSeconds(25 * 60); setIsTimerRunning(true); }} className="p-1 text-slate-400 hover:text-red-500">
-                                <Play className="w-3.5 h-3.5" />
-                              </button>
-                              <button onClick={() => handleDeleteTask(task.id)} className="p-1 text-slate-400 hover:text-red-500">
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
+                            {/* Card Footer: Quick Actions (Star, Flow Timer, Shift Column, Delete) */}
+                            <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+                              {/* 1-Click Move Column Arrows */}
+                              <div className="flex items-center gap-1">
+                                <button
+                                  onClick={() => moveTaskSection(task.id, 'prev')}
+                                  disabled={column.key === 'todo'}
+                                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-700 disabled:opacity-20"
+                                  title="Move to previous stage"
+                                >
+                                  <ArrowLeft className="w-3 h-3" />
+                                </button>
+                                <button
+                                  onClick={() => moveTaskSection(task.id, 'next')}
+                                  disabled={column.key === 'completed'}
+                                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-700 disabled:opacity-20"
+                                  title="Move to next stage"
+                                >
+                                  <ArrowRight className="w-3 h-3" />
+                                </button>
+                              </div>
+
+                              <div className="flex items-center gap-1">
+                                {/* Star / Big 3 Pin */}
+                                <button
+                                  onClick={() => handleUpdateTask(task.id, { is_focus: !task.is_focus })}
+                                  className={`p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 ${task.is_focus ? 'text-amber-500 fill-amber-500' : 'text-slate-300 hover:text-amber-400'}`}
+                                  title={task.is_focus ? "Unpin from Big 3" : "Pin to Big 3 Spotlight"}
+                                >
+                                  <Star className={`w-3.5 h-3.5 ${task.is_focus ? 'fill-current' : ''}`} />
+                                </button>
+
+                                {/* Launch Flow Timer */}
+                                <button
+                                  onClick={() => { setActiveTimerTask(task); setTimerSeconds(25 * 60); setIsTimerRunning(true); showToast(`Flow Timer started for "${task.title.slice(0, 24)}..."`); }}
+                                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-300 hover:text-red-500"
+                                  title="Start 25m Focus Session"
+                                >
+                                  <Play className="w-3.5 h-3.5" />
+                                </button>
+
+                                {/* Delete */}
+                                <button
+                                  onClick={() => handleDeleteTask(task.id)}
+                                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-300 hover:text-red-500"
+                                  title="Delete task"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
                             </div>
                           </div>
+                        );
+                      })}
+
+                      {/* Empty Column Placeholder */}
+                      {columnTasks.length === 0 && (
+                        <div className="border border-dashed border-slate-200 dark:border-slate-800 rounded-xl p-6 text-center text-xs text-slate-400">
+                          <span>No tasks in {column.label}</span>
                         </div>
-                      ))}
+                      )}
                     </div>
                   </div>
                 );
               })}
             </div>
           ) : (
-            /* LIST VIEW */
-            <div className="max-w-4xl space-y-2">
-              {filteredTasks.map(task => (
-                <div key={task.id} className="flex items-center justify-between p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl">
-                  <div className="flex items-center gap-3">
-                    <button onClick={() => toggleTaskStatus(task)} className="text-slate-400 hover:text-red-500">
-                      {task.section === 'completed' ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <Circle className="w-4 h-4" />}
-                    </button>
-                    <span className={`text-sm ${task.section === 'completed' ? 'line-through text-slate-400' : ''}`}>{task.title}</span>
+            /* --- VIEW MODE 2: TODOIST CLASSIC LIST VIEW --- */
+            <div className="max-w-4xl space-y-2.5">
+              {filteredTasks.map(task => {
+                const isTaskCompleted = task.section === 'completed';
+
+                return (
+                  <div
+                    key={task.id}
+                    className="group bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 rounded-xl p-3.5 shadow-2xs hover:shadow-xs transition-all flex items-center justify-between gap-4"
+                  >
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <button
+                        onClick={() => toggleTaskCompleted(task)}
+                        className="text-slate-300 hover:text-emerald-500 transition-colors shrink-0"
+                      >
+                        {isTaskCompleted ? (
+                          <CheckCircle2 className="w-4 h-4 text-emerald-500 fill-emerald-50" />
+                        ) : (
+                          <Circle className="w-4 h-4 hover:stroke-emerald-500" />
+                        )}
+                      </button>
+
+                      <div className="min-w-0 flex-1">
+                        <span className={`text-xs font-bold ${isTaskCompleted ? 'line-through text-slate-400' : 'text-slate-900 dark:text-slate-100'}`}>
+                          {task.title}
+                        </span>
+                        {task.description && (
+                          <p className="text-[11px] text-slate-400 truncate mt-0.5">{task.description}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 shrink-0">
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${task.priority === 'P1' ? 'bg-red-50 text-red-600' :
+                        task.priority === 'P2' ? 'bg-amber-50 text-amber-600' : 'bg-slate-100 text-slate-500'
+                        }`}>
+                        {task.priority}
+                      </span>
+
+                      <span className="text-[11px] font-semibold text-slate-400 capitalize">
+                        {task.section.replace('_', ' ')}
+                      </span>
+
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => { setActiveTimerTask(task); setTimerSeconds(25 * 60); setIsTimerRunning(true); }}
+                          className="p-1 text-slate-400 hover:text-red-500 rounded"
+                          title="Start Focus Timer"
+                        >
+                          <Play className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteTask(task.id)}
+                          className="p-1 text-slate-400 hover:text-red-500 rounded"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => handleDeleteTask(task.id)} className="p-1 text-slate-400 hover:text-red-500">
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                );
+              })}
+
+              {filteredTasks.length === 0 && (
+                <div className="text-center py-16 bg-white dark:bg-slate-900 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
+                  <Sparkles className="w-8 h-8 text-amber-400 mx-auto mb-2" />
+                  <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">No tasks in view</h3>
+                  <p className="text-xs text-slate-400 mt-1">Add a new task or adjust your search filters.</p>
                 </div>
-              ))}
+              )}
             </div>
           )}
+
         </div>
       </main>
 
-      {/* SCRATCHPAD DRAWER */}
+      {/* --- FLOATING MEETING SCRATCHPAD DRAWER --- */}
       {showScratchpad && (
-        <div className="fixed right-0 top-0 bottom-0 w-80 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 p-4 shadow-xl flex flex-col z-40">
-          <div className="flex justify-between items-center mb-3">
-            <span className="font-bold text-sm">Meeting & Scratchpad</span>
-            <button onClick={() => setShowScratchpad(false)}><X className="w-4 h-4 text-slate-400" /></button>
+        <div className="fixed right-0 top-0 bottom-0 w-80 sm:w-96 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 p-5 shadow-2xl flex flex-col z-50 animate-in slide-in-from-right duration-200">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-2">
+              <BookOpen className="w-4 h-4 text-indigo-500" />
+              <span className="font-extrabold text-sm text-slate-900 dark:text-white">Quick Scratchpad</span>
+            </div>
+            <button onClick={() => setShowScratchpad(false)} className="text-slate-400 hover:text-slate-600">
+              <X className="w-4 h-4" />
+            </button>
           </div>
+          <p className="text-[11px] text-slate-400 mb-3">
+            Auto-saves locally. Perfect for meeting takeaways and raw brainstorms.
+          </p>
           <textarea
             value={scratchpadText}
-            onChange={(e) => { setScratchpadText(e.target.value); localStorage.setItem('auratask_notes', e.target.value); }}
-            placeholder="Jot down quick bullets or ideas here..."
-            className="flex-1 w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs leading-relaxed focus:outline-none"
+            onChange={(e) => {
+              setScratchpadText(e.target.value);
+              localStorage.setItem('auratask_notes', e.target.value);
+            }}
+            placeholder="• Discuss backlog priorities with client&#10;• Need API schema by Thursday&#10;• Refactor authentication middleware..."
+            className="flex-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs leading-relaxed focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none font-mono"
           />
         </div>
       )}
 
-      {/* SHUTDOWN RITUAL MODAL */}
-      {showShutdownModal && (
-        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl text-center">
-            <h3 className="font-bold text-lg mb-2">Daily Shutdown Ritual</h3>
-            <p className="text-xs text-slate-500 mb-4">
-              You completed {tasks.filter(t => t.section === 'completed').length} tasks today. Wrap up unfinished items and disconnect cleanly.
-            </p>
+      {/* --- PRO KARMA & PRODUCTIVITY MODAL --- */}
+      {showKarmaModal && (
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl">
+            <div className="flex justify-between items-center mb-5">
+              <div className="flex items-center gap-2">
+                <Flame className="w-5 h-5 text-amber-500" />
+                <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Productivity & Karma</h3>
+              </div>
+              <button onClick={() => setShowKarmaModal(false)}><X className="w-4 h-4 text-slate-400" /></button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/50 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-amber-700 dark:text-amber-400">Karma Score</span>
+                  <p className="text-2xl font-black text-amber-800 dark:text-amber-300">1,840 pts</p>
+                  <span className="text-xs font-semibold text-amber-600">Level: Master Achiever</span>
+                </div>
+                <Award className="w-10 h-10 text-amber-500" />
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700 space-y-2">
+                <div className="flex justify-between text-xs font-bold">
+                  <span>Daily Goal Progress</span>
+                  <span>{completedCount} / 5 tasks</span>
+                </div>
+                <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+                  <div
+                    className="bg-emerald-500 h-full rounded-full transition-all"
+                    style={{ width: `${Math.min(100, (completedCount / 5) * 100)}%` }}
+                  ></div>
+                </div>
+                <p className="text-[11px] text-slate-400">Complete 5 tasks daily to maintain your 4-day streak.</p>
+              </div>
+            </div>
+
             <button
-              onClick={() => {
-                alert('Workspace closed. Have a restful evening!');
-                setShowShutdownModal(false);
-              }}
-              className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm rounded-xl"
+              onClick={() => setShowKarmaModal(false)}
+              className="mt-6 w-full py-2.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-xs"
             >
-              Sign Off & Lock Workspace
+              Close
             </button>
           </div>
         </div>
       )}
 
-      {/* AUTH MODAL */}
-      {showAuthModal && (
-        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-sm w-full p-6 shadow-xl">
-            <div className="flex justify-between items-center mb-4">
-              <div className="flex items-center gap-2">
-                <AuraLogo className="w-6 h-6" />
-                <h3 className="font-bold text-base">{authMode === 'login' ? 'Sign In' : 'Create Account'}</h3>
-              </div>
-              <button onClick={() => setShowAuthModal(false)}><X className="w-4 h-4 text-slate-400" /></button>
+      {/* --- DAILY SHUTDOWN RITUAL MODAL --- */}
+      {showShutdownModal && (
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl text-center">
+            <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Shield className="w-6 h-6" />
             </div>
-
-            {authError && <div className="p-2 mb-3 bg-red-50 text-red-600 text-xs rounded-lg">{authError}</div>}
-
-            <form onSubmit={handleAuth} className="space-y-3">
-              {authMode === 'register' && (
-                <input
-                  type="text"
-                  placeholder="Full Name"
-                  required
-                  value={authFullName}
-                  onChange={(e) => setAuthFullName(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-lg text-sm border focus:outline-none"
-                />
-              )}
-              <input
-                type="email"
-                placeholder="Email address"
-                required
-                value={authEmail}
-                onChange={(e) => setAuthEmail(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-lg text-sm border focus:outline-none"
-              />
-              <input
-                type="password"
-                placeholder="Password"
-                required
-                value={authPassword}
-                onChange={(e) => setAuthPassword(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-lg text-sm border focus:outline-none"
-              />
-              <button type="submit" className="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium text-sm rounded-lg">
-                {authMode === 'login' ? 'Sign In with Supabase' : 'Sign Up'}
-              </button>
-            </form>
+            <h3 className="font-extrabold text-lg text-slate-900 dark:text-white mb-1">Daily Shutdown Ritual</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-5 leading-relaxed">
+              You crushed <span className="font-bold text-emerald-600">{completedCount} tasks</span> today. Disconnect cleanly, recharge, and return tomorrow with clarity.
+            </p>
 
             <button
-              onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
-              className="mt-4 text-xs text-red-600 w-full text-center hover:underline"
+              onClick={() => {
+                triggerCelebration();
+                showToast('🎉 Workspace locked. Have a fantastic evening!');
+                setShowShutdownModal(false);
+              }}
+              className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-600/20"
             >
-              {authMode === 'login' ? "Need an account? Register" : 'Already registered? Log In'}
+              Complete My Day & Sign Off
             </button>
           </div>
         </div>
