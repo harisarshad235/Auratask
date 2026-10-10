@@ -1,0 +1,22 @@
+{
+  "short_name": "AuraTask",
+  "name": "AuraTask – Daily Task Manager & Focus Workspace",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "32x32 48x48 72x72 96x96 128x128 256x256"
+    },
+    {
+      "src": "/brand/auratask-mark.svg",
+      "type": "image/svg+xml",
+      "sizes": "48x48 192x192 512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#060D13",
+  "theme_color": "#060D13",
+  "display": "standalone",
+  "orientation": "portrait"
+}

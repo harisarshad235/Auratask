@@ -8,6 +8,7 @@ import {
   FastForward, BarChart3, Upload, Square
 } from 'lucide-react';
 import { AuraLogo } from './App';
+import Logo from './components/brand/Logo';
 
 export default function LandingPage({
   onStartForFree,
@@ -41,12 +42,7 @@ export default function LandingPage({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Logo & Brand */}
           <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2.5 cursor-pointer" onClick={onTryDemo}>
-              <AuraLogo className="w-8 h-8" />
-              <span className="font-extrabold text-xl tracking-tight text-neutral-900 dark:text-[#ededed]">
-                Aura<span className="text-red-600">Task</span>
-              </span>
-            </div>
+            <Logo onClick={onTryDemo} href="/" />
 
             {/* Nav Links */}
             <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-neutral-600 dark:text-[#a1a1aa]">
@@ -683,10 +679,9 @@ export default function LandingPage({
          ========================================================================= */}
       <footer className="border-t border-neutral-200/60 dark:border-[#222225] py-12 text-xs text-neutral-500 dark:text-[#a1a1aa] bg-white dark:bg-[#000000]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <AuraLogo className="w-5 h-5" />
-            <span className="font-extrabold text-sm text-neutral-800 dark:text-[#ededed]">AuraTask</span>
-            <span className="text-neutral-400 dark:text-[#52525b]">© {new Date().getFullYear()} AuraTask by Haris Arshad</span>
+          <div className="flex items-center gap-3">
+            <Logo onClick={onTryDemo} href="/" />
+            <span className="text-neutral-400 dark:text-[#52525b] border-l border-neutral-200 dark:border-[#222225] pl-3">© {new Date().getFullYear()} AuraTask by Haris Arshad</span>
           </div>
 
           <div className="flex items-center gap-6 text-xs">

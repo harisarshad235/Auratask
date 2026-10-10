@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <defs>
+    <linearGradient id="auraGradient" x1="6" y1="6" x2="42" y2="42" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#E11D48" />
+      <stop offset="60%" stop-color="#F43F5E" />
+      <stop offset="100%" stop-color="#FB7185" />
+    </linearGradient>
+    <linearGradient id="auraGradientDark" x1="6" y1="6" x2="42" y2="42" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="60%" stop-color="#2DD4BF" />
+      <stop offset="100%" stop-color="#0284C7" />
+    </linearGradient>
+    <style>
+      .aura-bg { fill: #171717; }
+      .aura-ring { stroke: url(#auraGradient); }
+      .aura-orbit { fill: #F43F5E; }
+      @media (prefers-color-scheme: dark) {
+        .aura-bg { fill: #0D1A24; }
+        .aura-ring { stroke: url(#auraGradientDark); }
+        .aura-orbit { fill: #38BDF8; }
+      }
+    </style>
+  </defs>
+  <!-- Background Container -->
+  <rect width="48" height="48" rx="12" class="aura-bg fill-neutral-900 dark:fill-[#0D1A24]" />
+  <!-- Radiant Aura Ring -->
+  <circle cx="24" cy="24" r="15" stroke="url(#auraGradient)" class="aura-ring dark:[stroke:url(#auraGradientDark)]" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="64 24" />
+  <!-- Dynamic Task Check Path -->
+  <path d="M17 24.5L22 29.5L31 19.5" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Glowing Orbit Anchor -->
+  <circle cx="32" cy="15" r="2" fill="#F43F5E" class="aura-orbit dark:fill-[#38BDF8]" />
+</svg>

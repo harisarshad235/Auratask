@@ -14,23 +14,27 @@ import { supabase } from './supabaseClient';
 import TaskModal from './TaskModal';
 import LandingPage from './LandingPage';
 import MeetingScratchpad from './MeetingScratchpad';
+import Logo from './components/brand/Logo';
 
 // --- BRAND LOGO ---
 export const AuraLogo = ({ className = "w-8 h-8" }) => (
   <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
     <defs>
-      <linearGradient id="auraBlack" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#18181b" />
-        <stop offset="100%" stopColor="#09090b" />
+      <linearGradient id="auraGradient" x1="6" y1="6" x2="42" y2="42" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stopColor="#E11D48" />
+        <stop offset="60%" stopColor="#F43F5E" />
+        <stop offset="100%" stopColor="#FB7185" />
       </linearGradient>
-      <linearGradient id="auraCrimson" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#ef4444" />
-        <stop offset="100%" stopColor="#dc2626" />
+      <linearGradient id="auraGradientDark" x1="6" y1="6" x2="42" y2="42" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stopColor="#38BDF8" />
+        <stop offset="60%" stopColor="#2DD4BF" />
+        <stop offset="100%" stopColor="#0284C7" />
       </linearGradient>
     </defs>
-    <rect x="6" y="6" width="36" height="36" rx="12" fill="url(#auraBlack)" stroke="#27272a" strokeWidth="1.5" />
-    <path d="M14 24L21 31L35 15" stroke="url(#auraCrimson)" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" />
-    <circle cx="34" cy="33" r="2.5" fill="#ef4444" />
+    <rect width="48" height="48" rx="12" className="fill-neutral-900 dark:fill-[#0D1A24]" />
+    <circle cx="24" cy="24" r="15" stroke="currentColor" className="text-rose-500 dark:text-cyan-400" strokeWidth="2.5" strokeLinecap="round" strokeDasharray="64 24" />
+    <path d="M17 24.5L22 29.5L31 19.5" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+    <circle cx="32" cy="15" r="2" className="fill-rose-400 dark:fill-cyan-300" />
   </svg>
 );
 
@@ -1254,19 +1258,7 @@ export default function App() {
       <aside className={`fixed inset-y-0 left-0 z-50 w-72 h-screen bg-white dark:bg-[#09090b] border-r border-slate-200/80 dark:border-[#222225] flex flex-col p-4 transition-transform duration-300 lg:static lg:translate-x-0 shrink-0 overflow-y-auto ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         {/* Brand & User Profile */}
         <div className="flex items-center justify-between pb-4 mb-2 border-b border-slate-100 dark:border-[#222225]">
-          <div className="flex items-center gap-2.5">
-            <AuraLogo className="w-7 h-7" />
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-base tracking-tight text-slate-900 dark:text-[#ededed]">
-                  Aura<span className="text-red-600">Task</span>
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-400 dark:text-[#a1a1aa] truncate max-w-[140px]">
-                {session?.user?.user_metadata?.full_name || session?.user?.email || (isGuest ? 'Guest Explorer' : 'Personal Workspace')}
-              </p>
-            </div>
-          </div>
+          <Logo subtitle="Harris Arshad" onClick={(e) => { e.preventDefault(); setShowLandingPage(true); }} />
 
           <div className="flex items-center gap-1">
             <button
