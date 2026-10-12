@@ -98,6 +98,25 @@ const GUEST_DEMO_NOTES = [
   }
 ];
 
+// Standard RFC4122 v4 UUID helpers for Supabase PostgreSQL schema compatibility
+const isValidUUID = (str) => {
+  if (typeof str !== 'string') return false;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(str);
+};
+
+const generateUUID = () => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    try {
+      return crypto.randomUUID();
+    } catch {}
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
+
 // Helper to safely load isolated user or guest data
 const loadScopedWorkspaceData = (userId = null) => {
   if (userId) {
@@ -164,6 +183,26 @@ export default function App() {
   // --- AUTH STATE ---
   const [session, setSession] = useState(null);
   const [isGuest, setIsGuest] = useState(() => (localStorage.getItem('takt_guest_mode') || localStorage.getItem('auratask_guest_mode')) === 'true');
+  const [isAuthResolving, setIsAuthResolving] = useState(() => {
+    // If returning from Google OAuth or session token is stored in localStorage, resolve before deciding route
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash || '';
+      const search = window.location.search || '';
+      if (hash.includes('access_token') || hash.includes('refresh_token') || search.includes('code=')) {
+        return true;
+      }
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+            const val = localStorage.getItem(key);
+            if (val && JSON.parse(val)?.user) return true;
+          }
+        }
+      } catch {}
+    }
+    return false;
+  });
   const [authMode, setAuthMode] = useState('register'); // 'register' or 'login'
   const [rememberMe, setRememberMe] = useState(() => (localStorage.getItem('takt_remember_me') || localStorage.getItem('auratask_remember_me')) !== 'false');
   const [authEmail, setAuthEmail] = useState(() => localStorage.getItem('takt_remembered_email') || localStorage.getItem('auratask_remembered_email') || '');
@@ -173,6 +212,11 @@ export default function App() {
   const [authError, setAuthError] = useState(null);
   const [authSuccessMsg, setAuthSuccessMsg] = useState(null);
   const [authLoading, setAuthLoading] = useState(false);
+
+  // Authenticated user identity labels
+  const userFullName = session?.user?.user_metadata?.full_name || session?.user?.user_metadata?.name;
+  const userEmail = session?.user?.email;
+  const displayName = userFullName || (userEmail ? userEmail.split('@')[0] : 'Workspace User');
 
   // Initialize workspace data based on guest mode or initial session
   const initialData = useMemo(() => {
@@ -330,15 +374,22 @@ export default function App() {
   // --- LANDING PAGE & TASK MODALS STATE ---
   const [showLandingPage, setShowLandingPage] = useState(() => {
     if ((localStorage.getItem('takt_guest_mode') || localStorage.getItem('auratask_guest_mode')) === 'true') return false;
-    try {
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
-          const val = localStorage.getItem(key);
-          if (val && JSON.parse(val)?.user) return false;
-        }
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash || '';
+      const search = window.location.search || '';
+      if (hash.includes('access_token') || hash.includes('refresh_token') || search.includes('code=')) {
+        return false;
       }
-    } catch {}
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+            const val = localStorage.getItem(key);
+            if (val && JSON.parse(val)?.user) return false;
+          }
+        }
+      } catch {}
+    }
     return true;
   });
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -476,28 +527,34 @@ export default function App() {
   };
 
   const handleSaveTaskModal = async (taskPayload) => {
-    const existingIndex = tasks.findIndex(t => t.id === taskPayload.id);
+    const finalPayload = {
+      ...taskPayload,
+      id: isValidUUID(taskPayload.id) ? taskPayload.id : generateUUID()
+    };
+    const existingIndex = tasks.findIndex(t => t.id === finalPayload.id || (taskPayload.id && t.id === taskPayload.id));
     let updatedTasks = [];
     if (existingIndex !== -1) {
-      updatedTasks = tasks.map(t => t.id === taskPayload.id ? { ...t, ...taskPayload } : t);
+      updatedTasks = tasks.map((t, idx) => idx === existingIndex ? { ...t, ...finalPayload } : t);
       showToast('Task updated');
-      recordActivity(`Updated task "${taskPayload.title.slice(0, 28)}..."`, 'edit');
+      recordActivity(`Updated task "${finalPayload.title.slice(0, 28)}..."`, 'edit');
     } else {
-      updatedTasks = [taskPayload, ...tasks];
+      updatedTasks = [finalPayload, ...tasks];
       showToast('Task created');
-      recordActivity(`Created task "${taskPayload.title.slice(0, 28)}..."`, 'plus');
+      recordActivity(`Created task "${finalPayload.title.slice(0, 28)}..."`, 'plus');
     }
     setTasks(updatedTasks);
 
     if (session?.user) {
       try {
-        await supabase.from('tasks').upsert(sanitizeTaskForCloud(taskPayload, session.user.id));
+        const cloudTask = sanitizeTaskForCloud(finalPayload, session.user.id);
+        const { error } = await supabase.from('tasks').upsert(cloudTask);
+        if (error) console.warn("Supabase upsert notice:", error);
       } catch (err) {
         console.warn("Supabase upsert notice:", err);
       }
     }
 
-    if (taskPayload.section === 'completed' && (!modalTask || modalTask.section !== 'completed')) {
+    if (finalPayload.section === 'completed' && (!modalTask || modalTask.section !== 'completed')) {
       triggerCelebration();
     }
   };
@@ -540,12 +597,36 @@ export default function App() {
     setIsGuest(false);
     setShowLandingPage(false);
     setShowAuthModal(false);
+    setIsAuthResolving(false);
     localStorage.removeItem('takt_guest_mode');
     localStorage.removeItem('auratask_guest_mode');
     if (userSession?.user?.id) {
       const uId = userSession.user.id;
       const userCached = loadScopedWorkspaceData(uId);
-      setTasks(userCached.tasks);
+
+      // If user has cached tasks, populate workspace
+      if (userCached.tasks && userCached.tasks.length > 0) {
+        setTasks(userCached.tasks);
+      } else {
+        // Cross-profile / guest migration safeguard:
+        // If local user cache is empty on this device/profile, check if user had created tasks in session
+        setTasks(prev => {
+          const nonDemo = prev.filter(t => !t.id.startsWith('guest-'));
+          if (nonDemo.length > 0) {
+            const migrated = nonDemo.map(t => ({
+              ...t,
+              id: isValidUUID(t.id) ? t.id : generateUUID(),
+              user_id: uId
+            }));
+            try {
+              localStorage.setItem(`takt_tasks_u_${uId}`, JSON.stringify(migrated));
+            } catch {}
+            return migrated;
+          }
+          return [];
+        });
+      }
+
       setMeetingNotes(userCached.notes);
       setCustomSections(userCached.sections);
       setActivityLogs(userCached.activity);
@@ -556,6 +637,8 @@ export default function App() {
   const handleUserSignedOut = () => {
     setSession(null);
     setIsGuest(false);
+    setIsAuthResolving(false);
+    setShowLandingPage(true);
     localStorage.removeItem('takt_guest_mode');
     localStorage.removeItem('auratask_guest_mode');
     const guestData = loadScopedWorkspaceData(null);
@@ -567,23 +650,59 @@ export default function App() {
 
   // Initial Session Check & Auth Listener
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        handleUserSessionEstablished(session);
+    let isMounted = true;
+
+    // Check existing session
+    supabase.auth.getSession().then(({ data: { session: existingSession } }) => {
+      if (!isMounted) return;
+      if (existingSession) {
+        handleUserSessionEstablished(existingSession);
+      } else {
+        const hasOAuthParams = typeof window !== 'undefined' && (
+          window.location.hash.includes('access_token') ||
+          window.location.hash.includes('refresh_token') ||
+          window.location.search.includes('code=')
+        );
+        if (!hasOAuthParams) {
+          setIsAuthResolving(false);
+        }
       }
     }).catch(err => {
       console.warn("Supabase auth session check notice:", err);
+      if (isMounted) setIsAuthResolving(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
+      if (!isMounted) return;
       if (s) {
         handleUserSessionEstablished(s);
+        // Clean URL OAuth tokens if present without triggering page reload
+        if (typeof window !== 'undefined' && (
+          window.location.hash.includes('access_token') ||
+          window.location.hash.includes('refresh_token') ||
+          window.location.search.includes('code=')
+        )) {
+          try {
+            window.history.replaceState({}, document.title, window.location.pathname);
+          } catch {}
+        }
       } else if (event === 'SIGNED_OUT') {
         handleUserSignedOut();
+      } else {
+        setIsAuthResolving(false);
       }
     });
 
-    return () => subscription?.unsubscribe();
+    // Safety fallback: never remain stuck in resolving screen longer than 3.5 seconds
+    const fallbackTimer = setTimeout(() => {
+      if (isMounted) setIsAuthResolving(false);
+    }, 3500);
+
+    return () => {
+      isMounted = false;
+      subscription?.unsubscribe();
+      clearTimeout(fallbackTimer);
+    };
   }, []);
 
   // Fetch Tasks from Supabase strictly scoped to user_id (Zero Cross-User Bleed)
@@ -603,16 +722,38 @@ export default function App() {
           const regularTasks = data.filter(item => item.section !== 'meeting_notes');
           const cloudNotes = data.filter(item => item.section === 'meeting_notes');
 
-          if (regularTasks.length > 0) {
-            const normalized = regularTasks.map(item => ({
-              ...item,
-              section: item.section || 'todo',
-              priority: item.priority || 'P2',
-              tags: item.tags || ['#Work'],
-              subtasks: Array.isArray(item.subtasks) ? item.subtasks : []
-            }));
-            setTasks(normalized);
-          }
+          const normalizedCloudTasks = regularTasks.map(item => ({
+            ...item,
+            id: isValidUUID(item.id) ? item.id : generateUUID(),
+            section: item.section || 'todo',
+            priority: item.priority || 'P2',
+            tags: Array.isArray(item.tags) ? item.tags : ['#Work'],
+            subtasks: Array.isArray(item.subtasks) ? item.subtasks : []
+          }));
+
+          // Merge with any local tasks for this user that were created offline or before cloud sync
+          setTasks(prevTasks => {
+            const cloudIds = new Set(normalizedCloudTasks.map(t => t.id));
+            const unsyncedLocal = prevTasks.filter(t =>
+              !t.id.startsWith('guest-') &&
+              !cloudIds.has(t.id) &&
+              !normalizedCloudTasks.some(ct => ct.title === t.title && ct.created_at === t.created_at)
+            );
+
+            let merged = normalizedCloudTasks;
+            if (unsyncedLocal.length > 0) {
+              const toUpload = unsyncedLocal.map(t => sanitizeTaskForCloud(t, currentUserId));
+              supabase.from('tasks').upsert(toUpload).then(({ error: upsertErr }) => {
+                if (upsertErr) console.warn("Sync local tasks to cloud notice:", upsertErr);
+              });
+              merged = [...normalizedCloudTasks, ...unsyncedLocal];
+            }
+
+            try {
+              localStorage.setItem(`takt_tasks_u_${currentUserId}`, JSON.stringify(merged));
+            } catch {}
+            return merged;
+          });
 
           if (cloudNotes.length > 0) {
             setMeetingNotes(cloudNotes.map(item => ({
@@ -670,7 +811,7 @@ export default function App() {
     if (!newTitle.trim()) return;
 
     const taskObj = {
-      id: `task-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      id: generateUUID(),
       title: newTitle.trim(),
       description: newDesc.trim(),
       section: composerSection || 'todo',
@@ -694,9 +835,11 @@ export default function App() {
 
     if (session?.user) {
       try {
-        await supabase
+        const cloudTask = sanitizeTaskForCloud(taskObj, session.user.id);
+        const { error } = await supabase
           .from('tasks')
-          .insert([sanitizeTaskForCloud(taskObj, session.user.id)]);
+          .insert([cloudTask]);
+        if (error) console.warn("Background cloud sync note:", error);
       } catch (err) {
         console.warn("Background cloud sync note:", err);
       }
@@ -1072,10 +1215,13 @@ export default function App() {
     setAuthLoading(true);
     setAuthError(null);
     try {
+      localStorage.removeItem('takt_guest_mode');
+      localStorage.removeItem('auratask_guest_mode');
+      const redirectUrl = window.location.origin + window.location.pathname;
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin,
+          redirectTo: redirectUrl,
         }
       });
       if (error) throw error;
@@ -1236,9 +1382,28 @@ export default function App() {
   }, []);
 
   // =========================================================================
+  // 0. AUTH RESOLUTION SCREEN (OAuth Handshake / Token Validation)
+  // =========================================================================
+  if (isAuthResolving) {
+    return (
+      <div className={`min-h-screen flex flex-col items-center justify-center p-6 ${darkMode ? 'dark bg-[#090d16] text-[#ededed]' : 'bg-[#fffdfa] text-slate-900'}`}>
+        <div className="flex flex-col items-center gap-4 animate-in fade-in duration-200">
+          <Logo href="" />
+          <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white dark:bg-[#121a2b] border border-slate-200 dark:border-[#22304e] shadow-xl">
+            <RefreshCw className="w-4 h-4 text-rose-500 animate-spin" />
+            <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+              Verifying session... Redirecting to workspace
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // =========================================================================
   // 1. FULLSCREEN LANDING PAGE & PRODUCT SHOWCASE (IF LOGGED OUT)
   // =========================================================================
-  if ((!session && !isGuest) || showLandingPage) {
+  if (!isAuthResolving && ((!session && !isGuest) || showLandingPage)) {
     return (
       <div className={`min-h-screen ${darkMode ? 'dark bg-[#000000] text-[#ededed]' : 'bg-[#fffdfa] text-slate-900'}`}>
         <LandingPage
@@ -1466,13 +1631,13 @@ export default function App() {
 
       {/* --- SIDEBAR NAVIGATION (PERMANENTLY PINNED, NEVER MOVES WITH SCROLL) --- */}
       <aside className={`fixed inset-y-0 left-0 z-50 w-72 h-screen bg-white dark:bg-[#0f172a] border-r border-slate-200/80 dark:border-[#1e293b] flex flex-col p-4 transition-transform duration-300 lg:static lg:translate-x-0 shrink-0 overflow-y-auto ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
-        {/* Brand & User Profile */}
+        {/* Brand & Theme / Signout */}
         <div className="flex items-center justify-between pb-3.5 mb-2 border-b border-slate-100 dark:border-[#1e293b]">
           <Logo
             subtitle={
               isGuest
                 ? 'Guest Sandbox'
-                : (session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || 'Personal Workspace')
+                : `Signed in as ${displayName}`
             }
             onClick={(e) => {
               e.preventDefault();
@@ -1497,6 +1662,59 @@ export default function App() {
             </button>
           </div>
         </div>
+
+        {/* PROMINENT USER IDENTITY DISPLAY (Signed in as...) */}
+        {session?.user ? (
+          <div className="mb-3.5 p-2.5 rounded-xl bg-slate-50 dark:bg-[#151d30]/70 border border-slate-200/80 dark:border-[#22304e] flex items-center justify-between gap-2.5 shadow-2xs">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="relative shrink-0">
+                {session.user.user_metadata?.avatar_url ? (
+                  <img
+                    src={session.user.user_metadata.avatar_url}
+                    alt={displayName}
+                    className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-slate-700"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-rose-500 via-pink-500 to-indigo-500 text-white font-bold text-xs flex items-center justify-center uppercase shadow-2xs">
+                    {displayName.charAt(0)}
+                  </div>
+                )}
+                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white dark:border-[#0f172a]" title="Signed in & Cloud Synced"></span>
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                    Signed in as
+                  </span>
+                </div>
+                <p className="text-xs font-bold text-slate-900 dark:text-white truncate" title={displayName}>
+                  {displayName}
+                </p>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate" title={userEmail}>
+                  {userEmail}
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : isGuest ? (
+          <div className="mb-3.5 p-2.5 rounded-xl bg-amber-50/80 dark:bg-amber-950/20 border border-amber-200/70 dark:border-amber-900/40 flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 text-[10px] font-bold text-amber-700 dark:text-amber-400">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                <span>Guest Sandbox</span>
+              </div>
+              <p className="text-[10px] text-amber-600/80 dark:text-amber-400/80 mt-0.5">
+                Local only • Sign in to sync across profiles
+              </p>
+            </div>
+            <button
+              onClick={() => { setAuthMode('login'); setShowAuthModal(true); }}
+              className="px-2 py-1 text-[10px] font-bold bg-amber-600 hover:bg-amber-700 text-white rounded-lg shrink-0 transition-colors"
+            >
+              Sign In
+            </button>
+          </div>
+        ) : null}
 
         {/* Global Quick Add Action */}
         <button
@@ -2026,6 +2244,27 @@ export default function App() {
                 </div>
               )}
             </div>
+
+            {/* Header User Identity Badge */}
+            {session?.user ? (
+              <div
+                className="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-[#121a2b] border border-slate-200/80 dark:border-[#22304e]"
+                title={`Signed in as ${displayName} (${userEmail})`}
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Logged in as</span>
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-200 max-w-[130px] truncate">
+                  {displayName}
+                </span>
+              </div>
+            ) : isGuest ? (
+              <div
+                className="hidden xl:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/40 text-[11px] font-bold text-amber-700 dark:text-amber-400"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                <span>Guest Mode</span>
+              </div>
+            ) : null}
 
             {/* Quick Add Button Header */}
             <button

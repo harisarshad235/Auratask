@@ -91,7 +91,10 @@ export const TaktLogo = ({
           )}
 
           {subtitle && (
-            <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-[#151d30] border border-slate-200/80 dark:border-[#22304e] px-2 py-0.5 rounded-md leading-none truncate max-w-[130px] shrink-0">
+            <span
+              title={typeof subtitle === 'string' ? subtitle : undefined}
+              className="text-[11px] font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-[#151d30] border border-slate-200/80 dark:border-[#22304e] px-2 py-0.5 rounded-md leading-none truncate max-w-[220px] shrink-0"
+            >
               {subtitle}
             </span>
           )}
