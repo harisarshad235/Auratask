@@ -124,18 +124,34 @@ const generateUUID = () => {
   });
 };
 
-// Helper to auto-heal tasks and ensure ETA / Duration and metadata are 100% intact
+// Metadata regex to extract embedded metadata from description
+const TAKT_META_REGEX = /<!--takt:meta\s+({[\s\S]*?})-->/;
+
+// Helper to auto-heal tasks and ensure ETA / Duration and metadata are 100% intact across devices/profiles
 const autoHealTask = (t) => {
-  if (!t) return t;
-  const rawMins = t.estimated_minutes || t.focused_minutes;
-  const effDuration = t.duration || (rawMins ? formatDuration(rawMins) : '30m');
+  if (!t || typeof t !== 'object') return t;
+  let desc = t.description || '';
+  let meta = {};
+  const metaMatch = desc.match(TAKT_META_REGEX);
+  if (metaMatch) {
+    try {
+      meta = JSON.parse(metaMatch[1]);
+      desc = desc.replace(TAKT_META_REGEX, '').trim();
+    } catch {}
+  }
+
+  const rawMins = t.estimated_minutes || t.focused_minutes || meta.estimated_minutes;
+  const effDuration = t.duration || meta.duration || (rawMins ? formatDuration(rawMins) : '30m');
+  const isFocusVal = t.is_focus !== undefined ? Boolean(t.is_focus) : (meta.is_focus !== undefined ? Boolean(meta.is_focus) : false);
+
   return {
     ...t,
+    description: desc,
     duration: effDuration,
     estimated_minutes: t.estimated_minutes || (parseInt(effDuration, 10) || 30),
-    tags: Array.isArray(t.tags) && t.tags.length > 0 ? t.tags : ['#Work'],
+    tags: (Array.isArray(t.tags) && t.tags.length > 0) ? t.tags : (Array.isArray(meta.tags) && meta.tags.length > 0 ? meta.tags : ['#Work']),
     subtasks: Array.isArray(t.subtasks) ? t.subtasks : [],
-    is_focus: Boolean(t.is_focus)
+    is_focus: isFocusVal
   };
 };
 
@@ -349,21 +365,36 @@ export default function App() {
   const [expandedTaskSubtasks, setExpandedTaskSubtasks] = useState({});
   const [newSubtaskInputs, setNewSubtaskInputs] = useState({});
 
-  // Helper to sanitize task object for Supabase schema
-  const sanitizeTaskForCloud = (t, userId) => ({
-    id: t.id,
-    title: t.title || '',
-    description: t.description || '',
-    section: t.section || 'todo',
-    priority: t.priority || 'P2',
-    due_date: t.due_date || null,
-    due_time: t.due_time || '',
-    duration: t.duration || (t.estimated_minutes ? `${t.estimated_minutes}m` : '30m'),
-    tags: Array.isArray(t.tags) && t.tags.length > 0 ? t.tags : ['#Work'],
-    subtasks: Array.isArray(t.subtasks) ? t.subtasks : [],
-    created_at: t.created_at || new Date().toISOString(),
-    user_id: userId
-  });
+  // Helper to sanitize task object for Supabase schema with embedded metadata redundancy
+  const sanitizeTaskForCloud = (t, userId) => {
+    const rawMins = t.estimated_minutes || t.focused_minutes;
+    const effDuration = t.duration || (rawMins ? formatDuration(rawMins) : '30m');
+    const cleanDesc = (t.description || '').replace(TAKT_META_REGEX, '').trim();
+    // Embed metadata tag so even if remote schema drops the duration/is_focus column,
+    // the data is 100% recoverable on any device, browser profile, or session
+    const metaPayload = JSON.stringify({
+      duration: effDuration,
+      estimated_minutes: t.estimated_minutes || 30,
+      is_focus: Boolean(t.is_focus),
+      tags: Array.isArray(t.tags) && t.tags.length > 0 ? t.tags : ['#Work']
+    });
+    const finalDesc = cleanDesc ? `${cleanDesc}\n<!--takt:meta ${metaPayload}-->` : `<!--takt:meta ${metaPayload}-->`;
+
+    return {
+      id: t.id,
+      title: t.title || '',
+      description: finalDesc,
+      section: t.section || 'todo',
+      priority: t.priority || 'P2',
+      due_date: t.due_date || null,
+      due_time: t.due_time || '',
+      duration: effDuration,
+      tags: Array.isArray(t.tags) && t.tags.length > 0 ? t.tags : ['#Work'],
+      subtasks: Array.isArray(t.subtasks) ? t.subtasks : [],
+      created_at: t.created_at || new Date().toISOString(),
+      user_id: userId
+    };
+  };
 
   // Safe Cloud Upsert that tolerates database column schema variations
   const upsertTaskToCloud = async (taskObj, userId) => {
