@@ -380,8 +380,14 @@ export default function App() {
     });
     const finalDesc = cleanDesc ? `${cleanDesc}\n<!--takt:meta ${metaPayload}-->` : `<!--takt:meta ${metaPayload}-->`;
 
+    // Ensure ID is a valid Postgres UUID
+    const validId = isValidUUID(t.id) ? t.id : generateUUID();
+    if (t.id !== validId) {
+      t.id = validId;
+    }
+
     return {
-      id: t.id,
+      id: validId,
       title: t.title || '',
       description: finalDesc,
       section: t.section || 'todo',
@@ -396,16 +402,20 @@ export default function App() {
     };
   };
 
-  // Safe Cloud Upsert that tolerates database column schema variations
+  // Safe Cloud Upsert that tolerates database column schema variations and RLS update policies
   const upsertTaskToCloud = async (taskObj, userId) => {
     if (!userId || !taskObj?.id) return;
     try {
       const cloudTask = sanitizeTaskForCloud(taskObj, userId);
       const { error } = await supabase.from('tasks').upsert(cloudTask);
-      if (error && error.message && (error.message.includes('duration') || error.message.includes('tags') || error.message.includes('schema cache'))) {
-        // Fallback without extra columns if remote schema cache is restricted
+      if (error) {
+        // Fallback without extra columns if remote schema cache is restricted or column missing
         const { duration, tags, ...baseCloudTask } = cloudTask;
-        await supabase.from('tasks').upsert(baseCloudTask);
+        const { error: fallbackErr } = await supabase.from('tasks').upsert(baseCloudTask);
+        if (fallbackErr) {
+          // If upsert was blocked by RLS policies that disallow upserting over existing rows, try direct update
+          await supabase.from('tasks').update(baseCloudTask).eq('id', cloudTask.id).eq('user_id', userId);
+        }
       }
     } catch (err) {
       console.warn("Cloud task sync notice:", err);
@@ -1667,7 +1677,22 @@ export default function App() {
         return false;
       }
 
-      // Active Tab
+      // Active Tab & View Mode logic
+      // In Kanban Board View with stage grouping, the swimlanes themselves separate stages.
+      // Therefore, completed tasks must remain visible in the Completed swimlane!
+      if (viewMode === 'board' && boardGrouping === 'stage') {
+        if (activeTab === 'today') {
+          return t.due_date === todayDateStr || t.is_focus;
+        }
+        if (activeTab === 'upcoming') {
+          return t.due_date > todayDateStr;
+        }
+        if (activeTab === 'completed') {
+          return t.section === 'completed';
+        }
+        return true;
+      }
+
       if (activeTab === 'inbox') {
         return t.section !== 'completed';
       }
@@ -1683,7 +1708,7 @@ export default function App() {
 
       return true;
     });
-  }, [tasks, searchQuery, selectedTag, activeTab, todayDateStr]);
+  }, [tasks, searchQuery, selectedTag, activeTab, todayDateStr, viewMode, boardGrouping]);
 
   // Productivity Metrics
   const completedCount = useMemo(() => tasks.filter(t => t.section === 'completed').length, [tasks]);
