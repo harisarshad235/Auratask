@@ -34,12 +34,12 @@ export default function LandingPage({
     : templates.filter(t => t.category === activeTemplateTab);
 
   return (
-    <div className={`min-h-screen selection:bg-red-500 selection:text-white ${darkMode ? 'dark bg-[#000000] text-[#ededed]' : 'bg-[#fafafa] text-neutral-900'}`}>
+    <div className={`min-h-screen selection:bg-red-500 selection:text-white ${darkMode ? 'dark bg-[#151821] text-[#e3e6ee]' : 'bg-[#fafafa] text-neutral-900'}`}>
       
       {/* =========================================================================
-          1. TOP NAVIGATION BAR (Fey Obsidian Aesthetic)
+          1. TOP NAVIGATION BAR (Eye-Comfort Slate Aesthetic)
          ========================================================================= */}
-      <header className="sticky top-0 z-40 w-full border-b border-neutral-200/80 dark:border-[#222225] bg-[#fafafa]/80 dark:bg-[#000000]/80 backdrop-blur-md transition-colors">
+      <header className="sticky top-0 z-40 w-full border-b border-neutral-200/80 dark:border-[#31384c] bg-[#fafafa]/80 dark:bg-[#151821]/80 backdrop-blur-md transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Logo & Brand */}
           <div className="flex items-center gap-6">
@@ -168,7 +168,7 @@ export default function LandingPage({
               </div>
 
               {/* Simulated Kanban & List Preview Grid */}
-              <div className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-3 gap-4 bg-neutral-50/50 dark:bg-[#000000]">
+              <div className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-3 gap-4 bg-neutral-50/50 dark:bg-[#1c202c]">
                 {/* Stage 1: To Do */}
                 <div className="bg-white dark:bg-[#09090b] border border-neutral-200 dark:border-[#222225] rounded-xl p-3 space-y-2.5">
                   <div className="flex items-center justify-between text-xs font-bold text-neutral-700 dark:text-[#ededed]">
@@ -482,7 +482,7 @@ export default function LandingPage({
               <div className="pt-2 flex gap-3">
                 <button
                   onClick={onTryDemo}
-                  className="px-4 py-2.5 bg-neutral-900 dark:bg-[#ededed] text-white dark:text-[#000000] text-xs font-bold rounded-xl"
+                  className="px-4 py-2.5 bg-neutral-900 dark:bg-[#e3e6ee] text-white dark:text-[#151821] text-xs font-bold rounded-xl"
                 >
                   Explore Calendar Horizon
                 </button>
@@ -556,7 +556,7 @@ export default function LandingPage({
       {/* =========================================================================
           7. FEATURE: TAKT CADENCE & STRICT MULTI-TENANT PRIVACY
          ========================================================================= */}
-      <section id="takt-assist" className="py-20 border-t border-neutral-200/60 dark:border-[#222225] bg-neutral-50/40 dark:bg-[#000000]">
+      <section id="takt-assist" className="py-20 border-t border-neutral-200/60 dark:border-[#31384c] bg-neutral-50/40 dark:bg-[#151821]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-14">
             <span className="text-xs font-bold uppercase tracking-wider text-red-600 dark:text-red-400">
@@ -635,7 +635,7 @@ export default function LandingPage({
                   onClick={() => setActiveTemplateTab(tab)}
                   className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
                     activeTemplateTab === tab
-                      ? 'bg-neutral-900 text-white dark:bg-[#ededed] dark:text-[#000000]'
+                      ? 'bg-neutral-900 text-white dark:bg-[#e3e6ee] dark:text-[#151821]'
                       : 'bg-white dark:bg-[#121214] text-neutral-600 dark:text-[#a1a1aa] border border-neutral-200 dark:border-[#222225]'
                   }`}
                 >
@@ -702,7 +702,7 @@ export default function LandingPage({
       {/* =========================================================================
           8. FOOTER
          ========================================================================= */}
-      <footer className="border-t border-neutral-200/60 dark:border-[#222225] py-12 text-xs text-neutral-500 dark:text-[#a1a1aa] bg-white dark:bg-[#000000]">
+      <footer className="border-t border-neutral-200/60 dark:border-[#31384c] py-12 text-xs text-neutral-500 dark:text-[#919bb0] bg-white dark:bg-[#151821]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Logo onClick={onTryDemo} href="/" />

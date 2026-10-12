@@ -124,16 +124,33 @@ const generateUUID = () => {
   });
 };
 
+// Helper to auto-heal tasks and ensure ETA / Duration and metadata are 100% intact
+const autoHealTask = (t) => {
+  if (!t) return t;
+  const rawMins = t.estimated_minutes || t.focused_minutes;
+  const effDuration = t.duration || (rawMins ? formatDuration(rawMins) : '30m');
+  return {
+    ...t,
+    duration: effDuration,
+    estimated_minutes: t.estimated_minutes || (parseInt(effDuration, 10) || 30),
+    tags: Array.isArray(t.tags) && t.tags.length > 0 ? t.tags : ['#Work'],
+    subtasks: Array.isArray(t.subtasks) ? t.subtasks : [],
+    is_focus: Boolean(t.is_focus)
+  };
+};
+
 // Helper to safely load isolated user or guest data
 const loadScopedWorkspaceData = (userId = null) => {
   if (userId) {
     try {
       const savedTasks = localStorage.getItem(`takt_tasks_u_${userId}`) || localStorage.getItem(`auratask_tasks_u_${userId}`);
+      const backupTasks = localStorage.getItem(`takt_tasks_backup_u_${userId}`);
+      const rawTasks = savedTasks ? JSON.parse(savedTasks) : (backupTasks ? JSON.parse(backupTasks) : []);
       const savedNotes = localStorage.getItem(`takt_notes_u_${userId}`) || localStorage.getItem(`auratask_notes_u_${userId}`);
       const savedSections = localStorage.getItem(`takt_sections_u_${userId}`) || localStorage.getItem(`auratask_sections_u_${userId}`);
       const savedLogs = localStorage.getItem(`takt_activity_u_${userId}`) || localStorage.getItem(`auratask_activity_u_${userId}`);
       return {
-        tasks: savedTasks ? JSON.parse(savedTasks) : [],
+        tasks: Array.isArray(rawTasks) ? rawTasks.map(autoHealTask) : [],
         notes: savedNotes ? JSON.parse(savedNotes) : [
           {
             id: `note-${Date.now()}`,
@@ -158,10 +175,10 @@ const loadScopedWorkspaceData = (userId = null) => {
       // Strict User Restriction: Filter out any objects that belong to a real user account
       let parsedTasks = guestTasks ? JSON.parse(guestTasks) : GUEST_DEMO_TASKS;
       if (Array.isArray(parsedTasks)) {
-        parsedTasks = parsedTasks.filter(t => !t.user_id || t.id.startsWith('guest-'));
-        if (parsedTasks.length === 0) parsedTasks = GUEST_DEMO_TASKS;
+        parsedTasks = parsedTasks.filter(t => !t.user_id || t.id.startsWith('guest-')).map(autoHealTask);
+        if (parsedTasks.length === 0) parsedTasks = GUEST_DEMO_TASKS.map(autoHealTask);
       } else {
-        parsedTasks = GUEST_DEMO_TASKS;
+        parsedTasks = GUEST_DEMO_TASKS.map(autoHealTask);
       }
 
       let parsedNotes = guestNotes ? JSON.parse(guestNotes) : GUEST_DEMO_NOTES;
@@ -181,7 +198,7 @@ const loadScopedWorkspaceData = (userId = null) => {
         ]
       };
     } catch {
-      return { tasks: GUEST_DEMO_TASKS, notes: GUEST_DEMO_NOTES, sections: DEFAULT_SECTIONS, activity: [] };
+      return { tasks: GUEST_DEMO_TASKS.map(autoHealTask), notes: GUEST_DEMO_NOTES, sections: DEFAULT_SECTIONS, activity: [] };
     }
   }
 };
@@ -245,9 +262,16 @@ export default function App() {
 
   // --- UI NAVIGATION & VIEW MODES ---
   const [activeTab, setActiveTab] = useState('inbox'); // 'inbox', 'today', 'upcoming', 'completed', 'tag-...'
-  const [viewMode, setViewMode] = useState('list'); // 'board' | 'list' | 'calendar'
-  const [darkMode, setDarkMode] = useState(() => (localStorage.getItem('takt_theme') || localStorage.getItem('auratask_theme')) === 'dark');
-  const [searchQuery, setSearchQuery] = useState('');
+  // Default to Eye-Comfort Light Mode (soothing, zero eye-strain, user friendly)
+  const [darkMode, setDarkMode] = useState(() => {
+    const v2 = localStorage.getItem('takt_theme_v2');
+    if (v2) return v2 === 'dark';
+    // Clear legacy theme so users get immediate eye relief with clean Light Mode
+    localStorage.setItem('takt_theme_v2', 'light');
+    localStorage.setItem('takt_theme', 'light');
+    localStorage.setItem('auratask_theme', 'light');
+    return false;
+  });
   const [selectedTag, setSelectedTag] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -323,10 +347,28 @@ export default function App() {
     priority: t.priority || 'P2',
     due_date: t.due_date || null,
     due_time: t.due_time || '',
+    duration: t.duration || (t.estimated_minutes ? `${t.estimated_minutes}m` : '30m'),
+    tags: Array.isArray(t.tags) && t.tags.length > 0 ? t.tags : ['#Work'],
     subtasks: Array.isArray(t.subtasks) ? t.subtasks : [],
     created_at: t.created_at || new Date().toISOString(),
     user_id: userId
   });
+
+  // Safe Cloud Upsert that tolerates database column schema variations
+  const upsertTaskToCloud = async (taskObj, userId) => {
+    if (!userId || !taskObj?.id) return;
+    try {
+      const cloudTask = sanitizeTaskForCloud(taskObj, userId);
+      const { error } = await supabase.from('tasks').upsert(cloudTask);
+      if (error && error.message && (error.message.includes('duration') || error.message.includes('tags') || error.message.includes('schema cache'))) {
+        // Fallback without extra columns if remote schema cache is restricted
+        const { duration, tags, ...baseCloudTask } = cloudTask;
+        await supabase.from('tasks').upsert(baseCloudTask);
+      }
+    } catch (err) {
+      console.warn("Cloud task sync notice:", err);
+    }
+  };
 
   // --- MEETING SCRATCHPAD HANDLERS ---
   const handleSaveMeetingNote = async (updatedNote) => {
@@ -538,8 +580,12 @@ export default function App() {
   };
 
   const handleSaveTaskModal = async (taskPayload) => {
+    const effDuration = taskPayload.duration || (taskPayload.estimated_minutes ? `${taskPayload.estimated_minutes}m` : '30m');
     const finalPayload = {
       ...taskPayload,
+      duration: effDuration,
+      estimated_minutes: taskPayload.estimated_minutes || (parseInt(effDuration, 10) || 30),
+      tags: Array.isArray(taskPayload.tags) && taskPayload.tags.length > 0 ? taskPayload.tags : ['#Work'],
       id: isValidUUID(taskPayload.id) ? taskPayload.id : generateUUID()
     };
     const existingIndex = tasks.findIndex(t => t.id === finalPayload.id || (taskPayload.id && t.id === taskPayload.id));
@@ -555,14 +601,18 @@ export default function App() {
     }
     setTasks(updatedTasks);
 
-    if (session?.user) {
-      try {
-        const cloudTask = sanitizeTaskForCloud(finalPayload, session.user.id);
-        const { error } = await supabase.from('tasks').upsert(cloudTask);
-        if (error) console.warn("Supabase upsert notice:", error);
-      } catch (err) {
-        console.warn("Supabase upsert notice:", err);
-      }
+    // Save immediately to scoped storage and backup key
+    try {
+      const uId = session?.user?.id;
+      const key = uId ? `takt_tasks_u_${uId}` : 'takt_guest_tasks';
+      const backupKey = uId ? `takt_tasks_backup_u_${uId}` : 'takt_guest_tasks_backup';
+      const dataStr = JSON.stringify(updatedTasks);
+      localStorage.setItem(key, dataStr);
+      localStorage.setItem(backupKey, dataStr);
+    } catch {}
+
+    if (session?.user?.id) {
+      await upsertTaskToCloud(finalPayload, session.user.id);
     }
 
     if (finalPayload.section === 'completed' && (!modalTask || modalTask.section !== 'completed')) {
@@ -733,35 +783,72 @@ export default function App() {
           const regularTasks = data.filter(item => item.section !== 'meeting_notes');
           const cloudNotes = data.filter(item => item.section === 'meeting_notes');
 
-          const normalizedCloudTasks = regularTasks.map(item => ({
+          const normalizedCloudTasks = regularTasks.map(item => autoHealTask({
             ...item,
             id: isValidUUID(item.id) ? item.id : generateUUID(),
             section: item.section || 'todo',
             priority: item.priority || 'P2',
-            tags: Array.isArray(item.tags) ? item.tags : ['#Work'],
+            tags: Array.isArray(item.tags) && item.tags.length > 0 ? item.tags : ['#Work'],
             subtasks: Array.isArray(item.subtasks) ? item.subtasks : []
           }));
 
-          // Merge with any local tasks for this user that were created offline or before cloud sync
+          // Merge with any local tasks for this user, NEVER wiping out local duration or details!
           setTasks(prevTasks => {
-            const cloudIds = new Set(normalizedCloudTasks.map(t => t.id));
-            const unsyncedLocal = prevTasks.filter(t =>
+            const localMap = new Map();
+            prevTasks.forEach(t => { if (t?.id) localMap.set(t.id, t); });
+
+            try {
+              const cached = JSON.parse(
+                localStorage.getItem(`takt_tasks_u_${currentUserId}`) ||
+                localStorage.getItem(`takt_tasks_backup_u_${currentUserId}`) ||
+                localStorage.getItem(`auratask_tasks_u_${currentUserId}`) || '[]'
+              );
+              if (Array.isArray(cached)) {
+                cached.forEach(t => {
+                  if (t?.id && !localMap.has(t.id)) localMap.set(t.id, autoHealTask(t));
+                });
+              }
+            } catch {}
+
+            const mergedCloudTasks = normalizedCloudTasks.map(cloudTask => {
+              const local = localMap.get(cloudTask.id);
+              if (!local) return cloudTask;
+
+              // KEEP all local details (duration, tags, is_focus, comments, subtasks) intact!
+              return {
+                ...local,
+                ...cloudTask,
+                duration: cloudTask.duration || local.duration || '30m',
+                estimated_minutes: cloudTask.estimated_minutes || local.estimated_minutes || 30,
+                focused_minutes: Math.max(cloudTask.focused_minutes || 0, local.focused_minutes || 0),
+                tags: (Array.isArray(cloudTask.tags) && cloudTask.tags.length > 0) ? cloudTask.tags : (local.tags || ['#Work']),
+                is_focus: cloudTask.is_focus !== undefined ? cloudTask.is_focus : Boolean(local.is_focus),
+                comments: (Array.isArray(cloudTask.comments) && cloudTask.comments.length > 0) ? cloudTask.comments : (local.comments || []),
+                subtasks: (Array.isArray(cloudTask.subtasks) && cloudTask.subtasks.length > 0) ? cloudTask.subtasks : (local.subtasks || [])
+              };
+            });
+
+            const cloudIds = new Set(mergedCloudTasks.map(t => t.id));
+            const unsyncedLocal = Array.from(localMap.values()).filter(t =>
               !t.id.startsWith('guest-') &&
               !cloudIds.has(t.id) &&
-              !normalizedCloudTasks.some(ct => ct.title === t.title && ct.created_at === t.created_at)
+              !mergedCloudTasks.some(ct => ct.title === t.title && ct.created_at === t.created_at)
             );
 
-            let merged = normalizedCloudTasks;
             if (unsyncedLocal.length > 0) {
               const toUpload = unsyncedLocal.map(t => sanitizeTaskForCloud(t, currentUserId));
               supabase.from('tasks').upsert(toUpload).then(({ error: upsertErr }) => {
                 if (upsertErr) console.warn("Sync local tasks to cloud notice:", upsertErr);
               });
-              merged = [...normalizedCloudTasks, ...unsyncedLocal];
             }
 
+            const merged = [...mergedCloudTasks, ...unsyncedLocal];
+
             try {
-              localStorage.setItem(`takt_tasks_u_${currentUserId}`, JSON.stringify(merged));
+              const dataStr = JSON.stringify(merged);
+              localStorage.setItem(`takt_tasks_u_${currentUserId}`, dataStr);
+              localStorage.setItem(`takt_tasks_backup_u_${currentUserId}`, dataStr);
+              localStorage.setItem(`auratask_tasks_u_${currentUserId}`, dataStr);
             } catch {}
             return merged;
           });
@@ -846,39 +933,44 @@ export default function App() {
     setShowAddComposer(false);
     showToast('Task created successfully!');
 
-    if (session?.user) {
-      try {
-        const cloudTask = sanitizeTaskForCloud(taskObj, session.user.id);
-        const { error } = await supabase
-          .from('tasks')
-          .insert([cloudTask]);
-        if (error) console.warn("Background cloud sync note:", error);
-      } catch (err) {
-        console.warn("Background cloud sync note:", err);
-      }
+    // Save immediately to scoped storage and backup key
+    try {
+      const uId = session?.user?.id;
+      const key = uId ? `takt_tasks_u_${uId}` : 'takt_guest_tasks';
+      const backupKey = uId ? `takt_tasks_backup_u_${uId}` : 'takt_guest_tasks_backup';
+      const dataStr = JSON.stringify([taskObj, ...tasks]);
+      localStorage.setItem(key, dataStr);
+      localStorage.setItem(backupKey, dataStr);
+    } catch {}
+
+    if (session?.user?.id) {
+      await upsertTaskToCloud(taskObj, session.user.id);
     }
   };
 
   const handleUpdateTask = async (id, updates) => {
-    setTasks(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
-
-    if (session?.user?.id) {
+    let updatedTaskObj = null;
+    setTasks(prev => {
+      const next = prev.map(t => {
+        if (t.id === id) {
+          updatedTaskObj = { ...t, ...updates };
+          return updatedTaskObj;
+        }
+        return t;
+      });
       try {
-        const allowedKeys = ['title', 'description', 'section', 'priority', 'due_date', 'due_time', 'duration', 'subtasks'];
-        const cloudUpdates = {};
-        for (const k of allowedKeys) {
-          if (updates[k] !== undefined) cloudUpdates[k] = updates[k];
-        }
-        if (Object.keys(cloudUpdates).length > 0) {
-          await supabase
-            .from('tasks')
-            .update(cloudUpdates)
-            .eq('id', id)
-            .eq('user_id', session.user.id);
-        }
-      } catch (err) {
-        console.warn("Supabase update error:", err);
-      }
+        const uId = session?.user?.id;
+        const key = uId ? `takt_tasks_u_${uId}` : 'takt_guest_tasks';
+        const backupKey = uId ? `takt_tasks_backup_u_${uId}` : 'takt_guest_tasks_backup';
+        const dataStr = JSON.stringify(next);
+        localStorage.setItem(key, dataStr);
+        localStorage.setItem(backupKey, dataStr);
+      } catch {}
+      return next;
+    });
+
+    if (session?.user?.id && updatedTaskObj) {
+      await upsertTaskToCloud(updatedTaskObj, session.user.id);
     }
   };
 
@@ -1483,7 +1575,7 @@ export default function App() {
   // =========================================================================
   if (isAuthResolving) {
     return (
-      <div className={`min-h-screen flex flex-col items-center justify-center p-6 ${darkMode ? 'dark bg-[#090d16] text-[#ededed]' : 'bg-[#fffdfa] text-slate-900'}`}>
+      <div className={`min-h-screen flex flex-col items-center justify-center p-6 ${darkMode ? 'dark bg-[#151821] text-[#e3e6ee]' : 'bg-[#fffdfa] text-slate-900'}`}>
         <div className="flex flex-col items-center gap-4 animate-in fade-in duration-200">
           <Logo href="" />
           <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white dark:bg-[#121a2b] border border-slate-200 dark:border-[#22304e] shadow-xl">
@@ -1502,7 +1594,7 @@ export default function App() {
   // =========================================================================
   if (!isAuthResolving && ((!session && !isGuest) || showLandingPage)) {
     return (
-      <div className={`min-h-screen ${darkMode ? 'dark bg-[#000000] text-[#ededed]' : 'bg-[#fffdfa] text-slate-900'}`}>
+      <div className={`min-h-screen ${darkMode ? 'dark bg-[#151821] text-[#e3e6ee]' : 'bg-[#fffdfa] text-slate-900'}`}>
         <LandingPage
           onStartForFree={() => { setAuthMode('register'); setShowAuthModal(true); }}
           onTryDemo={handleGuestLogin}
@@ -1699,7 +1791,7 @@ export default function App() {
   // 2. MAIN APPLICATION WORKSPACE (TAKT MIDNIGHT NAVY / SLATE PALETTE)
   // =========================================================================
   return (
-    <div className={`h-screen w-full flex overflow-hidden selection:bg-rose-500 selection:text-white ${darkMode ? 'dark bg-[#090d16] text-[#f8fafc]' : 'bg-[#f8fafc] text-slate-900'}`}>
+    <div className={`h-screen w-full flex overflow-hidden selection:bg-rose-500 selection:text-white ${darkMode ? 'dark bg-[#151821] text-[#e3e6ee]' : 'bg-[#f8fafc] text-slate-900'}`}>
 
       {/* Hidden File Input for CSV Import */}
       <input
@@ -1740,10 +1832,10 @@ export default function App() {
           <div className="flex items-center gap-1">
             <button
               onClick={() => setDarkMode(!darkMode)}
-              className="p-1.5 text-slate-400 hover:text-slate-700 dark:text-[#a1a1aa] dark:hover:text-[#ededed] rounded-lg hover:bg-slate-100 dark:hover:bg-[#121214]"
-              title="Toggle Theme"
+              className="p-1.5 text-slate-500 hover:text-slate-900 dark:text-[#919bb0] dark:hover:text-[#e3e6ee] rounded-lg hover:bg-slate-100 dark:hover:bg-[#222736] transition-colors"
+              title={darkMode ? "Switch to Eye-Comfort Light Mode (☀️)" : "Switch to Dark Mode (🌙)"}
             >
-              {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              {darkMode ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-slate-600" />}
             </button>
             <button
               onClick={handleSignOut}

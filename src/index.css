@@ -3,14 +3,14 @@
 @variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-obsidian-canvas: #000000;
-  --color-obsidian-surface-low: #09090b;
-  --color-obsidian-surface-med: #121214;
-  --color-obsidian-surface-high: #1c1c20;
-  --color-obsidian-border: #222225;
-  --color-obsidian-text: #ededed;
-  --color-obsidian-secondary: #a1a1aa;
-  --color-obsidian-muted: #52525b;
+  --color-obsidian-canvas: #151821;
+  --color-obsidian-surface-low: #1c202c;
+  --color-obsidian-surface-med: #222736;
+  --color-obsidian-surface-high: #2a3042;
+  --color-obsidian-border: #31384c;
+  --color-obsidian-text: #e3e6ee;
+  --color-obsidian-secondary: #919bb0;
+  --color-obsidian-muted: #647087;
 
   --color-tint-p1-bg: #2a1215;
   --color-tint-p2-bg: #281a0b;
@@ -34,15 +34,15 @@
 .dark {
   color-scheme: dark;
 
-  /* Takt Midnight Navy / Slate Theme */
-  --canvas-bg: #080c14;
-  --surface-low: #0e1422;
-  --surface-med: #151d30;
-  --surface-high: #1d2740;
-  --border-subtle: #22304e;
-  --text-main: #f1f5f9;
-  --text-sub: #8899b5;
-  --text-placeholder: #475569;
+  /* Ergonomic Eye-Comfort Slate / Zinc Theme (Zero Eye Strain, No Pitch Black) */
+  --canvas-bg: #151821;
+  --surface-low: #1c202c;
+  --surface-med: #222736;
+  --surface-high: #2a3042;
+  --border-subtle: #31384c;
+  --text-main: #e3e6ee;
+  --text-sub: #919bb0;
+  --text-placeholder: #647087;
 }
 
 body {
@@ -55,7 +55,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Fey Obsidian Custom Scrollbars */
+/* Custom Scrollbars */
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
@@ -64,19 +64,19 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(161, 161, 170, 0.35);
+  background: rgba(148, 163, 184, 0.4);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(113, 113, 122, 0.6);
+  background: rgba(100, 116, 139, 0.7);
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: #262626;
+  background: #31384c;
   border-radius: 9999px;
 }
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: #3f3f46;
+  background: #475569;
 }
 
 /* Signature takt Ribbon Gradient Utilities */
