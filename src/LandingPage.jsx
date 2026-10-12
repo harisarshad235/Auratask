@@ -47,11 +47,15 @@ export default function LandingPage({
 
             {/* Nav Links */}
             <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-neutral-600 dark:text-[#a1a1aa]">
+              <a href="#purpose" className="hover:text-neutral-900 dark:hover:text-[#ededed] transition-colors">App Purpose</a>
               <a href="#features" className="hover:text-neutral-900 dark:hover:text-[#ededed] transition-colors">Features</a>
               <a href="#scratchpad" className="hover:text-neutral-900 dark:hover:text-[#ededed] transition-colors">Meeting Scratchpad</a>
               <a href="#calendar-view" className="hover:text-neutral-900 dark:hover:text-[#ededed] transition-colors">7-Day Horizon</a>
               <a href="#workflow-suite" className="hover:text-neutral-900 dark:hover:text-[#ededed] transition-colors">Workflow Tools</a>
-              <a href="#templates" className="hover:text-neutral-900 dark:hover:text-[#ededed] transition-colors">Templates</a>
+              <a href="/privacy" className="text-rose-600 dark:text-rose-400 font-bold hover:underline transition-colors flex items-center gap-1">
+                <Shield className="w-3.5 h-3.5" />
+                <span>Privacy Policy</span>
+              </a>
             </nav>
           </div>
 
@@ -227,6 +231,197 @@ export default function LandingPage({
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          2.5 APPLICATION PURPOSE & GOOGLE DATA TRANSPARENCY (Google OAuth Compliance)
+         ========================================================================= */}
+      <section id="purpose" className="py-20 border-t border-neutral-200/60 dark:border-[#222225] bg-neutral-50/70 dark:bg-[#10131b]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Header */}
+          <div className="text-center max-w-3xl mx-auto mb-14">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-50 dark:bg-[#2a1215] border border-rose-200/80 dark:border-rose-900/40 text-rose-700 dark:text-rose-400 text-xs font-bold mb-4">
+              <Shield className="w-3.5 h-3.5" />
+              <span>Verified App Purpose &amp; Privacy Transparency</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-neutral-900 dark:text-[#ededed] mb-4">
+              Application Purpose &amp; Google Data Transparency
+            </h2>
+            <p className="text-sm sm:text-base text-neutral-600 dark:text-[#a1a1aa] leading-relaxed">
+              Takt is an open, privacy-first workspace engineered by <strong>Haris Arshad</strong>. We believe in complete transparency regarding what our application does, why we request sign-in, and how your data is protected.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch mb-10">
+            {/* Column 1: Application Purpose & Core Functionality */}
+            <div className="p-7 rounded-3xl bg-white dark:bg-[#151821] border border-neutral-200/80 dark:border-[#22304e] shadow-lg flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-2xl bg-rose-50 dark:bg-[#2a1215] text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold">
+                    <Target className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-lg text-neutral-900 dark:text-[#ededed]">
+                      Application Purpose &amp; Functionality
+                    </h3>
+                    <p className="text-xs text-neutral-500 dark:text-[#919bb0]">
+                      What Takt is and what it allows you to accomplish
+                    </p>
+                  </div>
+                </div>
+
+                <p className="text-xs sm:text-sm text-neutral-600 dark:text-[#a1a1aa] leading-relaxed mb-5">
+                  <strong>Takt</strong> (<a href="https://takt.harisarshad.site/" className="text-rose-600 dark:text-rose-400 font-semibold underline">https://takt.harisarshad.site/</a>) is a high-velocity productivity command center, Kanban cadence workspace, and personal focus manager. Its primary purpose is to help knowledge workers, developers, and teams plan and execute work with zero cognitive overload.
+                </p>
+
+                <div className="space-y-3">
+                  {[
+                    {
+                      title: 'Tactile Task & Sprint Management',
+                      desc: 'Capture, organize, and categorize tasks with keyboard shortcuts, priority flags (P1–P4), custom tags, checklists, and duration ETAs.'
+                    },
+                    {
+                      title: 'Kanban Flow & Swimlanes',
+                      desc: 'Track tasks through visual lifecycle stages (To Do, In Progress, Review, Completed) with smooth drag-and-drop.'
+                    },
+                    {
+                      title: '7-Day Calendar Horizon',
+                      desc: 'Plan daily commitments across a rolling week, with a 1-click "⏩ Tomorrow" button to roll unfinished tasks forward without guilt.'
+                    },
+                    {
+                      title: 'Meeting Scratchpad',
+                      desc: 'Capture tactical standup minutes, 1-on-1 notes, and meeting agendas with rich Markdown and instant action-item checkboxes.'
+                    },
+                    {
+                      title: 'Pomodoro Focus Cadence',
+                      desc: 'Run 25-minute deep work intervals directly on tasks to maintain unbroken flow state.'
+                    }
+                  ].map((f, i) => (
+                    <div key={i} className="flex items-start gap-2.5 text-xs text-neutral-600 dark:text-[#a1a1aa]">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                      <div>
+                        <strong className="text-neutral-900 dark:text-[#ededed] font-bold">{f.title}: </strong>
+                        <span>{f.desc}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-6 pt-5 border-t border-neutral-100 dark:border-[#22304e] flex items-center justify-between text-xs">
+                <span className="text-neutral-500 dark:text-[#919bb0]">Publicly accessible with zero login barriers</span>
+                <button
+                  onClick={onTryDemo}
+                  className="font-bold text-rose-600 dark:text-rose-400 hover:underline flex items-center gap-1"
+                >
+                  <span>Explore Demo Sandbox</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Column 2: Why Takt Requests Google User Data & Compliance */}
+            <div className="p-7 rounded-3xl bg-white dark:bg-[#151821] border border-neutral-200/80 dark:border-[#22304e] shadow-lg flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-[#0e2138] text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
+                    <Lock className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-lg text-neutral-900 dark:text-[#ededed]">
+                      Why Takt Requests Google User Data
+                    </h3>
+                    <p className="text-xs text-neutral-500 dark:text-[#919bb0]">
+                      Transparent explanation of Google OAuth 2.0 integration
+                    </p>
+                  </div>
+                </div>
+
+                <p className="text-xs sm:text-sm text-neutral-600 dark:text-[#a1a1aa] leading-relaxed mb-4">
+                  When you sign in using Google Single Sign-On (SSO), we request access exclusively to basic profile identity. We request this data solely to authenticate your session and sync your personal tasks securely across devices.
+                </p>
+
+                {/* Scope Table */}
+                <div className="overflow-hidden rounded-xl border border-neutral-200 dark:border-[#22304e] mb-4 text-xs">
+                  <table className="w-full text-left">
+                    <thead className="bg-neutral-50 dark:bg-[#1c2233] text-neutral-700 dark:text-[#ededed] font-bold">
+                      <tr>
+                        <th className="p-2.5 border-b border-neutral-200 dark:border-[#22304e]">Scope</th>
+                        <th className="p-2.5 border-b border-neutral-200 dark:border-[#22304e]">Data Received</th>
+                        <th className="p-2.5 border-b border-neutral-200 dark:border-[#22304e]">Purpose in Takt</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-neutral-100 dark:divide-[#22304e] text-neutral-600 dark:text-[#a1a1aa]">
+                      <tr>
+                        <td className="p-2.5 font-mono text-[11px] text-neutral-800 dark:text-neutral-300">openid</td>
+                        <td className="p-2.5">User ID</td>
+                        <td className="p-2.5">Unique cryptographic key to isolate tasks via Postgres Row Level Security.</td>
+                      </tr>
+                      <tr>
+                        <td className="p-2.5 font-mono text-[11px] text-neutral-800 dark:text-neutral-300">userinfo.email</td>
+                        <td className="p-2.5">Email address</td>
+                        <td className="p-2.5">To verify your account, ensure multi-device sync, and send security alerts.</td>
+                      </tr>
+                      <tr>
+                        <td className="p-2.5 font-mono text-[11px] text-neutral-800 dark:text-neutral-300">userinfo.profile</td>
+                        <td className="p-2.5">Name &amp; Avatar</td>
+                        <td className="p-2.5">To display your identity in the workspace and attribute task comments.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Non-access Callout */}
+                <div className="p-3.5 rounded-xl bg-neutral-50 dark:bg-[#1c2233] border border-neutral-200/80 dark:border-[#22304e] text-xs space-y-1.5">
+                  <div className="font-bold text-neutral-900 dark:text-[#ededed] flex items-center gap-1.5">
+                    <Shield className="w-3.5 h-3.5 text-rose-500" />
+                    <span>Zero Access to Sensitive Google Data</span>
+                  </div>
+                  <p className="text-[11px] text-neutral-500 dark:text-[#919bb0]">
+                    Takt does <strong>NOT</strong> request, access, read, or store your Gmail messages, Google Drive documents, Calendar entries, or contacts.
+                  </p>
+                </div>
+              </div>
+
+              {/* Limited Use Box */}
+              <div className="mt-4 pt-4 border-t border-neutral-100 dark:border-[#22304e] text-[11px] text-neutral-500 dark:text-[#919bb0] space-y-1">
+                <p>
+                  <strong>Google Limited Use Compliance:</strong> Takt’s use and transfer to any other app of information received from Google APIs adheres to the <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener noreferrer" className="text-rose-600 dark:text-rose-400 underline">Google API Services User Data Policy</a>, including the Limited Use requirements.
+                </p>
+                <p>We do not sell user data, serve advertisements, or train AI models on your information.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Banner with Links to Privacy Policy & Data Deletion */}
+          <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#151821] border border-neutral-200/80 dark:border-[#22304e] shadow-md flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="space-y-1 text-center md:text-left">
+              <h4 className="text-base font-bold text-neutral-900 dark:text-[#ededed] flex items-center justify-center md:justify-start gap-2">
+                <FileText className="w-4 h-4 text-rose-500" />
+                <span>Your Data Ownership &amp; Right to Deletion</span>
+              </h4>
+              <p className="text-xs text-neutral-500 dark:text-[#a1a1aa] max-w-2xl">
+                You retain 100% ownership of your tasks and notes. You can delete items at any time in-app, revoke Google access via your Google Account settings, or request permanent cloud account deletion by emailing <a href="mailto:harisengr73@gmail.com" className="text-rose-600 dark:text-rose-400 font-bold underline">harisengr73@gmail.com</a> (processed within 7 business days).
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 shrink-0">
+              <a
+                href="/privacy"
+                className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-rose-600 dark:hover:bg-rose-500 font-bold text-xs shadow-xs transition-all flex items-center gap-1.5"
+              >
+                <Shield className="w-3.5 h-3.5" />
+                <span>Read Full Privacy Policy</span>
+              </a>
+              <a
+                href="/terms"
+                className="px-4 py-2.5 rounded-xl bg-neutral-100 dark:bg-[#1c2233] text-neutral-700 dark:text-[#ededed] hover:bg-neutral-200 dark:hover:bg-[#222a3d] font-bold text-xs border border-neutral-200 dark:border-[#22304e] transition-all"
+              >
+                <span>Terms of Service</span>
+              </a>
             </div>
           </div>
         </div>
@@ -710,10 +905,12 @@ export default function LandingPage({
           </div>
 
           <div className="flex items-center gap-6 text-xs flex-wrap">
+            <a href="#purpose" className="hover:text-neutral-900 dark:hover:text-[#ededed]">App Purpose</a>
             <a href="#features" className="hover:text-neutral-900 dark:hover:text-[#ededed]">Features</a>
             <a href="#templates" className="hover:text-neutral-900 dark:hover:text-[#ededed]">Templates</a>
-            <a href="/privacy" className="hover:text-neutral-900 dark:hover:text-[#ededed]">Privacy Policy</a>
+            <a href="/privacy" className="text-rose-600 dark:text-rose-400 font-bold hover:underline">Privacy Policy</a>
             <a href="/terms" className="hover:text-neutral-900 dark:hover:text-[#ededed]">Terms of Service</a>
+            <a href="mailto:harisengr73@gmail.com" className="hover:text-neutral-900 dark:hover:text-[#ededed]">Support &amp; Data Deletion</a>
             <button onClick={onTryDemo} className="hover:text-neutral-900 dark:hover:text-[#ededed]">Live Demo</button>
           </div>
         </div>

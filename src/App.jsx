@@ -2137,7 +2137,19 @@ export default function App() {
   }, []);
 
   // =========================================================================
+  // LEGAL ROUTES (PRIVACY POLICY & TERMS OF SERVICE)
+  // Must render instantly without any auth loading blocking
+  // =========================================================================
+  if (legalRoute === 'privacy') {
+    return <PrivacyPolicy onBack={() => { setLegalRoute(null); window.history.pushState({}, '', '/'); }} />;
+  }
+  if (legalRoute === 'terms') {
+    return <TermsOfService onBack={() => { setLegalRoute(null); window.history.pushState({}, '', '/'); }} />;
+  }
+
+  // =========================================================================
   // 0. AUTH RESOLUTION SCREEN (OAuth Handshake / Token Validation)
+  // Only display if user is actively resolving tokens
   // =========================================================================
   if (isAuthResolving) {
     return (
@@ -2153,16 +2165,6 @@ export default function App() {
         </div>
       </div>
     );
-  }
-
-  // =========================================================================
-  // LEGAL ROUTES (PRIVACY POLICY & TERMS OF SERVICE)
-  // =========================================================================
-  if (legalRoute === 'privacy') {
-    return <PrivacyPolicy onBack={() => { setLegalRoute(null); window.history.pushState({}, '', '/'); }} />;
-  }
-  if (legalRoute === 'terms') {
-    return <TermsOfService onBack={() => { setLegalRoute(null); window.history.pushState({}, '', '/'); }} />;
   }
 
   // =========================================================================
@@ -2845,12 +2847,31 @@ export default function App() {
         )}
 
         {/* Sync & Backup Status Footer */}
-        <div className="mt-auto pt-4 border-t border-slate-100 dark:border-[#222225] flex items-center justify-between text-[11px] text-slate-400 dark:text-[#52525b]">
-          <span className="flex items-center gap-1.5" title="Continuously backed up day-wise in local storage & cloud">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>{session ? 'Cloud Sync & Backup Active' : 'Daily Local Backup Active'}</span>
-          </span>
-          <span className="font-mono">v2.4</span>
+        <div className="mt-auto pt-4 border-t border-slate-100 dark:border-[#222225] flex flex-col gap-2 text-[11px] text-slate-400 dark:text-[#52525b]">
+          <div className="flex items-center justify-between">
+            <span className="flex items-center gap-1.5" title="Continuously backed up day-wise in local storage & cloud">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>{session ? 'Cloud Sync & Backup Active' : 'Daily Local Backup Active'}</span>
+            </span>
+            <span className="font-mono">v2.4</span>
+          </div>
+          <div className="flex items-center gap-2.5 text-[10px] text-slate-400 dark:text-slate-500">
+            <button
+              type="button"
+              onClick={() => { setLegalRoute('privacy'); window.history.pushState({}, '', '/privacy'); }}
+              className="hover:underline hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
+            >
+              Privacy Policy
+            </button>
+            <span>•</span>
+            <button
+              type="button"
+              onClick={() => { setLegalRoute('terms'); window.history.pushState({}, '', '/terms'); }}
+              className="hover:underline hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
+            >
+              Terms of Service
+            </button>
+          </div>
         </div>
       </aside>
 
