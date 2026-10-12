@@ -8,6 +8,7 @@ import {
   Trash2,
   Hourglass,
   Clock,
+  Star,
 } from 'lucide-react';
 import { formatDuration } from '../utils/formatDuration';
 
@@ -23,6 +24,7 @@ export function ListTaskCard({
   handleOpenTaskModal,
   handlePostponeToTomorrow,
   handleDeleteTask,
+  handleUpdateTask,
   setActiveTimerTask,
   setTimerSeconds,
   setIsTimerRunning,
@@ -150,6 +152,22 @@ export function ListTaskCard({
         >
           <span>⏩ Tomorrow</span>
         </button>
+
+        {/* Pin to Big 3 Button */}
+        {handleUpdateTask && (
+          <button
+            type="button"
+            onClick={() => handleUpdateTask(task.id, { is_focus: !task.is_focus })}
+            className={`p-1 rounded hover:bg-slate-100 dark:hover:bg-[#1c1c20] transition-colors ${
+              task.is_focus
+                ? 'text-amber-500 fill-amber-500'
+                : 'text-slate-300 dark:text-[#52525b] hover:text-amber-400'
+            }`}
+            title={task.is_focus ? "Remove from Today's Big 3" : "Pin to Today's Big 3 Spotlight"}
+          >
+            <Star className={`w-3.5 h-3.5 ${task.is_focus ? 'fill-current' : ''}`} />
+          </button>
+        )}
 
         {/* Hover Actions: Start Timer, Delete */}
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

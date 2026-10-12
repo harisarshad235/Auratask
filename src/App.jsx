@@ -331,6 +331,13 @@ export default function App() {
   const [timerSeconds, setTimerSeconds] = useState(25 * 60);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
 
+  // --- TODAY'S BIG 3 SPOTLIGHT STATE ---
+  const [isBig3Collapsed, setIsBig3Collapsed] = useState(false);
+  const [showBig3Picker, setShowBig3Picker] = useState(false);
+  const [big3PickerSlot, setBig3PickerSlot] = useState(0);
+  const [big3SearchQuery, setBig3SearchQuery] = useState('');
+  const [quickBig3Title, setQuickBig3Title] = useState('');
+
   // --- PRODUCTIVITY MODALS ---
   const [showKarmaModal, setShowKarmaModal] = useState(false);
   const [showShutdownModal, setShowShutdownModal] = useState(false);
@@ -422,6 +429,66 @@ export default function App() {
     setMeetingNotes(prev => [newNote, ...prev]);
     handleSaveMeetingNote(newNote);
     showToast('New note created');
+  };
+
+  // --- TODAY'S BIG 3 SPOTLIGHT HANDLERS ---
+  const handleOpenBig3Picker = (slotIndex = 0) => {
+    setBig3PickerSlot(slotIndex);
+    setBig3SearchQuery('');
+    setQuickBig3Title('');
+    setShowBig3Picker(true);
+  };
+
+  const handleSelectTaskForBig3 = (targetTask) => {
+    handleUpdateTask(targetTask.id, {
+      is_focus: true,
+      due_date: targetTask.due_date || todayDateStr
+    });
+    setShowBig3Picker(false);
+    showToast(`Added "${targetTask.title.slice(0, 24)}" to Today's Big 3 Spotlight ⭐`);
+  };
+
+  const handleCreateAndPinBig3 = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (!quickBig3Title.trim()) return;
+    const newTask = {
+      id: generateUUID(),
+      title: quickBig3Title.trim(),
+      description: '',
+      section: 'todo',
+      priority: 'P1',
+      due_date: todayDateStr,
+      due_time: '',
+      duration: '30m',
+      estimated_minutes: 30,
+      tags: ['#Work'],
+      is_focus: true,
+      focused_minutes: 0,
+      subtasks: [],
+      created_at: new Date().toISOString()
+    };
+    setTasks(prev => [newTask, ...prev]);
+    saveTasksToStorage([newTask, ...tasks], session?.user?.id);
+    if (session?.user?.id) {
+      upsertTaskToCloud(newTask, session.user.id);
+    }
+    setQuickBig3Title('');
+    setShowBig3Picker(false);
+    showToast(`Created & pinned "${newTask.title.slice(0, 24)}" to Big 3 ⭐`);
+  };
+
+  const handleClearBig3 = () => {
+    setTasks(prev => prev.map(t => t.is_focus ? { ...t, is_focus: false } : t));
+    try {
+      const uId = session?.user?.id;
+      const key = uId ? `takt_tasks_u_${uId}` : 'takt_guest_tasks';
+      const backupKey = uId ? `takt_tasks_backup_u_${uId}` : 'takt_guest_tasks_backup';
+      const updated = tasks.map(t => t.is_focus ? { ...t, is_focus: false } : t);
+      const dataStr = JSON.stringify(updated);
+      localStorage.setItem(key, dataStr);
+      localStorage.setItem(backupKey, dataStr);
+    } catch {}
+    showToast("Cleared Today's Big 3 Spotlight");
   };
 
   // --- LANDING PAGE & TASK MODALS STATE ---
@@ -2465,45 +2532,177 @@ export default function App() {
         <div className="flex-1 overflow-y-auto p-4 sm:p-8">
 
           {/* TODAY'S BIG 3 SPOTLIGHT STRIP */}
-          {big3Tasks.length > 0 && activeTab === 'today' && (
-            <div className="mb-6 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-[#281a0b]/40 dark:to-[#121214]/60 border border-amber-200/80 dark:border-amber-900/40 rounded-2xl p-4 shadow-2xs">
-              <div className="flex items-center justify-between mb-2.5">
-                <div className="flex items-center gap-2 text-xs font-extrabold text-amber-800 dark:text-amber-400">
-                  <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
-                  <span>Today's Big 3 Priority Spotlight</span>
-                </div>
-                <span className="text-[11px] font-semibold text-amber-700 dark:text-amber-400">
-                  {big3Tasks.length} non-negotiables
-                </span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                {big3Tasks.slice(0, 3).map(task => (
-                  <div
-                    key={task.id}
-                    className="bg-white dark:bg-[#121214] border border-amber-200/70 dark:border-[#222225] p-3 rounded-xl shadow-xs flex items-center justify-between gap-3"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-bold text-slate-800 dark:text-[#ededed] truncate">{task.title}</p>
-                      <span className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold">{task.priority} Priority</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={(e) => handlePostponeToTomorrow(task.id, e)}
-                        className="p-1 rounded text-slate-400 dark:text-[#a1a1aa] hover:text-amber-500"
-                        title="Postpone to Tomorrow"
-                      >
-                        <Clock className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => toggleTaskCompleted(task)}
-                        className="p-1 rounded-lg text-slate-300 dark:text-[#52525b] hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-[#0d261a]"
-                      >
-                        <Circle className="w-4 h-4 hover:fill-emerald-500" />
-                      </button>
-                    </div>
+          {activeTab === 'today' && (
+            <div className="mb-6 bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-rose-500/10 dark:from-[#281a0b]/50 dark:via-[#1c1d22]/40 dark:to-[#1a1020]/50 border border-amber-300/80 dark:border-amber-800/40 rounded-2xl p-4 shadow-xs">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-1.5 rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400">
+                    <Star className="w-4 h-4 fill-current" />
                   </div>
-                ))}
+                  <div>
+                    <h3 className="text-xs font-extrabold uppercase tracking-wider text-amber-900 dark:text-amber-300 flex items-center gap-2">
+                      <span>Today's Big 3 Priority Spotlight</span>
+                      <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-amber-200/60 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300">
+                        {big3Tasks.length}/3 Assigned
+                      </span>
+                    </h3>
+                    <p className="text-[11px] text-amber-700/80 dark:text-amber-400/80 hidden sm:block">
+                      Your top 3 non-negotiables for today. Commit to finishing these before anything else.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {big3Tasks.length < 3 && (
+                    <button
+                      type="button"
+                      onClick={() => handleOpenBig3Picker(big3Tasks.length)}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-800 dark:text-amber-200 text-xs font-bold transition-colors"
+                      title="Pick a task for your Big 3"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Pick Task</span>
+                    </button>
+                  )}
+                  {big3Tasks.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleClearBig3}
+                      className="text-[10px] text-amber-700 hover:text-amber-900 dark:text-amber-400 dark:hover:text-amber-200 underline transition-colors"
+                      title="Clear all tasks from Big 3"
+                    >
+                      Clear
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setIsBig3Collapsed(!isBig3Collapsed)}
+                    className="p-1 rounded-lg text-amber-700 hover:bg-amber-100 dark:text-amber-400 dark:hover:bg-amber-900/30 transition-colors"
+                    title={isBig3Collapsed ? "Expand Spotlight" : "Collapse Spotlight"}
+                  >
+                    <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isBig3Collapsed ? '-rotate-90' : ''}`} />
+                  </button>
+                </div>
               </div>
+
+              {/* 3 Dedicated Interactive Slots */}
+              {!isBig3Collapsed && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {[0, 1, 2].map(slotIdx => {
+                    const task = big3Tasks[slotIdx];
+                    const slotLabel = slotIdx === 0 ? 'Priority #1' : slotIdx === 1 ? 'Priority #2' : 'Priority #3';
+
+                    if (task) {
+                      return (
+                        <div
+                          key={task.id}
+                          className="bg-white dark:bg-[#1a1d26] border border-amber-200 dark:border-[#2d3448] p-3 rounded-xl shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between gap-2.5 relative group"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <span className="w-5 h-5 rounded-md bg-amber-500 text-white font-extrabold text-[10px] flex items-center justify-center shrink-0 shadow-xs">
+                                {slotIdx + 1}
+                              </span>
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 truncate">
+                                {slotLabel}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-1 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateTask(task.id, { is_focus: false })}
+                                className="p-1 rounded text-slate-300 dark:text-[#647087] hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+                                title="Remove from Today's Big 3"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Card Title & Badges */}
+                          <div
+                            className="cursor-pointer"
+                            onClick={() => handleOpenTaskModal(task)}
+                            title="Click to edit task details"
+                          >
+                            <p className="text-xs font-bold text-slate-900 dark:text-[#e3e6ee] line-clamp-2 hover:text-rose-600 dark:hover:text-rose-400 transition-colors">
+                              {task.title}
+                            </p>
+                            {task.description && (
+                              <p className="text-[11px] text-slate-500 dark:text-[#919bb0] line-clamp-1 mt-0.5">
+                                {task.description}
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Footer: Priority & ETA Badges & Actions */}
+                          <div className="flex items-center justify-between pt-1.5 border-t border-slate-100 dark:border-[#262c3d]">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded ${
+                                task.priority === 'P1'
+                                  ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
+                                  : task.priority === 'P2'
+                                  ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
+                                  : 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20'
+                              }`}>
+                                {task.priority}
+                              </span>
+
+                              {(task.duration || task.estimated_minutes) && (
+                                <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/40 flex items-center gap-1">
+                                  <Hourglass className="w-2.5 h-2.5 text-indigo-500" />
+                                  <span>{formatDuration(task.duration || task.estimated_minutes)}</span>
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={(e) => handlePostponeToTomorrow(task.id, e)}
+                                className="p-1 rounded text-slate-400 hover:text-amber-500 hover:bg-slate-100 dark:hover:bg-[#232836] transition-colors"
+                                title="Postpone to Tomorrow"
+                              >
+                                <Clock className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => toggleTaskCompleted(task)}
+                                className="p-1 rounded text-slate-300 dark:text-[#647087] hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-colors"
+                                title="Mark complete"
+                              >
+                                <Circle className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    // Empty slot card
+                    return (
+                      <div
+                        key={`empty-slot-${slotIdx}`}
+                        onClick={() => handleOpenBig3Picker(slotIdx)}
+                        className="border-2 border-dashed border-amber-300/80 dark:border-amber-900/50 hover:border-amber-500 dark:hover:border-amber-500 bg-white/60 dark:bg-[#1a1d26]/40 hover:bg-amber-50/40 dark:hover:bg-amber-950/20 p-4 rounded-xl transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-1.5 min-h-[110px] group select-none"
+                        title={`Click to pick a task for ${slotLabel}`}
+                      >
+                        <span className="w-6 h-6 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 font-extrabold text-xs flex items-center justify-center group-hover:scale-110 transition-transform">
+                          {slotIdx + 1}
+                        </span>
+                        <p className="text-xs font-bold text-slate-700 dark:text-slate-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                          + Pick {slotLabel}
+                        </p>
+                        <span className="text-[10px] text-slate-400 dark:text-[#919bb0]">
+                          Click to assign non-negotiable task
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 
@@ -2724,6 +2923,7 @@ export default function App() {
                                 handleOpenTaskModal={handleOpenTaskModal}
                                 handlePostponeToTomorrow={handlePostponeToTomorrow}
                                 handleDeleteTask={handleDeleteTask}
+                                handleUpdateTask={handleUpdateTask}
                                 setActiveTimerTask={setActiveTimerTask}
                                 setTimerSeconds={setTimerSeconds}
                                 setIsTimerRunning={setIsTimerRunning}
@@ -3372,6 +3572,174 @@ export default function App() {
         sections={customSections}
         darkMode={darkMode}
       />
+
+      {/* --- TODAY'S BIG 3 PRIORITY PICKER MODAL --- */}
+      {showBig3Picker && (
+        <div 
+          className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in"
+          onClick={() => setShowBig3Picker(false)}
+        >
+          <div 
+            className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-[#26262a] rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-[#222225]">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-500 flex items-center justify-center shadow-xs">
+                  <Star className="w-5 h-5 fill-amber-500 text-amber-500" />
+                </div>
+                <div>
+                  <h3 className="text-base font-extrabold text-slate-900 dark:text-[#ededed] flex items-center gap-2">
+                    <span>Spotlight Priority #{big3PickerSlot + 1}</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400">
+                      Slot {big3PickerSlot + 1} of 3
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-400 dark:text-[#a1a1aa]">
+                    Pick any task from your workspace or quickly add a new high-leverage goal.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowBig3Picker(false)}
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#1c1c20] transition-colors"
+                title="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Quick Add Form */}
+            <form onSubmit={handleCreateAndPinBig3} className="space-y-1.5">
+              <label className="text-[11px] font-extrabold text-slate-500 dark:text-[#a1a1aa] uppercase tracking-wider block">
+                Quick-Create New Priority Task
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="e.g. Finalize Q4 pitch deck presentation..."
+                  value={quickBig3Title}
+                  onChange={(e) => setQuickBig3Title(e.target.value)}
+                  className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-[#2e2e33] bg-slate-50 dark:bg-[#18181b] text-slate-900 dark:text-white text-xs placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                  autoFocus
+                />
+                <button
+                  type="submit"
+                  disabled={!quickBig3Title.trim()}
+                  className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 disabled:opacity-40 text-black font-extrabold text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer disabled:cursor-not-allowed"
+                >
+                  <Plus className="w-3.5 h-3.5 stroke-[3]" />
+                  <span>Pin New</span>
+                </button>
+              </div>
+            </form>
+
+            <div className="relative flex items-center my-1">
+              <div className="flex-grow border-t border-slate-100 dark:border-[#222225]"></div>
+              <span className="flex-shrink mx-3 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-[#71717a]">
+                Or pick an existing task
+              </span>
+              <div className="flex-grow border-t border-slate-100 dark:border-[#222225]"></div>
+            </div>
+
+            {/* Task Search Bar */}
+            <div className="relative">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Search backlog tasks to assign..."
+                value={big3SearchQuery}
+                onChange={(e) => setBig3SearchQuery(e.target.value)}
+                className="w-full pl-9 pr-3.5 py-2 rounded-xl border border-slate-200 dark:border-[#2e2e33] bg-slate-50/70 dark:bg-[#18181b] text-slate-900 dark:text-white text-xs placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+              />
+            </div>
+
+            {/* Existing Tasks List */}
+            <div className="flex-1 overflow-y-auto space-y-2 pr-1 max-h-[300px]">
+              {(() => {
+                const availableTasks = tasks.filter(t => {
+                  if (t.is_focus || t.section === 'completed') return false;
+                  if (!big3SearchQuery.trim()) return true;
+                  const q = big3SearchQuery.toLowerCase();
+                  return (
+                    (t.title && t.title.toLowerCase().includes(q)) ||
+                    (t.description && t.description.toLowerCase().includes(q)) ||
+                    (Array.isArray(t.tags) && t.tags.some(tag => tag.toLowerCase().includes(q)))
+                  );
+                });
+
+                if (availableTasks.length === 0) {
+                  return (
+                    <div className="py-10 text-center">
+                      <p className="text-xs font-semibold text-slate-400 dark:text-[#71717a]">
+                        {big3SearchQuery.trim()
+                          ? `No tasks matching "${big3SearchQuery}"`
+                          : 'All available tasks are either completed or already in Big 3!'}
+                      </p>
+                    </div>
+                  );
+                }
+
+                return availableTasks.map(t => (
+                  <div
+                    key={t.id}
+                    onClick={() => handleSelectTaskForBig3(t)}
+                    className="p-3 rounded-2xl border border-slate-200/80 dark:border-[#222225] bg-white dark:bg-[#18181b] hover:border-amber-400 dark:hover:border-amber-500/60 hover:bg-amber-50/30 dark:hover:bg-amber-950/20 transition-all cursor-pointer group flex items-center justify-between gap-3 shadow-2xs"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded ${
+                          t.priority === 'P1'
+                            ? 'bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400'
+                            : t.priority === 'P2'
+                            ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400'
+                            : 'bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400'
+                        }`}>
+                          {t.priority || 'P2'}
+                        </span>
+                        <span className="text-xs font-bold text-slate-800 dark:text-[#ededed] group-hover:text-amber-600 dark:group-hover:text-amber-400 truncate">
+                          {t.title}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-[10px] text-slate-400 dark:text-[#71717a]">
+                        {(t.duration || t.estimated_minutes) && (
+                          <span className="flex items-center gap-1 font-semibold text-indigo-500">
+                            <Hourglass className="w-2.5 h-2.5" />
+                            <span>{formatDuration(t.duration || t.estimated_minutes)}</span>
+                          </span>
+                        )}
+                        {Array.isArray(t.tags) && t.tags.length > 0 && (
+                          <span className="truncate">{t.tags.slice(0, 2).join(' ')}</span>
+                        )}
+                        {t.due_date && <span>Due: {t.due_date}</span>}
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-[#222225] group-hover:bg-amber-500 group-hover:text-black text-slate-600 dark:text-[#a1a1aa] font-bold text-xs transition-colors shrink-0 flex items-center gap-1"
+                    >
+                      <Star className="w-3.5 h-3.5" />
+                      <span>Select</span>
+                    </button>
+                  </div>
+                ));
+              })()}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="pt-3 border-t border-slate-100 dark:border-[#222225] flex justify-end">
+              <button
+                onClick={() => setShowBig3Picker(false)}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-[#a1a1aa] hover:bg-slate-100 dark:hover:bg-[#1c1c20] transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

@@ -3,7 +3,7 @@ import {
   X, Check, ChevronUp, ChevronDown, MoreHorizontal, Inbox, Calendar,
   Flag, Tag, Clock, Paperclip, Send, Trash2, CheckCircle2, Circle,
   FileText, Sparkles, CornerDownLeft, Plus, MessageSquare, AlertCircle,
-  Hourglass, Timer
+  Hourglass, Timer, Star
 } from 'lucide-react';
 import { formatDuration } from './utils/formatDuration';
 
@@ -54,6 +54,7 @@ export default function TaskModal({
   const [estimatedMinutes, setEstimatedMinutes] = useState(30);
   const [duration, setDuration] = useState('30m');
   const [isCompleted, setIsCompleted] = useState(false);
+  const [isFocus, setIsFocus] = useState(false);
 
   // New subtask & comment inputs
   const [newSubtaskText, setNewSubtaskText] = useState('');
@@ -84,6 +85,7 @@ export default function TaskModal({
       setEstimatedMinutes(effMins);
       setDuration(task.duration || formatDuration(effMins));
       setIsCompleted(task.section === 'completed');
+      setIsFocus(Boolean(task.is_focus));
     } else {
       setTitle('');
       setDescription('');
@@ -99,6 +101,7 @@ export default function TaskModal({
       setEstimatedMinutes(30);
       setDuration('30m');
       setIsCompleted(false);
+      setIsFocus(false);
     }
   }, [task, defaultSection, isOpen]);
 
@@ -188,6 +191,7 @@ export default function TaskModal({
       duration: finalDuration,
       estimated_minutes: estimatedMinutes,
       focused_minutes: estimatedMinutes,
+      is_focus: isFocus,
       tags,
       subtasks,
       comments,
@@ -609,6 +613,28 @@ export default function TaskModal({
                   </button>
                 ))}
               </div>
+            </div>
+
+            {/* Today's Big 3 Spotlight Pin */}
+            <div className="space-y-1.5 pt-1">
+              <span className="text-[11px] font-bold text-neutral-400 dark:text-[#71717a]">Today's Priority Spotlight</span>
+              <button
+                type="button"
+                onClick={() => setIsFocus(!isFocus)}
+                className={`w-full py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-between gap-2 transition-all ${
+                  isFocus
+                    ? 'bg-amber-50 dark:bg-[#281a0b]/60 border-amber-300 dark:border-amber-700/60 text-amber-700 dark:text-amber-300 shadow-xs'
+                    : 'bg-white dark:bg-[#121214] border-neutral-200 dark:border-[#222225] text-neutral-600 dark:text-[#a1a1aa] hover:border-neutral-300'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Star className={`w-3.5 h-3.5 ${isFocus ? 'text-amber-500 fill-amber-500' : 'text-neutral-400'}`} />
+                  <span>{isFocus ? "Pinned to Today's Big 3" : "Pin to Today's Big 3 Spotlight"}</span>
+                </div>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${isFocus ? 'bg-amber-200/60 dark:bg-amber-900/40 text-amber-900 dark:text-amber-200' : 'bg-neutral-100 dark:bg-[#1c1c20] text-neutral-400'}`}>
+                  {isFocus ? 'PINNED' : 'OFF'}
+                </span>
+              </button>
             </div>
 
             {/* Labels / Tags */}
