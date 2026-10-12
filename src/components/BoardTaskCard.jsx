@@ -1,5 +1,5 @@
 import React from 'react';
-import { Reorder } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   GripVertical,
   CheckCircle2,
@@ -17,8 +17,10 @@ import { formatDuration } from '../utils/formatDuration';
 
 /**
  * BoardTaskCard
- * Interactive drag-to-reorder card for Kanban swimlanes powered by Framer Motion Reorder.Item.
- * Features tactile elevation, subtle spring physics, grab affordance, and full touch/pointer responsiveness.
+ * High-performance, visible drag-and-drop card for Kanban swimlanes.
+ * Uses native HTML5 DnD for zero-latency, cross-swimlane floating card preview,
+ * paired with Framer Motion layout spring transitions, tactile affordances,
+ * and precise relative insertion drop indicators.
  */
 export function BoardTaskCard({
   task,
@@ -28,45 +30,68 @@ export function BoardTaskCard({
   handlePostponeToTomorrow,
   handleUpdateTask,
   moveTaskSection,
+  isDragging,
+  dragOverPosition, // 'before' | 'after' | null
+  onCardDragStart,
   onCardDragEnd,
+  onCardDragOver,
+  onCardDrop,
 }) {
   const isTaskCompleted = task.section === 'completed';
   const subtasks = task.subtasks || [];
   const completedSubtasks = subtasks.filter((st) => st.completed).length;
 
   return (
-    <Reorder.Item
-      value={task}
-      id={task.id}
-      whileDrag={{
-        scale: 1.03,
-        boxShadow:
-          '0 20px 25px -5px rgba(0, 0, 0, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.2)',
-        zIndex: 50,
-        cursor: 'grabbing',
+    <motion.div
+      layout
+      layoutId={`board-card-${task.id}`}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{
+        opacity: isDragging ? 0.35 : 1,
+        scale: isDragging ? 0.98 : 1,
+        y: 0,
       }}
+      exit={{ opacity: 0, scale: 0.92 }}
       transition={{
-        type: 'spring',
-        stiffness: 300,
-        damping: 25,
+        layout: { type: 'spring', stiffness: 350, damping: 28 },
+        opacity: { duration: 0.15 },
       }}
-      onDragEnd={(event, info) => {
-        if (onCardDragEnd) onCardDragEnd(task, info);
+      draggable={true}
+      onDragStart={(e) => {
+        e.dataTransfer.setData('text/plain', task.id);
+        e.dataTransfer.effectAllowed = 'move';
+        if (onCardDragStart) onCardDragStart(task);
+      }}
+      onDragEnd={(e) => {
+        if (onCardDragEnd) onCardDragEnd(task);
+      }}
+      onDragOver={(e) => {
+        if (onCardDragOver) onCardDragOver(e, task);
+      }}
+      onDrop={(e) => {
+        if (onCardDrop) onCardDrop(e, task);
       }}
       className={`group bg-white dark:bg-[#101626] border rounded-xl p-3.5 shadow-2xs hover:shadow-md transition-shadow duration-200 cursor-grab active:cursor-grabbing select-none relative ${
-        isTaskCompleted
+        isDragging
+          ? 'border-dashed border-2 border-rose-400 dark:border-rose-500 bg-rose-50/40 dark:bg-rose-950/20 shadow-none'
+          : isTaskCompleted
           ? 'border-slate-200/60 dark:border-[#1e2638]/70 opacity-75'
           : 'border-slate-200/90 dark:border-[#1e2638] hover:border-slate-300 dark:hover:border-slate-700/80 dark:hover:bg-[#141b2e]'
       }`}
     >
+      {/* Relative Drop Indicator Line */}
+      {dragOverPosition === 'before' && (
+        <div className="absolute -top-1.5 left-2 right-2 h-1 bg-gradient-to-r from-rose-500 to-indigo-500 rounded-full shadow-md z-30 pointer-events-none animate-pulse ring-2 ring-white dark:ring-[#0c101c]" />
+      )}
+      {dragOverPosition === 'after' && (
+        <div className="absolute -bottom-1.5 left-2 right-2 h-1 bg-gradient-to-r from-rose-500 to-indigo-500 rounded-full shadow-md z-30 pointer-events-none animate-pulse ring-2 ring-white dark:ring-[#0c101c]" />
+      )}
+
       <div className="flex items-start gap-2.5">
         {/* Tactile Drag Handle Affordance */}
         <div
           className="text-slate-300 dark:text-[#52525b] group-hover:text-slate-500 dark:group-hover:text-[#a1a1aa] shrink-0 mt-0.5 cursor-grab active:cursor-grabbing p-0.5 rounded hover:bg-slate-100 dark:hover:bg-[#1e2638] transition-colors"
-          title="Drag to reorder card"
-          onPointerDown={(e) => {
-            // Allow drag to initiate naturally
-          }}
+          title="Drag card across swimlanes or reorder"
         >
           <GripVertical className="w-3.5 h-3.5" />
         </div>
@@ -222,7 +247,7 @@ export function BoardTaskCard({
           </button>
         </div>
       </div>
-    </Reorder.Item>
+    </motion.div>
   );
 }
 

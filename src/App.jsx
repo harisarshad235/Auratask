@@ -279,6 +279,9 @@ export default function App() {
   const [draggingTaskId, setDraggingTaskId] = useState(null);
   const [dragOverColumn, setDragOverColumn] = useState(null);
   const [dragOverTaskId, setDragOverTaskId] = useState(null);
+  const [dragInsertPosition, setDragInsertPosition] = useState(null); // 'before' | 'after'
+  const [editingSectionKey, setEditingSectionKey] = useState(null);
+  const [editingSectionLabel, setEditingSectionLabel] = useState('');
   const [boardGrouping, setBoardGrouping] = useState('stage'); // 'stage' or 'priority'
 
   // --- TOAST NOTIFICATIONS ---
@@ -961,8 +964,101 @@ export default function App() {
     }
   };
 
-  // List View Task-to-Task Reorder Handler
-  const handleReorderTaskInList = (draggedId, targetId, targetSectionKey) => {
+  // --- SWIMLANE / SECTION RENAMING & MANAGEMENT ---
+  const handleStartRenameSection = (sec) => {
+    setEditingSectionKey(sec.key);
+    setEditingSectionLabel(sec.label);
+  };
+
+  const handleSaveRenameSection = (secKey) => {
+    const trimmed = editingSectionLabel.trim();
+    if (trimmed) {
+      setCustomSections(prev =>
+        prev.map(s => (s.key === secKey ? { ...s, label: trimmed } : s))
+      );
+      showToast(`Renamed swimlane to "${trimmed}"`);
+    }
+    setEditingSectionKey(null);
+    setEditingSectionLabel('');
+  };
+
+  const handleCancelRenameSection = () => {
+    setEditingSectionKey(null);
+    setEditingSectionLabel('');
+  };
+
+  const handleAddNewSection = () => {
+    const newKey = `stage_${Date.now()}`;
+    const newLabel = `Lane ${customSections.length + 1}`;
+    const newSec = {
+      key: newKey,
+      label: newLabel,
+    };
+    setCustomSections(prev => [...prev, newSec]);
+    setEditingSectionKey(newKey);
+    setEditingSectionLabel(newLabel);
+    showToast('New swimlane created');
+  };
+
+  const handleDeleteSection = (secKey) => {
+    if (customSections.length <= 1) {
+      showToast('You must keep at least one swimlane');
+      return;
+    }
+    const fallbackSec = customSections.find(s => s.key !== secKey);
+    setTasks(prev =>
+      prev.map(t => (t.section === secKey ? { ...t, section: fallbackSec.key } : t))
+    );
+    setCustomSections(prev => prev.filter(s => s.key !== secKey));
+    showToast(`Swimlane deleted. Tasks moved to ${fallbackSec.label}`);
+  };
+
+  const handleResetSections = () => {
+    setCustomSections(DEFAULT_SECTIONS);
+    showToast('Reset swimlanes to default workflow');
+  };
+
+  // --- VISIBLE 2D CARD DRAG & DROP HANDLERS ---
+  const handleCardDragStart = (task) => {
+    // Set in next tick so the browser grabs the full opacity card snapshot first
+    setTimeout(() => {
+      setDraggingTaskId(task.id);
+    }, 0);
+  };
+
+  const handleCardDragEnd = () => {
+    setDraggingTaskId(null);
+    setDragOverColumn(null);
+    setDragOverTaskId(null);
+    setDragInsertPosition(null);
+  };
+
+  const handleCardDragOver = (e, targetTask, colKey) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (draggingTaskId === targetTask.id) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const relY = e.clientY - rect.top;
+    const position = relY < rect.height / 2 ? 'before' : 'after';
+    setDragOverTaskId(targetTask.id);
+    setDragInsertPosition(position);
+    if (dragOverColumn !== colKey) setDragOverColumn(colKey);
+  };
+
+  const handleCardDrop = (e, targetTask, colKey) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const draggedId = e.dataTransfer.getData('text/plain') || draggingTaskId;
+    if (!draggedId || draggedId === targetTask.id) {
+      handleCardDragEnd();
+      return;
+    }
+    handleReorderTaskToTarget(draggedId, targetTask.id, colKey, dragInsertPosition || 'before');
+    handleCardDragEnd();
+  };
+
+  // Relative Card Reorder Handler (Board & List)
+  const handleReorderTaskToTarget = (draggedId, targetId, targetColKey, position = 'before') => {
     if (!draggedId || draggedId === targetId) return;
 
     setTasks(prevTasks => {
@@ -974,14 +1070,14 @@ export default function App() {
       let sectionUpdated = false;
 
       if (boardGrouping === 'stage') {
-        if (draggedTask.section !== targetSectionKey) {
-          draggedTask.section = targetSectionKey;
+        if (draggedTask.section !== targetColKey) {
+          draggedTask.section = targetColKey;
           sectionUpdated = true;
-          if (targetSectionKey === 'completed') triggerCelebration();
+          if (targetColKey === 'completed') triggerCelebration();
         }
       } else {
-        if (draggedTask.priority !== targetSectionKey) {
-          draggedTask.priority = targetSectionKey;
+        if (draggedTask.priority !== targetColKey) {
+          draggedTask.priority = targetColKey;
           sectionUpdated = true;
         }
       }
@@ -989,12 +1085,13 @@ export default function App() {
       const nextTasks = [...prevTasks];
       nextTasks.splice(draggedIndex, 1);
       const newTargetIndex = nextTasks.findIndex(t => t.id === targetId);
-      nextTasks.splice(newTargetIndex, 0, draggedTask);
+      const insertIdx = position === 'after' ? newTargetIndex + 1 : newTargetIndex;
+      nextTasks.splice(insertIdx, 0, draggedTask);
 
       if (sectionUpdated && session?.user?.id) {
         supabase
           .from('tasks')
-          .update(boardGrouping === 'stage' ? { section: targetSectionKey } : { priority: targetSectionKey })
+          .update(boardGrouping === 'stage' ? { section: targetColKey } : { priority: targetColKey })
           .eq('id', draggedId)
           .eq('user_id', session.user.id)
           .then();
@@ -1003,8 +1100,13 @@ export default function App() {
       return nextTasks;
     });
 
-    recordActivity(`Reordered task in list view`, 'edit');
-    showToast('Task position updated');
+    const secObj = customSections.find(s => s.key === targetColKey);
+    showToast(secObj ? `Moved into ${secObj.label}` : 'Task position updated');
+  };
+
+  // List View Task-to-Task Reorder Handler
+  const handleReorderTaskInList = (draggedId, targetId, targetSectionKey) => {
+    handleReorderTaskToTarget(draggedId, targetId, targetSectionKey, 'before');
   };
 
   // Universal Framer Motion Card Reorder Handler with Automatic Persistence
@@ -1023,21 +1125,6 @@ export default function App() {
       });
       return nextTasks;
     });
-  };
-
-  // Cross-column drop detection when releasing a board card over another column
-  const handleBoardCardDragEnd = (task, currentColumnKey, info) => {
-    if (!info || !info.point) return;
-    try {
-      const elements = document.elementsFromPoint(info.point.x, info.point.y);
-      const targetColEl = elements.find(el => el.getAttribute && el.getAttribute('data-column-key'));
-      const targetColumn = targetColEl ? targetColEl.getAttribute('data-column-key') : null;
-      if (targetColumn && targetColumn !== currentColumnKey) {
-        handleDropTask(task.id, targetColumn);
-      }
-    } catch (e) {
-      console.error(e);
-    }
   };
 
   // Cross-section drop detection when releasing a list card over another section
@@ -2592,124 +2679,235 @@ export default function App() {
               VIEW 2: KANBAN SWIMLANES BOARD VIEW
              ========================================================================= */}
           {viewMode === 'board' && (
-            <div className="flex gap-5 pb-6 overflow-x-auto min-h-[550px] items-start">
-              {(boardGrouping === 'stage' ? customSections : [
-                { key: 'P1', label: 'P1 (Urgent)', icon: Flag },
-                { key: 'P2', label: 'P2 (High)', icon: Flag },
-                { key: 'P3', label: 'P3 (Medium)', icon: Flag },
-                { key: 'P4', label: 'P4 (Low)', icon: Flag }
-              ]).map(column => {
-                const columnTasks = filteredTasks.filter(t =>
-                  boardGrouping === 'stage' ? t.section === column.key : t.priority === column.key
-                );
-                const isOver = dragOverColumn === column.key;
-
-                // Dynamic column status dot color (from 21st.dev Kanban pattern)
-                const columnColor = boardGrouping === 'stage'
-                  ? (column.key === 'todo' ? '#38bdf8' : column.key === 'in_progress' ? '#f59e0b' : column.key === 'in_review' ? '#a855f7' : column.key === 'completed' ? '#10b981' : '#64748b')
-                  : (column.key === 'P1' ? '#f43f5e' : column.key === 'P2' ? '#f59e0b' : column.key === 'P3' ? '#3b82f6' : '#94a3b8');
-
-                return (
-                  <div
-                    key={column.key}
-                    data-column-key={column.key}
-                    onDragOver={(e) => {
-                      e.preventDefault();
-                      e.dataTransfer.dropEffect = 'move';
-                      if (dragOverColumn !== column.key) setDragOverColumn(column.key);
-                    }}
-                    onDragLeave={(e) => {
-                      if (e.currentTarget.contains(e.relatedTarget)) return;
-                      setDragOverColumn(null);
-                    }}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      const taskId = e.dataTransfer.getData('text/plain') || draggingTaskId;
-                      if (taskId) handleDropTask(taskId, column.key);
-                      setDragOverColumn(null);
-                      setDraggingTaskId(null);
-                    }}
-                    className={`w-80 shrink-0 flex flex-col bg-slate-100/70 dark:bg-[#0c101c]/70 backdrop-blur-md border rounded-2xl p-3.5 max-h-full transition-all duration-200 ${
-                      isOver
-                        ? 'ring-2 ring-rose-500/50 border-rose-400 dark:border-rose-500/60 bg-rose-50/40 dark:bg-[#1a1020]/50 shadow-lg'
-                        : 'border-slate-200/80 dark:border-[#1e2638] shadow-2xs'
-                    }`}
-                  >
-                    {/* Column Header */}
-                    <div className="flex items-center justify-between pb-3 px-1">
-                      <div className="flex items-center gap-2.5">
-                        <span
-                          className="w-2.5 h-2.5 rounded-full shrink-0 shadow-xs ring-2 ring-white/60 dark:ring-black/40"
-                          style={{ backgroundColor: columnColor }}
-                        />
-                        <span className="font-extrabold text-xs uppercase tracking-wider text-slate-800 dark:text-[#ededed]">
-                          {column.label}
-                        </span>
-                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-white/90 dark:bg-[#151d30] border border-slate-200/80 dark:border-[#22304e] text-slate-600 dark:text-[#a1a1aa] shadow-2xs">
-                          {columnTasks.length}
-                        </span>
-                      </div>
-                      <button
-                        onClick={() => {
-                          setShowAddComposer(true);
-                          if (boardGrouping === 'stage') setComposerSection(column.key);
-                          else setNewPriority(column.key);
-                        }}
-                        className="p-1 hover:bg-white dark:hover:bg-[#151d30] rounded-lg text-slate-400 dark:text-[#a1a1aa] hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
-                        title={`Add task to ${column.label}`}
-                      >
-                        <Plus className="w-4 h-4" />
-                      </button>
-                    </div>
-
-                    {/* Column Task Cards with Framer Motion Reorder.Group */}
-                    <div className="flex-1 overflow-y-auto space-y-3 min-h-[120px]">
-                      {isOver && draggingTaskId && (
-                        <div className="border-2 border-dashed border-rose-400 dark:border-rose-500/80 rounded-xl p-3.5 text-center text-xs font-bold text-rose-500 dark:text-rose-400 bg-rose-50/60 dark:bg-[#20121d]/40 animate-pulse flex items-center justify-center gap-2">
-                          <Sparkles className="w-3.5 h-3.5" />
-                          <span>Drop task into {column.label}</span>
-                        </div>
-                      )}
-
-                      <Reorder.Group
-                        axis="y"
-                        values={columnTasks}
-                        onReorder={(newOrder) => handleReorderTasks(newOrder)}
-                        className="space-y-3 min-h-[40px]"
-                      >
-                        {columnTasks.map(task => (
-                          <BoardTaskCard
-                            key={task.id}
-                            task={task}
-                            todayDateStr={todayDateStr}
-                            toggleTaskCompleted={toggleTaskCompleted}
-                            handleOpenTaskModal={handleOpenTaskModal}
-                            handlePostponeToTomorrow={handlePostponeToTomorrow}
-                            handleUpdateTask={handleUpdateTask}
-                            moveTaskSection={moveTaskSection}
-                            onCardDragEnd={(t, info) => handleBoardCardDragEnd(t, column.key, info)}
-                          />
-                        ))}
-                      </Reorder.Group>
-
-                      {columnTasks.length === 0 && !isOver && (
-                        <div className="border border-dashed border-slate-200 dark:border-[#1e2638] rounded-xl p-6 text-center text-xs text-slate-400 dark:text-[#52525b] bg-slate-50/40 dark:bg-[#0e1424]/40">
-                          <span>No tasks in {column.label}</span>
-                        </div>
-                      )}
-
-                      <button
-                        type="button"
-                        onClick={() => handleOpenTaskModal(null, column.key)}
-                        className="w-full mt-2 py-2 text-xs font-semibold text-slate-500 dark:text-[#a1a1aa] hover:text-rose-600 dark:hover:text-rose-400 flex items-center justify-center gap-1.5 hover:bg-slate-200/50 dark:hover:bg-[#151d30] rounded-xl transition-colors"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                        <span>Add task</span>
-                      </button>
-                    </div>
+            <div className="space-y-3">
+              {/* Board Header Toolbar: Stage controls & helper */}
+              {boardGrouping === 'stage' && (
+                <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 px-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-slate-700 dark:text-slate-300">
+                      Swimlanes ({customSections.length})
+                    </span>
+                    <span className="text-slate-400 dark:text-slate-500">
+                      • Click any lane title or edit icon to rename
+                    </span>
                   </div>
-                );
-              })}
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleAddNewSection}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 font-bold transition-colors"
+                      title="Add a new custom swimlane"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add Lane</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleResetSections}
+                      className="px-2 py-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#151d30] transition-colors"
+                      title="Reset to default 4 workflow lanes"
+                    >
+                      Reset defaults
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-5 pb-6 overflow-x-auto min-h-[550px] items-start">
+                {(boardGrouping === 'stage' ? customSections : [
+                  { key: 'P1', label: 'P1 (Urgent)', icon: Flag },
+                  { key: 'P2', label: 'P2 (High)', icon: Flag },
+                  { key: 'P3', label: 'P3 (Medium)', icon: Flag },
+                  { key: 'P4', label: 'P4 (Low)', icon: Flag }
+                ]).map((column, colIdx) => {
+                  const columnTasks = filteredTasks.filter(t =>
+                    boardGrouping === 'stage' ? t.section === column.key : t.priority === column.key
+                  );
+                  const isOver = dragOverColumn === column.key;
+                  const isEditingThisSection = editingSectionKey === column.key;
+
+                  // Dynamic column status dot color (from 21st.dev Kanban pattern)
+                  const columnColor = boardGrouping === 'stage'
+                    ? (column.key === 'todo' ? '#38bdf8' : column.key === 'in_progress' ? '#f59e0b' : column.key === 'in_review' ? '#a855f7' : column.key === 'completed' ? '#10b981' : ['#ec4899', '#06b6d4', '#8b5cf6', '#f97316'][colIdx % 4])
+                    : (column.key === 'P1' ? '#f43f5e' : column.key === 'P2' ? '#f59e0b' : column.key === 'P3' ? '#3b82f6' : '#94a3b8');
+
+                  return (
+                    <div
+                      key={column.key}
+                      data-column-key={column.key}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = 'move';
+                        if (dragOverColumn !== column.key) setDragOverColumn(column.key);
+                      }}
+                      onDragLeave={(e) => {
+                        if (e.currentTarget.contains(e.relatedTarget)) return;
+                        setDragOverColumn(null);
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        const taskId = e.dataTransfer.getData('text/plain') || draggingTaskId;
+                        if (taskId) handleDropTask(taskId, column.key);
+                        handleCardDragEnd();
+                      }}
+                      className={`w-80 shrink-0 flex flex-col bg-slate-100/70 dark:bg-[#0c101c]/70 backdrop-blur-md border rounded-2xl p-3.5 max-h-full transition-all duration-200 ${
+                        isOver
+                          ? 'ring-2 ring-rose-500/50 border-rose-400 dark:border-rose-500/60 bg-rose-50/40 dark:bg-[#1a1020]/50 shadow-lg'
+                          : 'border-slate-200/80 dark:border-[#1e2638] shadow-2xs'
+                      }`}
+                    >
+                      {/* Column Header: Editable Lane Name & Actions */}
+                      <div className="flex items-center justify-between pb-3 px-1">
+                        {isEditingThisSection ? (
+                          <form
+                            onSubmit={(e) => {
+                              e.preventDefault();
+                              handleSaveRenameSection(column.key);
+                            }}
+                            className="flex items-center gap-1.5 flex-1 min-w-0 mr-1"
+                          >
+                            <input
+                              type="text"
+                              value={editingSectionLabel}
+                              onChange={(e) => setEditingSectionLabel(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Escape') handleCancelRenameSection();
+                              }}
+                              autoFocus
+                              placeholder="Lane Name"
+                              className="w-full text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-lg bg-white dark:bg-[#121829] border border-rose-500/70 focus:outline-none focus:ring-2 focus:ring-rose-500/30 text-slate-900 dark:text-white"
+                            />
+                            <button
+                              type="submit"
+                              className="p-1 rounded bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 dark:text-emerald-400 shrink-0"
+                              title="Save name"
+                            >
+                              <Check className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleCancelRenameSection}
+                              className="p-1 rounded bg-slate-200/60 text-slate-500 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 shrink-0"
+                              title="Cancel"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </form>
+                        ) : (
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <span
+                              className="w-2.5 h-2.5 rounded-full shrink-0 shadow-xs ring-2 ring-white/60 dark:ring-black/40"
+                              style={{ backgroundColor: columnColor }}
+                            />
+                            <div
+                              className="group/title flex items-center gap-1.5 min-w-0 cursor-pointer"
+                              onClick={() => {
+                                if (boardGrouping === 'stage') handleStartRenameSection(column);
+                              }}
+                              title={boardGrouping === 'stage' ? 'Click to rename this swimlane' : column.label}
+                            >
+                              <span className="font-extrabold text-xs uppercase tracking-wider text-slate-800 dark:text-[#ededed] group-hover/title:text-rose-600 dark:group-hover/title:text-rose-400 transition-colors truncate">
+                                {column.label}
+                              </span>
+                              {boardGrouping === 'stage' && (
+                                <Edit3 className="w-3 h-3 text-slate-400 dark:text-slate-500 opacity-0 group-hover/title:opacity-100 transition-opacity shrink-0 hover:text-rose-500" />
+                              )}
+                            </div>
+                            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-white/90 dark:bg-[#151d30] border border-slate-200/80 dark:border-[#22304e] text-slate-600 dark:text-[#a1a1aa] shadow-2xs shrink-0">
+                              {columnTasks.length}
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="flex items-center gap-1 shrink-0">
+                          {boardGrouping === 'stage' && customSections.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteSection(column.key)}
+                              className="p-1 text-slate-300 dark:text-[#52525b] hover:text-rose-600 dark:hover:text-rose-400 rounded-lg hover:bg-white dark:hover:bg-[#151d30] transition-colors"
+                              title={`Delete ${column.label} swimlane`}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => {
+                              setShowAddComposer(true);
+                              if (boardGrouping === 'stage') setComposerSection(column.key);
+                              else setNewPriority(column.key);
+                            }}
+                            className="p-1 hover:bg-white dark:hover:bg-[#151d30] rounded-lg text-slate-400 dark:text-[#a1a1aa] hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
+                            title={`Add task to ${column.label}`}
+                          >
+                            <Plus className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Column Task Cards with 2D Drag-and-Drop & Framer Motion Layouts */}
+                      <div className="flex-1 overflow-y-auto space-y-3 min-h-[120px]">
+                        {isOver && draggingTaskId && (
+                          <div className="border-2 border-dashed border-rose-400 dark:border-rose-500/80 rounded-xl p-3.5 text-center text-xs font-bold text-rose-500 dark:text-rose-400 bg-rose-50/60 dark:bg-[#20121d]/40 animate-pulse flex items-center justify-center gap-2">
+                            <Sparkles className="w-3.5 h-3.5" />
+                            <span>Drop task into {column.label}</span>
+                          </div>
+                        )}
+
+                        <div className="space-y-3 min-h-[40px]">
+                          {columnTasks.map(task => (
+                            <BoardTaskCard
+                              key={task.id}
+                              task={task}
+                              todayDateStr={todayDateStr}
+                              toggleTaskCompleted={toggleTaskCompleted}
+                              handleOpenTaskModal={handleOpenTaskModal}
+                              handlePostponeToTomorrow={handlePostponeToTomorrow}
+                              handleUpdateTask={handleUpdateTask}
+                              moveTaskSection={moveTaskSection}
+                              isDragging={draggingTaskId === task.id}
+                              dragOverPosition={dragOverTaskId === task.id ? dragInsertPosition : null}
+                              onCardDragStart={handleCardDragStart}
+                              onCardDragEnd={handleCardDragEnd}
+                              onCardDragOver={(e, t) => handleCardDragOver(e, t, column.key)}
+                              onCardDrop={(e, t) => handleCardDrop(e, t, column.key)}
+                            />
+                          ))}
+                        </div>
+
+                        {columnTasks.length === 0 && !isOver && (
+                          <div className="border border-dashed border-slate-200 dark:border-[#1e2638] rounded-xl p-6 text-center text-xs text-slate-400 dark:text-[#52525b] bg-slate-50/40 dark:bg-[#0e1424]/40">
+                            <span>No tasks in {column.label}</span>
+                          </div>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() => handleOpenTaskModal(null, column.key)}
+                          className="w-full mt-2 py-2 text-xs font-semibold text-slate-500 dark:text-[#a1a1aa] hover:text-rose-600 dark:hover:text-rose-400 flex items-center justify-center gap-1.5 hover:bg-slate-200/50 dark:hover:bg-[#151d30] rounded-xl transition-colors"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Add task</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Quick Add Lane Column at the end of the board */}
+                {boardGrouping === 'stage' && (
+                  <button
+                    type="button"
+                    onClick={handleAddNewSection}
+                    className="w-72 shrink-0 h-40 flex flex-col items-center justify-center gap-2.5 border-2 border-dashed border-slate-300 dark:border-[#1e2638] rounded-2xl text-slate-400 dark:text-[#a1a1aa] hover:text-rose-600 dark:hover:text-rose-400 hover:border-rose-400 dark:hover:border-rose-500/60 hover:bg-rose-50/30 dark:hover:bg-[#1a1020]/30 transition-all font-bold text-xs uppercase tracking-wider group select-none"
+                    title="Add a new custom swimlane"
+                  >
+                    <div className="p-2.5 rounded-full bg-slate-100 dark:bg-[#151d30] group-hover:bg-rose-500/10 group-hover:text-rose-600 transition-colors">
+                      <Plus className="w-5 h-5" />
+                    </div>
+                    <span>Add New Lane</span>
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
