@@ -7,14 +7,19 @@ import {
   BookOpen, ChevronRight, CheckSquare, Zap, Shield, ArrowRight, ArrowLeft,
   ChevronDown, Filter, Flag, Layers, Award, Target, Eye, EyeOff, User,
   Mail, Lock, Sparkle, RefreshCw, Menu, HelpCircle, CheckCircle, GripVertical,
-  CalendarDays, Share2, FileText, Copy, HardDriveDownload, Archive, MessageSquare
+  CalendarDays, Share2, FileText, Copy, HardDriveDownload, Archive, MessageSquare,
+  FolderKanban
 } from 'lucide-react';
+import { Reorder, AnimatePresence, motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { supabase } from './supabaseClient';
 import TaskModal from './TaskModal';
 import LandingPage from './LandingPage';
 import MeetingScratchpad from './MeetingScratchpad';
 import TaktLogo, { Logo } from './components/brand/TaktLogo';
+import CollapsibleWidget from './components/CollapsibleWidget';
+import BoardTaskCard from './components/BoardTaskCard';
+import ListTaskCard from './components/ListTaskCard';
 
 // --- BRAND LOGO ---
 export const AuraLogo = TaktLogo;
@@ -340,7 +345,48 @@ export default function App() {
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [modalTask, setModalTask] = useState(null);
   const [modalDefaultSection, setModalDefaultSection] = useState('todo');
-  const [collapsedSections, setCollapsedSections] = useState({});
+  const [collapsedSections, setCollapsedSections] = useState(() => {
+    try {
+      const saved = localStorage.getItem('takt_collapsed_sections');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  // Collapsible Sidebar Widgets State (Productivity & Tools, Projects, Tags, and sub-sections)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    try {
+      const saved = localStorage.getItem('takt_sidebar_collapsed_widgets');
+      return saved ? JSON.parse(saved) : {
+        productivity: false,
+        'productivity-rituals': false,
+        projects: false,
+        'projects-sub': false,
+        tags: false,
+      };
+    } catch {
+      return {
+        productivity: false,
+        'productivity-rituals': false,
+        projects: false,
+        'projects-sub': false,
+        tags: false,
+      };
+    }
+  });
+
+  const toggleSidebarWidget = (key) => {
+    setSidebarCollapsed(prev => {
+      const next = { ...prev, [key]: !prev[key] };
+      try {
+        localStorage.setItem('takt_sidebar_collapsed_widgets', JSON.stringify(next));
+      } catch (e) {
+        console.error(e);
+      }
+      return next;
+    });
+  };
 
   // Close header "..." menu on click outside
   useEffect(() => {
@@ -461,10 +507,18 @@ export default function App() {
   };
 
   const toggleSectionCollapse = (sectionKey) => {
-    setCollapsedSections(prev => ({
-      ...prev,
-      [sectionKey]: !prev[sectionKey]
-    }));
+    setCollapsedSections(prev => {
+      const next = {
+        ...prev,
+        [sectionKey]: !prev[sectionKey]
+      };
+      try {
+        localStorage.setItem('takt_collapsed_sections', JSON.stringify(next));
+      } catch (e) {
+        console.error(e);
+      }
+      return next;
+    });
   };
 
   // Sync dark mode class to <html> element
@@ -799,6 +853,67 @@ export default function App() {
     recordActivity(`Reordered task in list view`, 'edit');
     showToast('Task position updated');
   };
+
+  // Universal Framer Motion Card Reorder Handler with Automatic Persistence
+  const handleReorderTasks = (newOrderedSubset) => {
+    if (!newOrderedSubset || newOrderedSubset.length === 0) return;
+    setTasks(prevTasks => {
+      const subsetIds = new Set(newOrderedSubset.map(t => t.id));
+      let orderIndex = 0;
+      const nextTasks = prevTasks.map(t => {
+        if (subsetIds.has(t.id)) {
+          const replacement = newOrderedSubset[orderIndex];
+          orderIndex++;
+          return replacement || t;
+        }
+        return t;
+      });
+      return nextTasks;
+    });
+  };
+
+  // Cross-column drop detection when releasing a board card over another column
+  const handleBoardCardDragEnd = (task, currentColumnKey, info) => {
+    if (!info || !info.point) return;
+    try {
+      const elements = document.elementsFromPoint(info.point.x, info.point.y);
+      const targetColEl = elements.find(el => el.getAttribute && el.getAttribute('data-column-key'));
+      const targetColumn = targetColEl ? targetColEl.getAttribute('data-column-key') : null;
+      if (targetColumn && targetColumn !== currentColumnKey) {
+        handleDropTask(task.id, targetColumn);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  // Cross-section drop detection when releasing a list card over another section
+  const handleListTaskDragEnd = (task, currentSecKey, info) => {
+    if (!info || !info.point) return;
+    try {
+      const elements = document.elementsFromPoint(info.point.x, info.point.y);
+      const targetSecEl = elements.find(el => el.getAttribute && el.getAttribute('data-section-key'));
+      const targetSec = targetSecEl ? targetSecEl.getAttribute('data-section-key') : null;
+      if (targetSec && targetSec !== currentSecKey) {
+        handleDropTask(task.id, targetSec);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  // Memoized unique tags from tasks and standard presets
+  const allAvailableTags = useMemo(() => {
+    const set = new Set(['#Engineering', '#Design', '#Launch', '#Marketing', '#UX', '#Performance']);
+    tasks.forEach(t => {
+      if (t.tags && Array.isArray(t.tags)) {
+        t.tags.forEach(tag => {
+          if (tag) set.add(tag);
+        });
+      }
+    });
+    return Array.from(set);
+  }, [tasks]);
 
   // Subtasks Checklist Handlers
   const handleToggleSubtask = (taskId, subtaskId) => {
@@ -1480,98 +1595,236 @@ export default function App() {
           </button>
         </nav>
 
-        {/* Productivity & Tools Section */}
-        <div className="mt-5 pt-4 border-t border-slate-100 dark:border-[#222225] space-y-1">
-          <div className="px-3 pb-1.5 text-[10px] font-bold tracking-wider uppercase text-slate-400 dark:text-[#52525b]">
-            Productivity & Tools
-          </div>
-
-          <button
-            onClick={() => setShowKarmaModal(true)}
-            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-[#a1a1aa] hover:bg-slate-100 dark:hover:bg-[#121214] dark:hover:text-[#ededed]"
+        {/* =========================================================================
+            COLLAPSIBLE SIDEBAR WIDGETS (ui-ux-pro-max & Framer Motion Accordion)
+           ========================================================================= */}
+        <div className="mt-5 pt-4 border-t border-slate-100 dark:border-[#222225] space-y-2">
+          {/* 1. Productivity & Tools Collapsible Section */}
+          <CollapsibleWidget
+            id="productivity"
+            title="Productivity & Tools"
+            icon={Sparkles}
+            isOpen={!sidebarCollapsed['productivity']}
+            onToggle={() => toggleSidebarWidget('productivity')}
+            badge={
+              <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-amber-100 dark:bg-[#281a0b] text-amber-700 dark:text-amber-400 border border-transparent dark:border-amber-500/30">
+                4d 🔥
+              </span>
+            }
           >
-            <div className="flex items-center gap-2.5">
-              <Flame className="w-4 h-4 text-amber-500" />
-              <span>Karma & Streaks</span>
-            </div>
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 dark:bg-[#281a0b] text-amber-700 dark:text-amber-400 border border-transparent dark:border-amber-500/30">
-              4 Days 🔥
-            </span>
-          </button>
-
-          <button
-            onClick={() => setShowActivityModal(true)}
-            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-[#a1a1aa] hover:bg-slate-100 dark:hover:bg-[#121214] dark:hover:text-[#ededed]"
-          >
-            <div className="flex items-center gap-2.5">
-              <BarChart3 className="w-4 h-4 text-blue-500" />
-              <span>Activity History</span>
-            </div>
-            <span className="text-[10px] font-mono text-slate-400">{activityLogs.length}</span>
-          </button>
-
-          <button
-            onClick={() => setShowScratchpad(!showScratchpad)}
-            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-[#a1a1aa] hover:bg-slate-100 dark:hover:bg-[#121214] dark:hover:text-[#ededed]"
-          >
-            <div className="flex items-center gap-2.5">
-              <BookOpen className="w-4 h-4 text-indigo-500" />
-              <span>Meeting Scratchpad</span>
-            </div>
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 border border-transparent dark:border-indigo-500/20 font-mono">
-              {meetingNotes.length}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setShowShutdownModal(true)}
-            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50/70 dark:bg-[#0d261a]/70 hover:bg-emerald-100/70 dark:hover:bg-[#0d261a] border border-emerald-200/50 dark:border-emerald-600/30"
-          >
-            <div className="flex items-center gap-2.5">
-              <Shield className="w-4 h-4" />
-              <span>Daily Shutdown Ritual</span>
-            </div>
-          </button>
-
-          <button
-            onClick={() => setShowLandingPage(true)}
-            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-[#a1a1aa] hover:bg-slate-100 dark:hover:bg-[#121214] dark:hover:text-[#ededed]"
-          >
-            <div className="flex items-center gap-2.5">
-              <Sparkles className="w-4 h-4 text-red-500" />
-              <span>Landing Page / Tour</span>
-            </div>
-            <span className="text-[10px] text-slate-400">View</span>
-          </button>
-        </div>
-
-        {/* Tags & Projects Filters */}
-        <div className="mt-5 pt-4 border-t border-slate-100 dark:border-[#222225]">
-          <div className="px-3 pb-2 text-[10px] font-bold tracking-wider uppercase text-slate-400 dark:text-[#52525b] flex items-center justify-between">
-            <span>Tags & Projects</span>
-            {selectedTag && (
-              <button onClick={() => setSelectedTag(null)} className="text-[10px] text-red-500 hover:underline">
-                Clear
-              </button>
-            )}
-          </div>
-          <div className="space-y-1">
-            {['#Engineering', '#Design', '#Launch', '#Marketing', '#UX', '#Performance'].map(tag => (
+            <div className="space-y-1">
               <button
-                key={tag}
-                onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
-                className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${selectedTag === tag ? 'bg-red-50 dark:bg-[#2a1215] text-red-600 dark:text-red-400 font-bold border border-red-200/40 dark:border-red-500/30' : 'text-slate-500 dark:text-[#a1a1aa] hover:text-slate-800 dark:hover:text-[#ededed] hover:bg-slate-100 dark:hover:bg-[#121214]'}`}
+                type="button"
+                onClick={() => setShowKarmaModal(true)}
+                className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-[#a1a1aa] hover:bg-slate-100 dark:hover:bg-[#121214] dark:hover:text-[#ededed] transition-colors"
               >
-                <div className="flex items-center gap-2">
-                  <Tag className="w-3.5 h-3.5 opacity-60" />
-                  <span>{tag}</span>
+                <div className="flex items-center gap-2.5">
+                  <Flame className="w-4 h-4 text-amber-500" />
+                  <span>Karma & Streaks</span>
                 </div>
-                <span className="text-[10px] font-mono text-slate-400 dark:text-[#52525b]">
-                  {tasks.filter(t => t.tags && t.tags.includes(tag)).length}
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 dark:bg-[#281a0b] text-amber-700 dark:text-amber-400 border border-transparent dark:border-amber-500/30">
+                  Level 3
                 </span>
               </button>
-            ))}
-          </div>
+
+              <button
+                type="button"
+                onClick={() => setShowActivityModal(true)}
+                className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-[#a1a1aa] hover:bg-slate-100 dark:hover:bg-[#121214] dark:hover:text-[#ededed] transition-colors"
+              >
+                <div className="flex items-center gap-2.5">
+                  <BarChart3 className="w-4 h-4 text-blue-500" />
+                  <span>Activity History</span>
+                </div>
+                <span className="text-[10px] font-mono text-slate-400">{activityLogs.length}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowScratchpad(!showScratchpad)}
+                className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-[#a1a1aa] hover:bg-slate-100 dark:hover:bg-[#121214] dark:hover:text-[#ededed] transition-colors"
+              >
+                <div className="flex items-center gap-2.5">
+                  <BookOpen className="w-4 h-4 text-indigo-500" />
+                  <span>Meeting Scratchpad</span>
+                </div>
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 border border-transparent dark:border-indigo-500/20 font-mono">
+                  {meetingNotes.length}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowLandingPage(true)}
+                className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-[#a1a1aa] hover:bg-slate-100 dark:hover:bg-[#121214] dark:hover:text-[#ededed] transition-colors"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Sparkles className="w-4 h-4 text-rose-500" />
+                  <span>Feature Tour</span>
+                </div>
+                <span className="text-[10px] text-slate-400">View</span>
+              </button>
+
+              {/* Nested Sub-Section: Daily Rituals & Focus Habits */}
+              <div className="pt-1.5 mt-1 border-t border-slate-100/70 dark:border-[#222225]/70">
+                <CollapsibleWidget
+                  id="productivity-rituals"
+                  title="Rituals & Habits"
+                  isSubSection={true}
+                  isOpen={!sidebarCollapsed['productivity-rituals']}
+                  onToggle={() => toggleSidebarWidget('productivity-rituals')}
+                >
+                  <div className="space-y-1">
+                    <button
+                      type="button"
+                      onClick={() => setShowShutdownModal(true)}
+                      className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50/70 dark:bg-[#0d261a]/70 hover:bg-emerald-100/70 dark:hover:bg-[#0d261a] border border-emerald-200/50 dark:border-emerald-600/30 transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Shield className="w-3.5 h-3.5" />
+                        <span>Daily Shutdown Ritual</span>
+                      </div>
+                    </button>
+                  </div>
+                </CollapsibleWidget>
+              </div>
+            </div>
+          </CollapsibleWidget>
+
+          {/* 2. Projects & Stages Collapsible Section */}
+          <CollapsibleWidget
+            id="projects"
+            title="Projects & Stages"
+            icon={FolderKanban}
+            isOpen={!sidebarCollapsed['projects']}
+            onToggle={() => toggleSidebarWidget('projects')}
+            badge={
+              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 dark:bg-[#151d30] text-slate-500 dark:text-slate-400 border border-slate-200/60 dark:border-[#22304e]">
+                {customSections.length}
+              </span>
+            }
+          >
+            <div className="space-y-1">
+              {customSections.map(sec => {
+                const count = tasks.filter(t => t.section === sec.key).length;
+                const secColor = sec.key === 'todo' ? '#38bdf8' : sec.key === 'in_progress' ? '#f59e0b' : sec.key === 'in_review' ? '#a855f7' : sec.key === 'completed' ? '#10b981' : '#64748b';
+                return (
+                  <button
+                    key={sec.key}
+                    type="button"
+                    onClick={() => {
+                      if (viewMode !== 'board') setViewMode('board');
+                      setBoardGrouping('stage');
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-[#a1a1aa] hover:bg-slate-100 dark:hover:bg-[#121214] hover:text-slate-900 dark:hover:text-[#ededed] transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className="w-2 h-2 rounded-full shrink-0 shadow-xs" style={{ backgroundColor: secColor }} />
+                      <span className="capitalize">{sec.label}</span>
+                    </div>
+                    <span className="text-[10px] font-mono text-slate-400 dark:text-[#52525b]">
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+
+              {/* Nested Sub-Section: View / Grouping Options */}
+              <div className="pt-1.5 mt-1 border-t border-slate-100/70 dark:border-[#222225]/70">
+                <CollapsibleWidget
+                  id="projects-sub"
+                  title="Board Grouping"
+                  isSubSection={true}
+                  isOpen={!sidebarCollapsed['projects-sub']}
+                  onToggle={() => toggleSidebarWidget('projects-sub')}
+                >
+                  <div className="grid grid-cols-2 gap-1 pt-0.5">
+                    <button
+                      type="button"
+                      onClick={() => setBoardGrouping('stage')}
+                      className={`px-2 py-1 text-[11px] font-semibold rounded-lg transition-all ${
+                        boardGrouping === 'stage'
+                          ? 'bg-slate-900 text-white dark:bg-white/10 dark:text-white'
+                          : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-white/[0.05]'
+                      }`}
+                    >
+                      Workflow Stage
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBoardGrouping('priority')}
+                      className={`px-2 py-1 text-[11px] font-semibold rounded-lg transition-all ${
+                        boardGrouping === 'priority'
+                          ? 'bg-slate-900 text-white dark:bg-white/10 dark:text-white'
+                          : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-white/[0.05]'
+                      }`}
+                    >
+                      Priority (P1-P4)
+                    </button>
+                  </div>
+                </CollapsibleWidget>
+              </div>
+            </div>
+          </CollapsibleWidget>
+
+          {/* 3. Tags Collapsible Section */}
+          <CollapsibleWidget
+            id="tags"
+            title="Tags"
+            icon={Tag}
+            isOpen={!sidebarCollapsed['tags']}
+            onToggle={() => toggleSidebarWidget('tags')}
+            badge={
+              selectedTag ? (
+                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-rose-100 dark:bg-[#2a1215] text-rose-600 dark:text-rose-400 border border-rose-200/40 dark:border-rose-500/30">
+                  {selectedTag}
+                </span>
+              ) : (
+                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 dark:bg-[#151d30] text-slate-500 dark:text-slate-400">
+                  {allAvailableTags.length}
+                </span>
+              )
+            }
+            actions={
+              selectedTag ? (
+                <button
+                  type="button"
+                  onClick={() => setSelectedTag(null)}
+                  className="text-[10px] font-semibold text-rose-500 hover:text-rose-600 dark:hover:text-rose-400 hover:underline px-1 py-0.5"
+                >
+                  Clear
+                </button>
+              ) : null
+            }
+          >
+            <div className="space-y-1">
+              {allAvailableTags.map(tag => {
+                const count = tasks.filter(t => t.tags && t.tags.includes(tag)).length;
+                const isSelected = selectedTag === tag;
+                return (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => setSelectedTag(isSelected ? null : tag)}
+                    className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                      isSelected
+                        ? 'bg-rose-50 dark:bg-[#2a1215] text-rose-600 dark:text-rose-400 font-bold border border-rose-200/40 dark:border-rose-500/30'
+                        : 'text-slate-500 dark:text-[#a1a1aa] hover:text-slate-800 dark:hover:text-[#ededed] hover:bg-slate-100 dark:hover:bg-[#121214]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Tag className="w-3.5 h-3.5 opacity-60" />
+                      <span>{tag}</span>
+                    </div>
+                    <span className="text-[10px] font-mono text-slate-400 dark:text-[#52525b]">
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </CollapsibleWidget>
         </div>
 
         {/* Focus Flow Session Mini Player */}
@@ -1924,7 +2177,7 @@ export default function App() {
           )}
 
           {/* =========================================================================
-              VIEW 1: STRUCTURED COLLAPSIBLE LIST VIEW (SCREENSHOT 1 & 4)
+              VIEW 1: STRUCTURED COLLAPSIBLE LIST VIEW (ui-ux-pro-max + Framer Motion)
              ========================================================================= */}
           {viewMode === 'list' && (
             <div className="max-w-4xl space-y-6">
@@ -1938,44 +2191,41 @@ export default function App() {
                   boardGrouping === 'stage' ? t.section === sec.key : t.priority === sec.key
                 );
                 const isCollapsed = Boolean(collapsedSections[sec.key]);
-                const isSectionOver = dragOverColumn === sec.key;
 
                 return (
                   <div
                     key={sec.key}
-                    onDragOver={(e) => {
-                      e.preventDefault();
-                      e.dataTransfer.dropEffect = 'move';
-                      if (dragOverColumn !== sec.key) setDragOverColumn(sec.key);
-                    }}
-                    onDragLeave={(e) => {
-                      if (e.currentTarget.contains(e.relatedTarget)) return;
-                      if (dragOverColumn === sec.key) setDragOverColumn(null);
-                    }}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      const taskId = e.dataTransfer.getData('text/plain') || draggingTaskId;
-                      if (taskId) handleDropTask(taskId, sec.key);
-                      setDragOverColumn(null);
-                      setDraggingTaskId(null);
-                      setDragOverTaskId(null);
-                    }}
-                    className={`space-y-1.5 rounded-2xl p-2 transition-all ${
-                      isSectionOver && draggingTaskId
-                        ? 'bg-red-50/50 dark:bg-[#151214] ring-2 ring-red-500/60 dark:ring-red-500/50'
-                        : ''
-                    }`}
+                    data-section-key={sec.key}
+                    className="space-y-1.5 rounded-2xl p-2 transition-all"
                   >
-                    {/* Section Header */}
+                    {/* Section Header with Accessible Trigger & Rotating Chevron */}
                     <div className="flex items-center justify-between py-1.5 px-1">
                       <button
                         type="button"
+                        id={`list-sec-btn-${sec.key}`}
+                        aria-expanded={!isCollapsed}
+                        aria-controls={`list-sec-content-${sec.key}`}
                         onClick={() => toggleSectionCollapse(sec.key)}
-                        className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-[#ededed] hover:text-slate-950 dark:hover:text-white transition-colors"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            toggleSectionCollapse(sec.key);
+                          }
+                        }}
+                        className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-[#ededed] hover:text-slate-950 dark:hover:text-white transition-colors group select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 rounded-lg px-1.5 py-0.5"
                       >
-                        <ChevronDown className={`w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform ${isCollapsed ? '-rotate-90' : ''}`} />
+                        <motion.span
+                          animate={{ rotate: isCollapsed ? -180 : 0 }}
+                          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                          className="text-slate-400 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300 flex items-center justify-center shrink-0"
+                          aria-hidden="true"
+                        >
+                          <ChevronDown className="w-3.5 h-3.5" />
+                        </motion.span>
                         <span className="capitalize">{sec.label}</span>
-                        <span className="text-[11px] font-mono text-slate-400 dark:text-slate-500 font-normal">{secTasks.length}</span>
+                        <span className="text-[11px] font-mono text-slate-400 dark:text-slate-500 font-normal">
+                          {secTasks.length}
+                        </span>
                       </button>
 
                       <div className="flex items-center gap-1">
@@ -1990,161 +2240,68 @@ export default function App() {
                       </div>
                     </div>
 
-                    {/* Section Tasks List */}
-                    {!isCollapsed && (
-                      <div className="space-y-1 pl-1">
-                        {isSectionOver && draggingTaskId && (
-                          <div className="border-2 border-dashed border-red-400 dark:border-red-500/80 rounded-xl p-2.5 text-center text-xs font-bold text-red-500 dark:text-red-400 bg-red-50/60 dark:bg-[#2a1215]/40 animate-pulse flex items-center justify-center gap-2">
-                            <Sparkles className="w-3.5 h-3.5" />
-                            <span>Drop task into {sec.label}</span>
-                          </div>
-                        )}
-
-                        {secTasks.map(task => {
-                          const isTaskCompleted = task.section === 'completed';
-                          const isBeingDragged = draggingTaskId === task.id;
-                          const isTargetOver = dragOverTaskId === task.id && !isBeingDragged;
-
-                          return (
-                            <div
-                              key={task.id}
-                              draggable={true}
-                              onDragStart={(e) => {
-                                e.dataTransfer.setData('text/plain', task.id);
-                                e.dataTransfer.effectAllowed = 'move';
-                                setDraggingTaskId(task.id);
-                              }}
-                              onDragEnd={() => {
-                                setDraggingTaskId(null);
-                                setDragOverColumn(null);
-                                setDragOverTaskId(null);
-                              }}
-                              onDragOver={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                e.dataTransfer.dropEffect = 'move';
-                                if (dragOverTaskId !== task.id) {
-                                  setDragOverTaskId(task.id);
-                                }
-                              }}
-                              onDragLeave={(e) => {
-                                e.stopPropagation();
-                                if (e.currentTarget.contains(e.relatedTarget)) return;
-                                if (dragOverTaskId === task.id) setDragOverTaskId(null);
-                              }}
-                              onDrop={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                const draggedId = e.dataTransfer.getData('text/plain') || draggingTaskId;
-                                if (draggedId && draggedId !== task.id) {
-                                  handleReorderTaskInList(draggedId, task.id, sec.key);
-                                }
-                                setDragOverColumn(null);
-                                setDraggingTaskId(null);
-                                setDragOverTaskId(null);
-                              }}
-                              onClick={() => handleOpenTaskModal(task)}
-                              className={`group bg-white dark:bg-[#121214] border rounded-xl p-3 shadow-2xs hover:shadow-xs transition-all flex items-center justify-between gap-4 cursor-pointer select-none ${
-                                isBeingDragged
-                                  ? 'opacity-30 border-dashed border-red-500 scale-[0.98]'
-                                  : isTargetOver
-                                    ? 'ring-2 ring-red-500 border-red-400 dark:border-red-500 bg-red-50/40 dark:bg-[#1c1c20]'
-                                    : 'border-slate-200/90 dark:border-[#222225] hover:border-slate-300 dark:hover:border-[#38383e] dark:hover:bg-[#1c1c20]'
-                              }`}
-                            >
-                              <div className="flex items-center gap-3 min-w-0 flex-1">
-                                <div
-                                  className="text-slate-300 dark:text-[#52525b] group-hover:text-slate-500 dark:group-hover:text-[#a1a1aa] shrink-0 cursor-grab active:cursor-grabbing p-0.5 rounded hover:bg-slate-100 dark:hover:bg-[#1c1c20] transition-colors"
-                                  title="Drag to reorder or move section"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <GripVertical className="w-3.5 h-3.5" />
-                                </div>
-
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    toggleTaskCompleted(task);
-                                  }}
-                                  className="text-slate-300 dark:text-[#52525b] hover:text-emerald-500 transition-colors shrink-0"
-                                >
-                                  {isTaskCompleted ? (
-                                    <CheckCircle2 className="w-4 h-4 text-emerald-500 fill-emerald-50 dark:fill-[#0d261a]" />
-                                  ) : (
-                                    <Circle className="w-4 h-4 hover:stroke-emerald-500" />
-                                  )}
-                                </button>
-
-                                <div className="min-w-0 flex-1">
-                                  <span className={`text-xs font-semibold ${isTaskCompleted ? 'line-through text-slate-400 dark:text-[#52525b]' : 'text-slate-900 dark:text-[#ededed]'}`}>
-                                    {task.title}
-                                  </span>
-                                  {task.description && (
-                                    <p className="text-[11px] text-slate-400 dark:text-[#a1a1aa] truncate mt-0.5">{task.description}</p>
-                                  )}
-                                </div>
-                              </div>
-
-                              <div className="flex items-center gap-2.5 shrink-0" onClick={(e) => e.stopPropagation()}>
-                                {/* Priority Flag Pill */}
-                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                                  task.priority === 'P1'
-                                    ? 'bg-red-500/10 dark:bg-[#2a1215] text-red-600 dark:text-red-400 border border-red-500/20 dark:border-red-500/30'
-                                    : task.priority === 'P2'
-                                      ? 'bg-amber-500/10 dark:bg-[#281a0b] text-amber-600 dark:text-amber-400 border border-amber-500/20 dark:border-amber-500/30'
-                                      : 'bg-slate-500/10 dark:bg-[#121214] text-slate-500 dark:text-[#a1a1aa] border border-slate-500/20 dark:border-[#222225]'
-                                }`}>
-                                  {task.priority}
-                                </span>
-
-                                {task.due_date && (
-                                  <span className="text-[10px] text-slate-400 dark:text-[#a1a1aa] hidden sm:inline">
-                                    {task.due_date === todayDateStr ? 'Today' : task.due_date}
-                                  </span>
-                                )}
-
-                                {/* Quick "Postpone to Tomorrow" 1-click button */}
-                                <button
-                                  onClick={(e) => handlePostponeToTomorrow(task.id, e)}
-                                  className="text-[10px] font-semibold text-slate-400 dark:text-[#a1a1aa] hover:text-amber-500 dark:hover:text-amber-400 px-1.5 py-0.5 rounded hover:bg-slate-100 dark:hover:bg-[#1c1c20] transition-colors hidden md:inline-flex items-center gap-1"
-                                  title="Postpone to Tomorrow"
-                                >
-                                  <span>⏩ Tomorrow</span>
-                                </button>
-
-                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <button
-                                    onClick={() => { setActiveTimerTask(task); setTimerSeconds(25 * 60); setIsTimerRunning(true); }}
-                                    className="p-1 text-slate-400 dark:text-[#a1a1aa] hover:text-red-500 dark:hover:text-red-400 rounded hover:bg-slate-100 dark:hover:bg-[#1c1c20]"
-                                    title="Start Focus Timer"
-                                  >
-                                    <Play className="w-3.5 h-3.5" />
-                                  </button>
-                                  <button
-                                    onClick={() => handleDeleteTask(task.id)}
-                                    className="p-1 text-slate-400 dark:text-[#a1a1aa] hover:text-red-500 dark:hover:text-red-400 rounded hover:bg-slate-100 dark:hover:bg-[#1c1c20]"
-                                    title="Delete"
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-
-                        {/* Inline + Add task Button - subtle, calm, non-intrusive */}
-                        <button
-                          type="button"
-                          onClick={() => handleOpenTaskModal(null, sec.key)}
-                          className="group w-full text-left py-2 px-3 text-xs font-medium text-slate-400 dark:text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 flex items-center gap-2 rounded-xl hover:bg-slate-100/70 dark:hover:bg-white/[0.04] transition-colors"
+                    {/* Animated Collapsible Body with Framer Motion AnimatePresence */}
+                    <AnimatePresence initial={false}>
+                      {!isCollapsed && (
+                        <motion.div
+                          id={`list-sec-content-${sec.key}`}
+                          role="region"
+                          aria-labelledby={`list-sec-btn-${sec.key}`}
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{
+                            height: 'auto',
+                            opacity: 1,
+                            transition: {
+                              height: { type: 'spring', stiffness: 300, damping: 25 },
+                              opacity: { duration: 0.18, ease: 'easeOut' },
+                            },
+                          }}
+                          exit={{
+                            height: 0,
+                            opacity: 0,
+                            transition: {
+                              height: { duration: 0.2, ease: [0.04, 0.62, 0.23, 0.98] },
+                              opacity: { duration: 0.15 },
+                            },
+                          }}
+                          style={{ overflow: 'hidden' }}
                         >
-                          <Plus className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-300" />
-                          <span>Add task</span>
-                        </button>
-                      </div>
-                    )}
+                          {/* Drag-and-Drop Reorder Group with tactile spring physics */}
+                          <Reorder.Group
+                            axis="y"
+                            values={secTasks}
+                            onReorder={(newOrder) => handleReorderTasks(newOrder)}
+                            className="space-y-1.5 pl-1 pt-1"
+                          >
+                            {secTasks.map(task => (
+                              <ListTaskCard
+                                key={task.id}
+                                task={task}
+                                todayDateStr={todayDateStr}
+                                toggleTaskCompleted={toggleTaskCompleted}
+                                handleOpenTaskModal={handleOpenTaskModal}
+                                handlePostponeToTomorrow={handlePostponeToTomorrow}
+                                handleDeleteTask={handleDeleteTask}
+                                setActiveTimerTask={setActiveTimerTask}
+                                setTimerSeconds={setTimerSeconds}
+                                setIsTimerRunning={setIsTimerRunning}
+                                onCardDragEnd={(t, info) => handleListTaskDragEnd(t, sec.key, info)}
+                              />
+                            ))}
+                          </Reorder.Group>
+
+                          {/* Inline + Add task Button */}
+                          <button
+                            type="button"
+                            onClick={() => handleOpenTaskModal(null, sec.key)}
+                            className="group w-full text-left py-2 px-3 text-xs font-medium text-slate-400 dark:text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 flex items-center gap-2 rounded-xl hover:bg-slate-100/70 dark:hover:bg-white/[0.04] transition-colors mt-1.5"
+                          >
+                            <Plus className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-300" />
+                            <span>Add task</span>
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 );
               })}
@@ -2192,6 +2349,7 @@ export default function App() {
                 return (
                   <div
                     key={column.key}
+                    data-column-key={column.key}
                     onDragOver={(e) => {
                       e.preventDefault();
                       e.dataTransfer.dropEffect = 'move';
@@ -2241,7 +2399,7 @@ export default function App() {
                       </button>
                     </div>
 
-                    {/* Column Task Cards */}
+                    {/* Column Task Cards with Framer Motion Reorder.Group */}
                     <div className="flex-1 overflow-y-auto space-y-3 min-h-[120px]">
                       {isOver && draggingTaskId && (
                         <div className="border-2 border-dashed border-rose-400 dark:border-rose-500/80 rounded-xl p-3.5 text-center text-xs font-bold text-rose-500 dark:text-rose-400 bg-rose-50/60 dark:bg-[#20121d]/40 animate-pulse flex items-center justify-center gap-2">
@@ -2250,159 +2408,26 @@ export default function App() {
                         </div>
                       )}
 
-                      {columnTasks.map(task => {
-                        const isTaskCompleted = task.section === 'completed';
-                        const subtasks = task.subtasks || [];
-                        const completedSubtasks = subtasks.filter(st => st.completed).length;
-                        const isBeingDragged = draggingTaskId === task.id;
-
-                        return (
-                          <div
+                      <Reorder.Group
+                        axis="y"
+                        values={columnTasks}
+                        onReorder={(newOrder) => handleReorderTasks(newOrder)}
+                        className="space-y-3 min-h-[40px]"
+                      >
+                        {columnTasks.map(task => (
+                          <BoardTaskCard
                             key={task.id}
-                            draggable={true}
-                            onDragStart={(e) => {
-                              e.dataTransfer.setData('text/plain', task.id);
-                              e.dataTransfer.effectAllowed = 'move';
-                              setDraggingTaskId(task.id);
-                            }}
-                            onDragEnd={() => {
-                              setDraggingTaskId(null);
-                              setDragOverColumn(null);
-                            }}
-                            className={`group bg-white dark:bg-[#101626] border rounded-xl p-3.5 shadow-2xs hover:shadow-md transition-all duration-200 cursor-grab active:cursor-grabbing select-none ${
-                              isBeingDragged
-                                ? 'opacity-30 scale-95 border-dashed border-rose-500 shadow-xl'
-                                : isTaskCompleted
-                                  ? 'border-slate-200/60 dark:border-[#1e2638]/70 opacity-75'
-                                  : 'border-slate-200/90 dark:border-[#1e2638] hover:border-slate-300 dark:hover:border-slate-700/80 dark:hover:bg-[#141b2e]'
-                            }`}
-                          >
-                            <div className="flex items-start gap-2.5">
-                              <div className="text-slate-300 dark:text-[#52525b] group-hover:text-slate-400 dark:group-hover:text-[#a1a1aa] shrink-0 mt-0.5 cursor-grab">
-                                <GripVertical className="w-3.5 h-3.5" />
-                              </div>
-
-                              <button
-                                onClick={() => toggleTaskCompleted(task)}
-                                className="mt-0.5 text-slate-300 dark:text-[#52525b] hover:text-emerald-500 transition-colors shrink-0"
-                              >
-                                {isTaskCompleted ? (
-                                  <CheckCircle2 className="w-4 h-4 text-emerald-500 fill-emerald-50 dark:fill-[#0d261a]" />
-                                ) : (
-                                  <Circle className="w-4 h-4 hover:stroke-emerald-500" />
-                                )}
-                              </button>
-
-                              <div
-                                className="flex-1 min-w-0 cursor-pointer"
-                                onClick={() => handleOpenTaskModal(task)}
-                              >
-                                <h4 className={`text-xs font-bold leading-snug break-words ${isTaskCompleted ? 'line-through text-slate-400 dark:text-[#52525b]' : 'text-slate-900 dark:text-[#ededed]'}`}>
-                                  {task.title}
-                                </h4>
-
-                                {task.description && (
-                                  <p className="text-[11px] text-slate-500 dark:text-[#a1a1aa] mt-1 line-clamp-2 leading-relaxed">
-                                    {task.description}
-                                  </p>
-                                )}
-
-                                {/* Metadata Badges */}
-                                <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
-                                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 ${
-                                    task.priority === 'P1'
-                                      ? 'bg-rose-500/10 dark:bg-[#2a1215] text-rose-600 dark:text-rose-400 border border-rose-500/20 dark:border-rose-500/30'
-                                      : task.priority === 'P2'
-                                        ? 'bg-amber-500/10 dark:bg-[#281a0b] text-amber-600 dark:text-amber-400 border border-amber-500/20 dark:border-amber-500/30'
-                                        : 'bg-slate-500/10 dark:bg-[#121724] text-slate-500 dark:text-[#a1a1aa] border border-slate-500/20 dark:border-[#22304e]'
-                                  }`}>
-                                    <Flag className="w-2.5 h-2.5" />
-                                    <span>{task.priority}</span>
-                                  </span>
-
-                                  {task.due_date && (
-                                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded flex items-center gap-1 bg-slate-100 dark:bg-[#151d30] border border-slate-200/60 dark:border-[#22304e] text-slate-500 dark:text-[#a1a1aa]">
-                                      <Clock className="w-2.5 h-2.5" />
-                                      <span>{task.due_date === todayDateStr ? 'Today' : task.due_date}</span>
-                                    </span>
-                                  )}
-
-                                  {subtasks.length > 0 && (
-                                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded flex items-center gap-1 bg-slate-100 dark:bg-[#151d30] border border-slate-200/60 dark:border-[#22304e] text-slate-500 dark:text-[#a1a1aa]" title={`${completedSubtasks} of ${subtasks.length} subtasks completed`}>
-                                      <CheckSquare className="w-2.5 h-2.5 text-slate-400" />
-                                      <span>{completedSubtasks}/{subtasks.length}</span>
-                                    </span>
-                                  )}
-
-                                  {task.comments && task.comments.length > 0 && (
-                                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded flex items-center gap-1 bg-slate-100 dark:bg-[#151d30] border border-slate-200/60 dark:border-[#22304e] text-slate-500 dark:text-[#a1a1aa]" title={`${task.comments.length} comments`}>
-                                      <MessageSquare className="w-2.5 h-2.5 text-slate-400" />
-                                      <span>{task.comments.length}</span>
-                                    </span>
-                                  )}
-
-                                  {task.tags && task.tags.map(tag => (
-                                    <span key={tag} className="text-[10px] font-semibold text-slate-500 dark:text-[#a1a1aa] bg-slate-100 dark:bg-[#151d30] border border-slate-200/60 dark:border-[#22304e] px-1.5 py-0.5 rounded">
-                                      {tag}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Card Footer: Quick Actions */}
-                            <div className="mt-3 pt-2 border-t border-slate-100 dark:border-[#1e2638] flex items-center justify-between">
-                              <div className="flex items-center gap-1">
-                                <button
-                                  onClick={() => moveTaskSection(task.id, 'prev')}
-                                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-[#151d30] text-slate-400 dark:text-[#52525b] hover:text-slate-700 dark:hover:text-[#ededed] transition-colors"
-                                  title="Previous section"
-                                >
-                                  <ArrowLeft className="w-3 h-3" />
-                                </button>
-                                <button
-                                  onClick={() => moveTaskSection(task.id, 'next')}
-                                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-[#151d30] text-slate-400 dark:text-[#52525b] hover:text-slate-700 dark:hover:text-[#ededed] transition-colors"
-                                  title="Next section"
-                                >
-                                  <ArrowRight className="w-3 h-3" />
-                                </button>
-                              </div>
-
-                              <div className="flex items-center gap-1">
-                                <button
-                                  onClick={(e) => handlePostponeToTomorrow(task.id, e)}
-                                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-[#151d30] text-slate-400 dark:text-[#a1a1aa] hover:text-amber-500 transition-colors"
-                                  title="Postpone to Tomorrow (⏩)"
-                                >
-                                  <Clock className="w-3.5 h-3.5" />
-                                </button>
-                                <button
-                                  onClick={() => handleUpdateTask(task.id, { is_focus: !task.is_focus })}
-                                  className={`p-1 rounded hover:bg-slate-100 dark:hover:bg-[#151d30] transition-colors ${task.is_focus ? 'text-amber-500 fill-amber-500' : 'text-slate-300 dark:text-[#52525b] hover:text-amber-400'}`}
-                                  title="Pin to Big 3"
-                                >
-                                  <Star className={`w-3.5 h-3.5 ${task.is_focus ? 'fill-current' : ''}`} />
-                                </button>
-                                <button
-                                  onClick={() => { setActiveTimerTask(task); setTimerSeconds(25 * 60); setIsTimerRunning(true); }}
-                                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-[#151d30] text-slate-300 dark:text-[#52525b] hover:text-rose-500 dark:hover:text-rose-400 transition-colors"
-                                  title="Focus Flow Timer"
-                                >
-                                  <Play className="w-3.5 h-3.5" />
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteTask(task.id)}
-                                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-[#151d30] text-slate-300 dark:text-[#52525b] hover:text-rose-500 dark:hover:text-rose-400 transition-colors"
-                                  title="Delete"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
+                            task={task}
+                            todayDateStr={todayDateStr}
+                            toggleTaskCompleted={toggleTaskCompleted}
+                            handleOpenTaskModal={handleOpenTaskModal}
+                            handlePostponeToTomorrow={handlePostponeToTomorrow}
+                            handleUpdateTask={handleUpdateTask}
+                            moveTaskSection={moveTaskSection}
+                            onCardDragEnd={(t, info) => handleBoardCardDragEnd(t, column.key, info)}
+                          />
+                        ))}
+                      </Reorder.Group>
 
                       {columnTasks.length === 0 && !isOver && (
                         <div className="border border-dashed border-slate-200 dark:border-[#1e2638] rounded-xl p-6 text-center text-xs text-slate-400 dark:text-[#52525b] bg-slate-50/40 dark:bg-[#0e1424]/40">
