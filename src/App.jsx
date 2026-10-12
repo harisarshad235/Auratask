@@ -8,8 +8,9 @@ import {
   ChevronDown, Filter, Flag, Layers, Award, Target, Eye, EyeOff, User,
   Mail, Lock, Sparkle, RefreshCw, Menu, HelpCircle, CheckCircle, GripVertical,
   CalendarDays, Share2, FileText, Copy, HardDriveDownload, Archive, MessageSquare,
-  FolderKanban
+  FolderKanban, Hourglass
 } from 'lucide-react';
+import { formatDuration } from './utils/formatDuration';
 import { Reorder, AnimatePresence, motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { supabase } from './supabaseClient';
@@ -42,6 +43,8 @@ const GUEST_DEMO_TASKS = [
     priority: 'P1',
     due_date: new Date().toISOString().split('T')[0],
     due_time: '11:00',
+    duration: '15m',
+    estimated_minutes: 15,
     tags: ['#Demo'],
     is_focus: true,
     focused_minutes: 0,
@@ -59,6 +62,8 @@ const GUEST_DEMO_TASKS = [
     priority: 'P2',
     due_date: new Date().toISOString().split('T')[0],
     due_time: '14:30',
+    duration: '25m',
+    estimated_minutes: 25,
     tags: ['#Focus'],
     is_focus: false,
     focused_minutes: 25,
@@ -73,6 +78,8 @@ const GUEST_DEMO_TASKS = [
     priority: 'P3',
     due_date: new Date(Date.now() + 86400000).toISOString().split('T')[0],
     due_time: '16:00',
+    duration: '45m',
+    estimated_minutes: 45,
     tags: ['#Planning'],
     is_focus: false,
     focused_minutes: 0,
@@ -290,6 +297,7 @@ export default function App() {
   const [newDueDate, setNewDueDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [newDueTime, setNewDueTime] = useState('');
   const [newTag, setNewTag] = useState('#Work');
+  const [newDuration, setNewDuration] = useState('30m');
 
   // --- POMODORO FLOW TIMER ---
   const [activeTimerTask, setActiveTimerTask] = useState(null);
@@ -818,6 +826,8 @@ export default function App() {
       priority: newPriority || 'P2',
       due_date: newDueDate || new Date().toISOString().split('T')[0],
       due_time: newDueTime || '',
+      duration: newDuration || '30m',
+      estimated_minutes: 30,
       tags: [newTag || '#Work'],
       is_focus: false,
       focused_minutes: 0,
@@ -851,7 +861,7 @@ export default function App() {
 
     if (session?.user?.id) {
       try {
-        const allowedKeys = ['title', 'description', 'section', 'priority', 'due_date', 'due_time', 'subtasks'];
+        const allowedKeys = ['title', 'description', 'section', 'priority', 'due_date', 'due_time', 'duration', 'subtasks'];
         const cloudUpdates = {};
         for (const k of allowedKeys) {
           if (updates[k] !== undefined) cloudUpdates[k] = updates[k];
@@ -2388,6 +2398,25 @@ export default function App() {
                       <option value="#UX">#UX</option>
                       <option value="#Performance">#Performance</option>
                     </select>
+
+                    {/* ETA / Duration Selector */}
+                    <div className="flex items-center gap-1 bg-slate-100 dark:bg-[#09090b] border border-transparent dark:border-[#222225] px-2 py-1 rounded-lg text-xs" title="Estimated effort duration">
+                      <Hourglass className="w-3.5 h-3.5 text-indigo-500" />
+                      <select
+                        value={newDuration}
+                        onChange={(e) => setNewDuration(e.target.value)}
+                        className="bg-transparent text-xs font-bold focus:outline-none text-slate-800 dark:text-[#ededed] cursor-pointer"
+                      >
+                        <option value="15m">ETA: 15m</option>
+                        <option value="30m">ETA: 30m</option>
+                        <option value="45m">ETA: 45m</option>
+                        <option value="1h">ETA: 1h</option>
+                        <option value="1.5h">ETA: 1.5h</option>
+                        <option value="2h">ETA: 2h</option>
+                        <option value="4h">ETA: 4h</option>
+                        <option value="1d">ETA: 1d</option>
+                      </select>
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -2753,7 +2782,15 @@ export default function App() {
                           >
                             <p className="text-xs font-bold text-slate-800 dark:text-[#ededed] truncate">{task.title}</p>
                             <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100 dark:border-[#222225]/60 text-[10px]">
-                              <span className="font-semibold text-amber-600 dark:text-amber-400">{task.priority}</span>
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-semibold text-amber-600 dark:text-amber-400">{task.priority}</span>
+                                {(task.duration || task.estimated_minutes || task.focused_minutes) && (
+                                  <span className="flex items-center gap-0.5 text-indigo-600 dark:text-indigo-400 font-bold" title={`Estimated effort: ${formatDuration(task.duration || task.estimated_minutes || task.focused_minutes)}`}>
+                                    <Hourglass className="w-2.5 h-2.5" />
+                                    <span>{formatDuration(task.duration || task.estimated_minutes || task.focused_minutes)}</span>
+                                  </span>
+                                )}
+                              </div>
                               <button
                                 onClick={(e) => handlePostponeToTomorrow(task.id, e)}
                                 className="text-slate-400 hover:text-amber-500 font-medium opacity-80 group-hover:opacity-100"

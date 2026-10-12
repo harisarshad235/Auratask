@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import {
   X, Check, ChevronUp, ChevronDown, MoreHorizontal, Inbox, Calendar,
   Flag, Tag, Clock, Paperclip, Send, Trash2, CheckCircle2, Circle,
-  FileText, Sparkles, CornerDownLeft, Plus, MessageSquare, AlertCircle
+  FileText, Sparkles, CornerDownLeft, Plus, MessageSquare, AlertCircle,
+  Hourglass, Timer
 } from 'lucide-react';
+import { formatDuration } from './utils/formatDuration';
 
 const generateUUID = () => {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -49,7 +51,8 @@ export default function TaskModal({
   const [subtasks, setSubtasks] = useState([]);
   const [comments, setComments] = useState([]);
   const [reminder, setReminder] = useState('none');
-  const [estimatedMinutes, setEstimatedMinutes] = useState(25);
+  const [estimatedMinutes, setEstimatedMinutes] = useState(30);
+  const [duration, setDuration] = useState('30m');
   const [isCompleted, setIsCompleted] = useState(false);
 
   // New subtask & comment inputs
@@ -77,7 +80,9 @@ export default function TaskModal({
       setSubtasks(Array.isArray(task.subtasks) ? task.subtasks : []);
       setComments(Array.isArray(task.comments) ? task.comments : []);
       setReminder(task.reminder || 'none');
-      setEstimatedMinutes(task.focused_minutes || 25);
+      const effMins = task.estimated_minutes || task.focused_minutes || 30;
+      setEstimatedMinutes(effMins);
+      setDuration(task.duration || formatDuration(effMins));
       setIsCompleted(task.section === 'completed');
     } else {
       setTitle('');
@@ -91,7 +96,8 @@ export default function TaskModal({
       setSubtasks([]);
       setComments([]);
       setReminder('none');
-      setEstimatedMinutes(25);
+      setEstimatedMinutes(30);
+      setDuration('30m');
       setIsCompleted(false);
     }
   }, [task, defaultSection, isOpen]);
@@ -168,6 +174,8 @@ export default function TaskModal({
     if (e) e.preventDefault();
     if (!title.trim()) return;
 
+    const finalDuration = duration || formatDuration(estimatedMinutes);
+
     const taskPayload = {
       id: task?.id || generateUUID(),
       title: title.trim(),
@@ -177,11 +185,13 @@ export default function TaskModal({
       due_date: dueDate,
       due_time: dueTime,
       deadline: deadlineTime,
+      duration: finalDuration,
+      estimated_minutes: estimatedMinutes,
+      focused_minutes: estimatedMinutes,
       tags,
       subtasks,
       comments,
       reminder,
-      focused_minutes: estimatedMinutes,
       created_at: task?.created_at || new Date().toISOString()
     };
 
@@ -197,7 +207,7 @@ export default function TaskModal({
       >
         {/* --- MODAL HEADER (Matching Screenshot 2) --- */}
         <div className="px-5 py-3 border-b border-neutral-100 dark:border-[#222225] flex items-center justify-between shrink-0 bg-white/50 dark:bg-[#09090b]/50">
-          {/* Breadcrumb / Project Selector */}
+          {/* Breadcrumb / Project Selector & ETA Indicator */}
           <div className="flex items-center gap-2">
             <span className="p-1 rounded bg-neutral-100 dark:bg-[#121214] text-neutral-500 dark:text-[#a1a1aa]">
               <Inbox className="w-3.5 h-3.5" />
@@ -213,6 +223,14 @@ export default function TaskModal({
                 </option>
               ))}
             </select>
+
+            {/* Header ETA / Duration Pill */}
+            {(duration || estimatedMinutes) && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-indigo-50 dark:bg-[#1a1f36] border border-indigo-200/80 dark:border-indigo-800/60 text-indigo-600 dark:text-indigo-400">
+                <Hourglass className="w-3 h-3 text-indigo-500" />
+                <span>ETA: {duration || formatDuration(estimatedMinutes)}</span>
+              </span>
+            )}
           </div>
 
           {/* Quick Controls: Up/Down nav, 3 dots, close */}
@@ -682,22 +700,89 @@ export default function TaskModal({
               </div>
             </div>
 
-            {/* Focus Session Block (Pomodoro) */}
-            <div className="p-3 rounded-xl bg-neutral-100 dark:bg-[#121214] border border-neutral-200 dark:border-[#222225] space-y-1.5">
+            {/* ETA / Effort Duration Widget */}
+            <div className="p-3 rounded-xl bg-indigo-50/60 dark:bg-[#121624] border border-indigo-200/70 dark:border-indigo-900/40 space-y-2.5">
               <div className="flex items-center justify-between text-[11px] font-bold text-neutral-800 dark:text-[#ededed]">
-                <span className="flex items-center gap-1"><Sparkles className="w-3 h-3 text-red-500" /> Focus Session</span>
-                <span>{estimatedMinutes}m</span>
+                <span className="flex items-center gap-1.5 text-indigo-700 dark:text-indigo-400">
+                  <Hourglass className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                  <span>ETA / Effort Duration</span>
+                </span>
+                <span className="px-2 py-0.5 rounded-md font-mono text-[11px] font-bold bg-white dark:bg-[#1a1f36] border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-300 shadow-2xs">
+                  {duration || formatDuration(estimatedMinutes)}
+                </span>
               </div>
-              <input
-                type="range"
-                min="15"
-                max="90"
-                step="15"
-                value={estimatedMinutes}
-                onChange={(e) => setEstimatedMinutes(Number(e.target.value))}
-                className="w-full accent-red-600 cursor-pointer"
-              />
-              <span className="text-[10px] text-neutral-400 dark:text-[#a1a1aa]">Time-box deep work sprint for this task</span>
+
+              {/* Quick Presets */}
+              <div className="flex flex-wrap gap-1">
+                {[
+                  { label: '15m', mins: 15 },
+                  { label: '30m', mins: 30 },
+                  { label: '45m', mins: 45 },
+                  { label: '1h', mins: 60 },
+                  { label: '1.5h', mins: 90 },
+                  { label: '2h', mins: 120 },
+                  { label: '3h', mins: 180 },
+                  { label: '4h', mins: 240 },
+                  { label: '1d', mins: 480 },
+                ].map(preset => {
+                  const isSelected = duration === preset.label || (estimatedMinutes === preset.mins && !duration);
+                  return (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      onClick={() => {
+                        setDuration(preset.label);
+                        setEstimatedMinutes(preset.mins);
+                      }}
+                      className={`text-[10px] font-bold px-2 py-1 rounded-lg transition-all ${
+                        isSelected
+                          ? 'bg-indigo-600 text-white shadow-xs scale-105'
+                          : 'bg-white dark:bg-[#182035] text-slate-700 dark:text-slate-300 hover:bg-indigo-100 dark:hover:bg-[#222d4a] border border-slate-200/60 dark:border-[#22304e]'
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Custom input */}
+              <div className="pt-0.5">
+                <input
+                  type="text"
+                  placeholder="Custom e.g. 1h 45m"
+                  value={duration}
+                  onChange={(e) => setDuration(e.target.value)}
+                  className="w-full text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-white dark:bg-[#0d121f] border border-indigo-200/80 dark:border-[#22304e] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                />
+              </div>
+
+              {/* Minute Slider */}
+              <div className="pt-0.5">
+                <input
+                  type="range"
+                  min="15"
+                  max="240"
+                  step="15"
+                  value={estimatedMinutes}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    setEstimatedMinutes(val);
+                    setDuration(formatDuration(val));
+                  }}
+                  className="w-full accent-indigo-600 cursor-pointer"
+                />
+                <div className="flex justify-between text-[9px] text-slate-400 dark:text-slate-500 font-mono">
+                  <span>15m</span>
+                  <span>1h</span>
+                  <span>2h</span>
+                  <span>4h</span>
+                </div>
+              </div>
+
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 block leading-tight">
+                Allocates expected effort on card and board horizon
+              </span>
             </div>
           </div>
         </form>

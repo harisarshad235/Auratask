@@ -11,7 +11,9 @@ import {
   ArrowLeft,
   ArrowRight,
   Star,
+  Hourglass
 } from 'lucide-react';
+import { formatDuration } from '../utils/formatDuration';
 
 /**
  * BoardTaskCard
@@ -124,6 +126,17 @@ export function BoardTaskCard({
               <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded flex items-center gap-1 bg-slate-100 dark:bg-[#151d30] border border-slate-200/60 dark:border-[#22304e] text-slate-500 dark:text-[#a1a1aa]">
                 <Clock className="w-2.5 h-2.5" />
                 <span>{task.due_date === todayDateStr ? 'Today' : task.due_date}</span>
+              </span>
+            )}
+
+            {/* ETA / Effort Duration Badge */}
+            {(task.duration || task.estimated_minutes || task.focused_minutes) && (
+              <span
+                className="text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 bg-indigo-50 dark:bg-[#1a1f36] border border-indigo-200/70 dark:border-indigo-800/50 text-indigo-600 dark:text-indigo-400"
+                title={`Estimated effort / ETA: ${formatDuration(task.duration || task.estimated_minutes || task.focused_minutes)}`}
+              >
+                <Hourglass className="w-2.5 h-2.5 text-indigo-500" />
+                <span>{formatDuration(task.duration || task.estimated_minutes || task.focused_minutes)}</span>
               </span>
             )}
 
