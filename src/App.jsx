@@ -204,6 +204,8 @@ const loadScopedWorkspaceData = (userId = null) => {
 };
 
 export default function App() {
+  const todayDateStr = new Date().toISOString().split('T')[0];
+
   // --- AUTH STATE ---
   const [session, setSession] = useState(null);
   const [isGuest, setIsGuest] = useState(() => (localStorage.getItem('takt_guest_mode') || localStorage.getItem('auratask_guest_mode')) === 'true');
@@ -262,6 +264,8 @@ export default function App() {
 
   // --- UI NAVIGATION & VIEW MODES ---
   const [activeTab, setActiveTab] = useState('inbox'); // 'inbox', 'today', 'upcoming', 'completed', 'tag-...'
+  const [viewMode, setViewMode] = useState('list'); // 'board' | 'list' | 'calendar'
+  const [searchQuery, setSearchQuery] = useState('');
   // Default to Eye-Comfort Light Mode (soothing, zero eye-strain, user friendly)
   const [darkMode, setDarkMode] = useState(() => {
     const v2 = localStorage.getItem('takt_theme_v2');
@@ -1576,8 +1580,6 @@ export default function App() {
   };
 
   // Filtered Tasks Engine
-  const todayDateStr = new Date().toISOString().split('T')[0];
-
   const filteredTasks = useMemo(() => {
     return tasks.filter(t => {
       // Search Query
