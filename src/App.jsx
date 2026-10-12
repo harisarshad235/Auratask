@@ -916,17 +916,34 @@ export default function App() {
               const local = localMap.get(cloudTask.id);
               if (!local) return cloudTask;
 
+              // Check timestamps to avoid stale background cloud fetch reverting local edits:
+              const localIsNewer = local.updated_at && (
+                !cloudTask.updated_at ||
+                new Date(local.updated_at).getTime() >= new Date(cloudTask.updated_at).getTime()
+              );
+
+              // If local is marked completed, or local was updated more recently, keep local section & priority
+              const section = (localIsNewer || local.section === 'completed') ? local.section : (cloudTask.section || local.section);
+              const priority = localIsNewer ? local.priority : (cloudTask.priority || local.priority);
+
+              // If local had a newer change that hasn't reached cloud yet, schedule cloud upsert
+              if ((localIsNewer || local.section === 'completed') && (local.section !== cloudTask.section || local.priority !== cloudTask.priority)) {
+                upsertTaskToCloud({ ...cloudTask, ...local, section, priority }, currentUserId);
+              }
+
               // KEEP all local details (duration, tags, is_focus, comments, subtasks) intact!
               return {
-                ...local,
                 ...cloudTask,
-                duration: cloudTask.duration || local.duration || '30m',
-                estimated_minutes: cloudTask.estimated_minutes || local.estimated_minutes || 30,
+                ...local,
+                section,
+                priority,
+                duration: local.duration || cloudTask.duration || '30m',
+                estimated_minutes: local.estimated_minutes || cloudTask.estimated_minutes || 30,
                 focused_minutes: Math.max(cloudTask.focused_minutes || 0, local.focused_minutes || 0),
-                tags: (Array.isArray(cloudTask.tags) && cloudTask.tags.length > 0) ? cloudTask.tags : (local.tags || ['#Work']),
-                is_focus: cloudTask.is_focus !== undefined ? cloudTask.is_focus : Boolean(local.is_focus),
-                comments: (Array.isArray(cloudTask.comments) && cloudTask.comments.length > 0) ? cloudTask.comments : (local.comments || []),
-                subtasks: (Array.isArray(cloudTask.subtasks) && cloudTask.subtasks.length > 0) ? cloudTask.subtasks : (local.subtasks || [])
+                tags: (Array.isArray(local.tags) && local.tags.length > 0) ? local.tags : (cloudTask.tags || ['#Work']),
+                is_focus: local.is_focus !== undefined ? Boolean(local.is_focus) : Boolean(cloudTask.is_focus),
+                comments: (Array.isArray(local.comments) && local.comments.length > 0) ? local.comments : (cloudTask.comments || []),
+                subtasks: (Array.isArray(local.subtasks) && local.subtasks.length > 0) ? local.subtasks : (cloudTask.subtasks || [])
               };
             });
 
@@ -1052,10 +1069,11 @@ export default function App() {
 
   const handleUpdateTask = async (id, updates) => {
     let updatedTaskObj = null;
+    const nowIso = new Date().toISOString();
     setTasks(prev => {
       const next = prev.map(t => {
         if (t.id === id) {
-          updatedTaskObj = { ...t, ...updates };
+          updatedTaskObj = { ...t, ...updates, updated_at: nowIso };
           return updatedTaskObj;
         }
         return t;
@@ -1255,12 +1273,15 @@ export default function App() {
   const handleReorderTaskToTarget = (draggedId, targetId, targetColKey, position = 'before') => {
     if (!draggedId || draggedId === targetId) return;
 
+    let updatedDraggedTask = null;
+    const nowIso = new Date().toISOString();
+
     setTasks(prevTasks => {
       const draggedIndex = prevTasks.findIndex(t => t.id === draggedId);
       const targetIndex = prevTasks.findIndex(t => t.id === targetId);
       if (draggedIndex === -1 || targetIndex === -1) return prevTasks;
 
-      const draggedTask = { ...prevTasks[draggedIndex] };
+      const draggedTask = { ...prevTasks[draggedIndex], updated_at: nowIso };
       let sectionUpdated = false;
 
       if (boardGrouping === 'stage') {
@@ -1276,23 +1297,31 @@ export default function App() {
         }
       }
 
+      updatedDraggedTask = draggedTask;
+
       const nextTasks = [...prevTasks];
       nextTasks.splice(draggedIndex, 1);
       const newTargetIndex = nextTasks.findIndex(t => t.id === targetId);
       const insertIdx = position === 'after' ? newTargetIndex + 1 : newTargetIndex;
       nextTasks.splice(insertIdx, 0, draggedTask);
 
-      if (sectionUpdated && session?.user?.id) {
-        supabase
-          .from('tasks')
-          .update(boardGrouping === 'stage' ? { section: targetColKey } : { priority: targetColKey })
-          .eq('id', draggedId)
-          .eq('user_id', session.user.id)
-          .then();
-      }
+      // CRITICAL FIX: Persist immediately to localStorage and backup keys
+      try {
+        const uId = session?.user?.id;
+        const key = uId ? `takt_tasks_u_${uId}` : 'takt_guest_tasks';
+        const backupKey = uId ? `takt_tasks_backup_u_${uId}` : 'takt_guest_tasks_backup';
+        const dataStr = JSON.stringify(nextTasks);
+        localStorage.setItem(key, dataStr);
+        localStorage.setItem(backupKey, dataStr);
+      } catch {}
 
       return nextTasks;
     });
+
+    // CRITICAL FIX: Resilient cloud sync to Supabase with metadata redundancy
+    if (session?.user?.id && updatedDraggedTask) {
+      upsertTaskToCloud(updatedDraggedTask, session.user.id);
+    }
 
     const secObj = customSections.find(s => s.key === targetColKey);
     showToast(secObj ? `Moved into ${secObj.label}` : 'Task position updated');
@@ -1317,6 +1346,17 @@ export default function App() {
         }
         return t;
       });
+
+      // Persist reordered list immediately to storage
+      try {
+        const uId = session?.user?.id;
+        const key = uId ? `takt_tasks_u_${uId}` : 'takt_guest_tasks';
+        const backupKey = uId ? `takt_tasks_backup_u_${uId}` : 'takt_guest_tasks_backup';
+        const dataStr = JSON.stringify(nextTasks);
+        localStorage.setItem(key, dataStr);
+        localStorage.setItem(backupKey, dataStr);
+      } catch {}
+
       return nextTasks;
     });
   };
