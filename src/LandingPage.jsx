@@ -709,9 +709,11 @@ export default function LandingPage({
             <span className="text-neutral-400 dark:text-[#52525b] border-l border-neutral-200 dark:border-[#222225] pl-3">© {new Date().getFullYear()} Takt by Haris Arshad</span>
           </div>
 
-          <div className="flex items-center gap-6 text-xs">
+          <div className="flex items-center gap-6 text-xs flex-wrap">
             <a href="#features" className="hover:text-neutral-900 dark:hover:text-[#ededed]">Features</a>
             <a href="#templates" className="hover:text-neutral-900 dark:hover:text-[#ededed]">Templates</a>
+            <a href="/privacy" className="hover:text-neutral-900 dark:hover:text-[#ededed]">Privacy Policy</a>
+            <a href="/terms" className="hover:text-neutral-900 dark:hover:text-[#ededed]">Terms of Service</a>
             <button onClick={onTryDemo} className="hover:text-neutral-900 dark:hover:text-[#ededed]">Live Demo</button>
           </div>
         </div>

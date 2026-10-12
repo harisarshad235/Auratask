@@ -3,9 +3,17 @@ import {
   X, Check, ChevronUp, ChevronDown, MoreHorizontal, Inbox, Calendar,
   Flag, Tag, Clock, Paperclip, Send, Trash2, CheckCircle2, Circle,
   FileText, Sparkles, CornerDownLeft, Plus, MessageSquare, AlertCircle,
-  Hourglass, Timer, Star
+  Hourglass, Timer, Star, Loader2
 } from 'lucide-react';
-import { formatDuration } from './utils/formatDuration';
+import { formatDuration, parseDurationMinutes } from './utils/formatDuration';
+import { supabase } from './supabaseClient';
+
+const TAKT_META_REGEX = /<!--takt:meta\s+({[\s\S]*?})-->/;
+
+const isValidUUID = (str) => {
+  if (typeof str !== 'string') return false;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(str);
+};
 
 const generateUUID = () => {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -35,9 +43,11 @@ export default function TaskModal({
     { key: 'in_review', label: 'In Review' },
     { key: 'completed', label: 'Completed' }
   ],
-  darkMode = false
+  darkMode = false,
+  session = null
 }) {
   const isEditing = Boolean(task && task.id);
+  const currentUserId = session?.user?.id;
 
   // Form states
   const [title, setTitle] = useState('');
@@ -50,6 +60,7 @@ export default function TaskModal({
   const [tags, setTags] = useState([]);
   const [subtasks, setSubtasks] = useState([]);
   const [comments, setComments] = useState([]);
+  const [loadingComments, setLoadingComments] = useState(false);
   const [reminder, setReminder] = useState('none');
   const [estimatedMinutes, setEstimatedMinutes] = useState(30);
   const [duration, setDuration] = useState('30m');
@@ -71,7 +82,8 @@ export default function TaskModal({
   useEffect(() => {
     if (task) {
       setTitle(task.title || '');
-      setDescription(task.description || '');
+      const rawDesc = task.description || '';
+      setDescription(rawDesc.replace(TAKT_META_REGEX, '').trim());
       setSection(task.section || defaultSection);
       setPriority(task.priority || 'P4');
       setDueDate(task.due_date || '');
@@ -81,9 +93,10 @@ export default function TaskModal({
       setSubtasks(Array.isArray(task.subtasks) ? task.subtasks : []);
       setComments(Array.isArray(task.comments) ? task.comments : []);
       setReminder(task.reminder || 'none');
-      const effMins = task.estimated_minutes || task.focused_minutes || 30;
+      const effDuration = task.duration || task.eta || (task.estimated_minutes ? formatDuration(task.estimated_minutes) : '');
+      const effMins = task.estimated_minutes || (effDuration ? parseDurationMinutes(effDuration) : (task.focused_minutes || 30));
       setEstimatedMinutes(effMins);
-      setDuration(task.duration || formatDuration(effMins));
+      setDuration(effDuration || '30m');
       setIsCompleted(task.section === 'completed');
       setIsFocus(Boolean(task.is_focus));
     } else {
@@ -104,6 +117,125 @@ export default function TaskModal({
       setIsFocus(false);
     }
   }, [task, defaultSection, isOpen]);
+
+  // Phase 3: Fetch latest task and comments directly from Supabase on mount
+  useEffect(() => {
+    if (!isOpen || !task?.id || !isValidUUID(task.id)) return;
+
+    let isMounted = true;
+
+    const fetchLiveTaskAndComments = async () => {
+      // 1. Fetch live task data to avoid stale parent props
+      try {
+        const { data: liveTask, error: taskErr } = await supabase
+          .from('tasks')
+          .select('*')
+          .eq('id', task.id)
+          .single();
+
+        if (taskErr) {
+          console.warn("Supabase fetch live task notice:", taskErr.message);
+        } else if (liveTask && isMounted) {
+          if (liveTask.title) setTitle(liveTask.title);
+          if (liveTask.description) {
+            setDescription(liveTask.description.replace(TAKT_META_REGEX, '').trim());
+          }
+          if (liveTask.section) setSection(liveTask.section);
+          if (liveTask.priority) setPriority(liveTask.priority);
+          if (liveTask.due_date) setDueDate(liveTask.due_date);
+          if (liveTask.due_time) setDueTime(liveTask.due_time);
+          if (liveTask.deadline) setDeadlineTime(liveTask.deadline);
+          if (liveTask.duration || liveTask.eta) {
+            const dur = liveTask.duration || liveTask.eta;
+            setDuration(dur);
+            setEstimatedMinutes(parseDurationMinutes(dur));
+          } else if (liveTask.estimated_minutes) {
+            setEstimatedMinutes(liveTask.estimated_minutes);
+            setDuration(formatDuration(liveTask.estimated_minutes));
+          }
+          if (liveTask.is_focus !== undefined) setIsFocus(Boolean(liveTask.is_focus));
+        }
+      } catch (err) {
+        console.warn("Exception fetching live task details:", err);
+      }
+
+      // 2. Fetch live relational comments from task_comments table
+      setLoadingComments(true);
+      try {
+        const { data: dbComments, error: commentsErr } = await supabase
+          .from('task_comments')
+          .select('*')
+          .eq('task_id', task.id)
+          .order('created_at', { ascending: true });
+
+        if (commentsErr) {
+          if (commentsErr.code === 'PGRST205' || commentsErr.message?.includes('schema cache')) {
+            console.info("Notice: task_comments table pending migration. Using task metadata comments.");
+          } else {
+            console.error("Supabase task_comments query failed:", commentsErr);
+          }
+        } else if (Array.isArray(dbComments) && isMounted) {
+          const formatted = dbComments.map(c => ({
+            id: c.id,
+            author: c.user_id === currentUserId ? 'You' : 'Team Member',
+            text: c.content,
+            timestamp: new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            created_at: c.created_at,
+            user_id: c.user_id,
+            task_id: c.task_id
+          }));
+          setComments(formatted);
+        }
+      } catch (err) {
+        console.error("Exception fetching task comments:", err);
+      } finally {
+        if (isMounted) setLoadingComments(false);
+      }
+    };
+
+    fetchLiveTaskAndComments();
+
+    // 3. Supabase Realtime subscription for incoming comments on this task
+    const commentsChannel = supabase
+      .channel(`task-comments-${task.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'task_comments',
+          filter: `task_id=eq.${task.id}`
+        },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            const row = payload.new;
+            setComments(prev => {
+              if (prev.some(c => c.id === row.id)) return prev;
+              return [...prev, {
+                id: row.id,
+                author: row.user_id === currentUserId ? 'You' : 'Team Member',
+                text: row.content,
+                timestamp: new Date(row.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                created_at: row.created_at,
+                user_id: row.user_id,
+                task_id: row.task_id
+              }];
+            });
+          } else if (payload.eventType === 'DELETE') {
+            const delId = payload.old?.id;
+            if (delId) {
+              setComments(prev => prev.filter(c => c.id !== delId));
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      isMounted = false;
+      supabase.removeChannel(commentsChannel);
+    };
+  }, [isOpen, task?.id, currentUserId]);
 
   if (!isOpen) return null;
 
@@ -145,17 +277,85 @@ export default function TaskModal({
     setSubtasks(subtasks.filter(st => st.id !== stId));
   };
 
-  // Add Comment
-  const handleAddComment = () => {
+  // Add Comment (Persisting to both Supabase task_comments and task metadata)
+  const handleAddComment = async () => {
     if (!newCommentText.trim()) return;
+    const commentText = newCommentText.trim();
+    const commentId = generateUUID();
+    const nowIso = new Date().toISOString();
+
     const commentObj = {
-      id: 'comm-' + Date.now(),
+      id: commentId,
       author: 'You',
-      text: newCommentText.trim(),
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      text: commentText,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      created_at: nowIso,
+      user_id: currentUserId,
+      task_id: task?.id
     };
-    setComments([...comments, commentObj]);
+
+    const updatedComments = [...comments, commentObj];
+    setComments(updatedComments);
     setNewCommentText('');
+
+    // If authenticated and task exists in Supabase, insert directly to task_comments table
+    if (currentUserId && task?.id && isValidUUID(task.id)) {
+      try {
+        const { error } = await supabase.from('task_comments').insert({
+          id: commentId,
+          task_id: task.id,
+          user_id: currentUserId,
+          content: commentText,
+          created_at: nowIso
+        });
+
+        if (error) {
+          if (error.code === 'PGRST205' || error.message?.includes('schema cache')) {
+            console.info("task_comments table not yet provisioned; comment is preserved via task metadata.");
+          } else {
+            console.error("Supabase operation failed on insert task_comments:", error);
+          }
+        }
+      } catch (err) {
+        console.error("Exception writing comment to Supabase:", err);
+      }
+    }
+
+    // Immediately propagate to parent task so client-side state & metadata envelope stay in sync
+    if (task && onSaveTask) {
+      onSaveTask({
+        ...task,
+        comments: updatedComments
+      });
+    }
+  };
+
+  // Delete Comment
+  const handleDeleteComment = async (commentId) => {
+    const updated = comments.filter(c => c.id !== commentId);
+    setComments(updated);
+
+    if (currentUserId && isValidUUID(commentId)) {
+      try {
+        const { error } = await supabase
+          .from('task_comments')
+          .delete()
+          .eq('id', commentId);
+
+        if (error) {
+          console.error("Supabase operation failed on delete task_comments:", error);
+        }
+      } catch (err) {
+        console.error("Exception deleting comment from Supabase:", err);
+      }
+    }
+
+    if (task && onSaveTask) {
+      onSaveTask({
+        ...task,
+        comments: updated
+      });
+    }
   };
 
   // Add Tag
@@ -177,20 +377,23 @@ export default function TaskModal({
     if (e) e.preventDefault();
     if (!title.trim()) return;
 
-    const finalDuration = duration || formatDuration(estimatedMinutes);
+    const finalDuration = duration ? duration.trim() : (estimatedMinutes ? formatDuration(estimatedMinutes) : '');
+    const cleanDescription = (description || '').replace(TAKT_META_REGEX, '').trim();
 
     const taskPayload = {
       id: task?.id || generateUUID(),
       title: title.trim(),
-      description: description.trim(),
+      description: cleanDescription,
       section: isCompleted ? 'completed' : section,
+      status: isCompleted ? 'completed' : section,
       priority,
       due_date: dueDate,
       due_time: dueTime,
       deadline: deadlineTime,
       duration: finalDuration,
-      estimated_minutes: estimatedMinutes,
-      focused_minutes: estimatedMinutes,
+      eta: finalDuration,
+      estimated_minutes: estimatedMinutes || (finalDuration ? parseDurationMinutes(finalDuration) : 0),
+      focused_minutes: task?.focused_minutes || 0,
       is_focus: isFocus,
       tags,
       subtasks,
@@ -444,40 +647,69 @@ export default function TaskModal({
 
             {/* Comments & Activity Section (From Screenshot 2) */}
             <div className="pt-4 border-t border-neutral-100 dark:border-[#222225] pl-8 space-y-3">
-              <div className="flex items-center gap-2 text-xs font-bold text-neutral-700 dark:text-[#a1a1aa]">
-                <MessageSquare className="w-3.5 h-3.5" />
-                <span>Comments & Activity</span>
+              <div className="flex items-center justify-between text-xs font-bold text-neutral-700 dark:text-[#a1a1aa]">
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  <span>Comments & Activity</span>
+                </div>
+                {loadingComments && (
+                  <span className="flex items-center gap-1 text-[10px] text-neutral-400 font-normal">
+                    <Loader2 className="w-3 h-3 animate-spin text-red-500" />
+                    <span>Syncing cloud...</span>
+                  </span>
+                )}
               </div>
 
               {/* Comment Thread List */}
-              {comments.length > 0 && (
+              {comments.length > 0 ? (
                 <div className="space-y-2.5 max-h-44 overflow-y-auto pr-1">
-                  {comments.map((comm) => (
-                    <div key={comm.id} className="flex items-start gap-2.5 text-xs">
-                      <div className="w-6 h-6 rounded-full bg-red-100 dark:bg-[#2a1215] text-red-600 dark:text-red-400 font-bold flex items-center justify-center text-[10px] shrink-0">
-                        {comm.author[0]}
-                      </div>
-                      <div className="flex-1 bg-neutral-50 dark:bg-[#121214] border border-neutral-200/60 dark:border-[#222225] rounded-xl p-2.5">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="font-semibold text-neutral-800 dark:text-[#ededed]">{comm.author}</span>
-                          <span className="text-[10px] text-neutral-400 dark:text-[#52525b]">{comm.timestamp}</span>
+                  {comments.map((comm) => {
+                    const authorName = comm.author || (comm.user_id === currentUserId ? 'You' : 'User');
+                    const initial = (authorName.trim()[0] || 'U').toUpperCase();
+                    const canDelete = !comm.user_id || comm.user_id === currentUserId;
+                    return (
+                      <div key={comm.id} className="group flex items-start gap-2.5 text-xs">
+                        <div className="w-6 h-6 rounded-full bg-red-100 dark:bg-[#2a1215] text-red-600 dark:text-red-400 font-bold flex items-center justify-center text-[10px] shrink-0">
+                          {initial}
                         </div>
-                        <p className="text-neutral-600 dark:text-[#a1a1aa] leading-relaxed">{comm.text}</p>
+                        <div className="flex-1 bg-neutral-50 dark:bg-[#121214] border border-neutral-200/60 dark:border-[#222225] rounded-xl p-2.5 relative">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-semibold text-neutral-800 dark:text-[#ededed]">{authorName}</span>
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[10px] text-neutral-400 dark:text-[#52525b]">{comm.timestamp}</span>
+                              {canDelete && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteComment(comm.id)}
+                                  className="opacity-0 group-hover:opacity-100 p-0.5 text-neutral-400 hover:text-red-500 transition-opacity"
+                                  title="Delete comment"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                          <p className="text-neutral-600 dark:text-[#a1a1aa] leading-relaxed whitespace-pre-wrap">{comm.text || comm.content}</p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
+              ) : (
+                !loadingComments && (
+                  <p className="text-[11px] text-neutral-400 dark:text-[#52525b] italic">No comments yet. Leave a note or update below.</p>
+                )
               )}
 
               {/* Pill-shaped Comment Input (Screenshot 2 exact style) */}
               <div className="flex items-center gap-2 pt-1">
-                <div className="w-7 h-7 rounded-full bg-neutral-200 dark:bg-[#1c1c20] flex items-center justify-center text-xs font-bold text-neutral-700 dark:text-[#ededed] shrink-0">
-                  U
+                <div className="w-7 h-7 rounded-full bg-red-100 dark:bg-[#2a1215] text-red-600 dark:text-red-400 flex items-center justify-center text-xs font-bold shrink-0">
+                  {session?.user?.email ? session.user.email[0].toUpperCase() : 'U'}
                 </div>
                 <div className="flex-1 flex items-center bg-neutral-50 dark:bg-[#121214] border border-neutral-200 dark:border-[#222225] rounded-full px-3 py-1.5 focus-within:border-red-500/50">
                   <input
                     type="text"
-                    placeholder="Comment..."
+                    placeholder="Leave a comment or task update..."
                     value={newCommentText}
                     onChange={(e) => setNewCommentText(e.target.value)}
                     onKeyDown={(e) => {
