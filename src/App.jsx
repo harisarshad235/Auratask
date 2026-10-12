@@ -1634,11 +1634,6 @@ export default function App() {
         {/* Brand & Theme / Signout */}
         <div className="flex items-center justify-between pb-3.5 mb-2 border-b border-slate-100 dark:border-[#1e293b]">
           <Logo
-            subtitle={
-              isGuest
-                ? 'Guest Sandbox'
-                : `Signed in as ${displayName}`
-            }
             onClick={(e) => {
               e.preventDefault();
               setActiveTab('inbox');
