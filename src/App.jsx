@@ -466,6 +466,12 @@ export default function App() {
   const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState(false);
   const headerMenuRef = useRef(null);
 
+  // --- USER SESSION CONTROLS DROPDOWN & POPOVER STATES ---
+  const [isTopbarUserMenuOpen, setIsTopbarUserMenuOpen] = useState(false);
+  const topbarUserMenuRef = useRef(null);
+  const [isSidebarUserMenuOpen, setIsSidebarUserMenuOpen] = useState(false);
+  const sidebarUserMenuRef = useRef(null);
+
   // --- MODALS FOR ACTIONS ---
   const [showActivityModal, setShowActivityModal] = useState(false);
   const [showEmailInboxModal, setShowEmailInboxModal] = useState(false);
@@ -869,11 +875,17 @@ export default function App() {
     });
   };
 
-  // Close header "..." menu on click outside
+  // Close menus on click outside
   useEffect(() => {
     const handleOutsideClick = (e) => {
       if (headerMenuRef.current && !headerMenuRef.current.contains(e.target)) {
         setIsHeaderMenuOpen(false);
+      }
+      if (topbarUserMenuRef.current && !topbarUserMenuRef.current.contains(e.target)) {
+        setIsTopbarUserMenuOpen(false);
+      }
+      if (sidebarUserMenuRef.current && !sidebarUserMenuRef.current.contains(e.target)) {
+        setIsSidebarUserMenuOpen(false);
       }
     };
     document.addEventListener('mousedown', handleOutsideClick);
@@ -2412,85 +2424,33 @@ export default function App() {
 
       {/* --- SIDEBAR NAVIGATION (PERMANENTLY PINNED, NEVER MOVES WITH SCROLL) --- */}
       <aside className={`fixed inset-y-0 left-0 z-50 w-72 h-screen bg-white dark:bg-[#0f172a] border-r border-slate-200/80 dark:border-[#1e293b] flex flex-col p-4 transition-transform duration-300 lg:static lg:translate-x-0 shrink-0 overflow-y-auto ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
-        {/* Brand & Theme / Signout */}
-        <div className="flex items-center justify-between pb-3.5 mb-2 border-b border-slate-100 dark:border-[#1e293b]">
-          <Logo
-            onClick={(e) => {
-              e.preventDefault();
-              setActiveTab('inbox');
-            }}
-          />
-
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => setDarkMode(!darkMode)}
-              className="p-1.5 text-slate-500 hover:text-slate-900 dark:text-[#919bb0] dark:hover:text-[#e3e6ee] rounded-lg hover:bg-slate-100 dark:hover:bg-[#222736] transition-colors"
-              title={darkMode ? "Switch to Eye-Comfort Light Mode (☀️)" : "Switch to Dark Mode (🌙)"}
-            >
-              {darkMode ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-slate-600" />}
-            </button>
-            <button
-              onClick={handleSignOut}
-              className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-[#2a1215]"
-              title="Sign Out"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
+        {/* Top-Left: Reserved Strictly for [Takt Logo] + [Active Workspace / Project Title] */}
+        <div className="flex items-center justify-between pb-3.5 mb-3 border-b border-slate-100 dark:border-white/[0.08]">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <Logo
+              onClick={(e) => {
+                e.preventDefault();
+                setActiveTab('inbox');
+              }}
+            />
+            <div className="flex flex-col min-w-0">
+              <span className="text-xs font-semibold text-slate-900 dark:text-zinc-100 truncate tracking-tight">
+                Takt Workspace
+              </span>
+              <span className="text-[10px] text-slate-400 dark:text-zinc-500 font-medium truncate">
+                Command Center
+              </span>
+            </div>
           </div>
+
+          <button
+            onClick={() => setDarkMode(!darkMode)}
+            className="p-1.5 text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-zinc-100 rounded-lg hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors"
+            title={darkMode ? "Switch to Eye-Comfort Light Mode (☀️)" : "Switch to Dark Mode (🌙)"}
+          >
+            {darkMode ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-slate-600" />}
+          </button>
         </div>
-
-        {/* PROMINENT USER IDENTITY DISPLAY (Signed in as...) */}
-        {session?.user ? (
-          <div className="mb-3.5 p-2.5 rounded-xl bg-slate-50 dark:bg-[#151d30]/70 border border-slate-200/80 dark:border-[#22304e] flex items-center justify-between gap-2.5 shadow-2xs">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="relative shrink-0">
-                {session.user.user_metadata?.avatar_url ? (
-                  <img
-                    src={session.user.user_metadata.avatar_url}
-                    alt={displayName}
-                    className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-slate-700"
-                  />
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-rose-500 via-pink-500 to-indigo-500 text-white font-bold text-xs flex items-center justify-center uppercase shadow-2xs">
-                    {displayName.charAt(0)}
-                  </div>
-                )}
-                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white dark:border-[#0f172a]" title="Signed in & Cloud Synced"></span>
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-                    Signed in as
-                  </span>
-                </div>
-                <p className="text-xs font-bold text-slate-900 dark:text-white truncate" title={displayName}>
-                  {displayName}
-                </p>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate" title={userEmail}>
-                  {userEmail}
-                </p>
-              </div>
-            </div>
-          </div>
-        ) : isGuest ? (
-          <div className="mb-3.5 p-2.5 rounded-xl bg-amber-50/80 dark:bg-amber-950/20 border border-amber-200/70 dark:border-amber-900/40 flex items-center justify-between gap-2">
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5 text-[10px] font-bold text-amber-700 dark:text-amber-400">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                <span>Guest Sandbox</span>
-              </div>
-              <p className="text-[10px] text-amber-600/80 dark:text-amber-400/80 mt-0.5">
-                Local only • Sign in to sync across profiles
-              </p>
-            </div>
-            <button
-              onClick={() => { setAuthMode('login'); setShowAuthModal(true); }}
-              className="px-2 py-1 text-[10px] font-bold bg-amber-600 hover:bg-amber-700 text-white rounded-lg shrink-0 transition-colors"
-            >
-              Sign In
-            </button>
-          </div>
-        ) : null}
 
         {/* Global Quick Add Action */}
         <button
@@ -2842,31 +2802,133 @@ export default function App() {
           </div>
         )}
 
-        {/* Sync & Backup Status Footer */}
-        <div className="mt-auto pt-4 border-t border-slate-100 dark:border-[#222225] flex flex-col gap-2 text-[11px] text-slate-400 dark:text-[#52525b]">
-          <div className="flex items-center justify-between">
-            <span className="flex items-center gap-1.5" title="Continuously backed up day-wise in local storage & cloud">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>{session ? 'Cloud Sync & Backup Active' : 'Daily Local Backup Active'}</span>
-            </span>
-            <span className="font-mono">v2.4</span>
+        {/* User Session Controls Popover (Sidebar Bottom-Left Convention) */}
+        <div className="mt-auto pt-3 border-t border-slate-100 dark:border-white/[0.08]">
+          <div className="relative" ref={sidebarUserMenuRef}>
+            {session?.user ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setIsSidebarUserMenuOpen(!isSidebarUserMenuOpen)}
+                  className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/[0.06] border border-transparent hover:border-slate-200/80 dark:hover:border-white/[0.08] transition-all text-left group"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="relative shrink-0">
+                      {session.user.user_metadata?.avatar_url ? (
+                        <img
+                          src={session.user.user_metadata.avatar_url}
+                          alt={displayName}
+                          className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-white/[0.12]"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-rose-500 via-pink-500 to-indigo-500 text-white font-bold text-xs flex items-center justify-center uppercase shadow-2xs">
+                          {displayName.charAt(0)}
+                        </div>
+                      )}
+                      <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#0f172a]" title="Online & Synced" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-semibold text-slate-900 dark:text-zinc-100 truncate group-hover:text-rose-500 dark:group-hover:text-rose-400 transition-colors">
+                        {displayName}
+                      </p>
+                      <p className="text-[10px] text-slate-400 dark:text-zinc-500 truncate font-mono">
+                        {userEmail}
+                      </p>
+                    </div>
+                  </div>
+                  <MoreHorizontal className="w-4 h-4 text-slate-400 dark:text-zinc-500 group-hover:text-slate-700 dark:group-hover:text-zinc-300 shrink-0" />
+                </button>
+
+                {/* Popover Menu above footer */}
+                {isSidebarUserMenuOpen && (
+                  <div className="absolute bottom-full left-0 mb-2 w-full bg-white dark:bg-[#121216] border border-slate-200 dark:border-white/[0.08] rounded-2xl shadow-2xl p-1.5 z-50 animate-in fade-in zoom-in-95 duration-100 text-xs">
+                    <div className="px-3 py-2 border-b border-slate-100 dark:border-white/[0.08]">
+                      <p className="font-semibold text-slate-900 dark:text-zinc-100 truncate">{displayName}</p>
+                      <p className="text-[10px] text-slate-500 dark:text-zinc-400 truncate font-mono">{userEmail}</p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        setIsSidebarUserMenuOpen(false);
+                        showToast('Syncing with Supabase Cloud...');
+                        await flushSyncQueue(session.user.id);
+                        if (tasks.length > 0) {
+                          for (const t of tasks) {
+                            await upsertTaskToCloud(t, session.user.id);
+                          }
+                        }
+                        showToast('Cloud sync complete!');
+                      }}
+                      className="w-full px-3 py-2 text-left rounded-lg text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-white/[0.06] flex items-center gap-2 transition-colors font-medium"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5 text-emerald-500" />
+                      <span>Sync Cloud Database</span>
+                    </button>
+
+                    <div className="my-1 border-t border-slate-100 dark:border-white/[0.08]" />
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsSidebarUserMenuOpen(false);
+                        handleSignOut();
+                      }}
+                      className="w-full px-3 py-2 text-left rounded-lg text-slate-700 dark:text-zinc-300 hover:bg-red-500/10 hover:text-red-400 flex items-center gap-2 transition-colors font-medium"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      <span>Sign out</span>
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : isGuest ? (
+              <div className="p-2 rounded-xl bg-amber-50/80 dark:bg-amber-950/20 border border-amber-200/70 dark:border-amber-900/40 flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-amber-700 dark:text-amber-400">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                    <span>Guest Sandbox</span>
+                  </div>
+                  <p className="text-[9px] text-amber-600/80 dark:text-amber-400/80 mt-0.5 truncate">
+                    Local storage only
+                  </p>
+                </div>
+                <button
+                  onClick={() => { setAuthMode('login'); setShowAuthModal(true); }}
+                  className="px-2 py-1 text-[10px] font-bold bg-amber-600 hover:bg-amber-700 text-white rounded-lg shrink-0 transition-colors"
+                >
+                  Sign In
+                </button>
+              </div>
+            ) : null}
           </div>
-          <div className="flex items-center gap-2.5 text-[10px] text-slate-400 dark:text-slate-500">
-            <button
-              type="button"
-              onClick={() => { setLegalRoute('privacy'); window.history.pushState({}, '', '/privacy'); }}
-              className="hover:underline hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
-            >
-              Privacy Policy
-            </button>
-            <span>•</span>
-            <button
-              type="button"
-              onClick={() => { setLegalRoute('terms'); window.history.pushState({}, '', '/terms'); }}
-              className="hover:underline hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
-            >
-              Terms of Service
-            </button>
+
+          {/* Sync & Legal Links */}
+          <div className="pt-2 flex flex-col gap-1 text-[11px] text-slate-400 dark:text-[#52525b]">
+            <div className="flex items-center justify-between text-[10px]">
+              <span className="flex items-center gap-1" title="Continuously backed up day-wise in local storage & cloud">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>{session ? 'Cloud Sync Active' : 'Daily Local Backup Active'}</span>
+              </span>
+              <span className="font-mono text-[10px]">v2.4</span>
+            </div>
+            <div className="flex items-center gap-2 text-[10px] text-slate-400 dark:text-slate-500">
+              <button
+                type="button"
+                onClick={() => { setLegalRoute('privacy'); window.history.pushState({}, '', '/privacy'); }}
+                className="hover:underline hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
+              >
+                Privacy Policy
+              </button>
+              <span>•</span>
+              <button
+                type="button"
+                onClick={() => { setLegalRoute('terms'); window.history.pushState({}, '', '/terms'); }}
+                className="hover:underline hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
+              >
+                Terms of Service
+              </button>
+            </div>
           </div>
         </div>
       </aside>
@@ -3029,46 +3091,110 @@ export default function App() {
               )}
             </div>
 
-            {/* Header User Identity Badge & Cloud Sync Action */}
-            {session?.user ? (
-              <div className="hidden xl:flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={async () => {
-                    showToast('Syncing with Supabase Cloud...');
-                    await flushSyncQueue(session.user.id);
-                    if (tasks.length > 0) {
-                      for (const t of tasks) {
-                        await upsertTaskToCloud(t, session.user.id);
-                      }
-                    }
-                    showToast('Cloud sync complete! All tasks up to date.');
-                  }}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/30 dark:hover:bg-emerald-950/50 border border-emerald-200/80 dark:border-emerald-800/40 text-emerald-700 dark:text-emerald-400 text-xs font-bold transition-all cursor-pointer shadow-2xs"
-                  title="Click to force an immediate 2-way cloud sync across your devices"
-                >
-                  <RefreshCw className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                  <span className="text-[11px]">Sync Cloud</span>
-                </button>
-                <div
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-[#121a2b] border border-slate-200/80 dark:border-[#22304e]"
-                  title={`Signed in as ${displayName} (${userEmail})`}
-                >
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Logged in as</span>
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 max-w-[130px] truncate">
-                    {displayName}
-                  </span>
+            {/* Topbar User Avatar Pill & Session Dropdown (Top-Right Convention) */}
+            <div className="relative" ref={topbarUserMenuRef}>
+              {session?.user ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setIsTopbarUserMenuOpen(!isTopbarUserMenuOpen)}
+                    className="flex items-center gap-2 pl-1.5 pr-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200/80 dark:bg-white/[0.06] dark:hover:bg-white/[0.1] border border-slate-200/80 dark:border-white/[0.08] transition-all text-xs group cursor-pointer shadow-2xs"
+                    title={`Account: ${displayName} (${userEmail})`}
+                  >
+                    <div className="relative shrink-0">
+                      {session.user.user_metadata?.avatar_url ? (
+                        <img
+                          src={session.user.user_metadata.avatar_url}
+                          alt={displayName}
+                          className="w-6 h-6 rounded-full object-cover border border-slate-200 dark:border-white/[0.12]"
+                        />
+                      ) : (
+                        <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-rose-500 via-pink-500 to-indigo-500 text-white font-bold text-[10px] flex items-center justify-center uppercase shadow-2xs">
+                          {displayName.charAt(0)}
+                        </div>
+                      )}
+                      <span className="absolute -bottom-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-1 ring-white dark:ring-[#0f172a]" />
+                    </div>
+                    <span className="hidden sm:inline font-semibold text-slate-800 dark:text-zinc-200 max-w-[120px] truncate">
+                      {displayName}
+                    </span>
+                    <ChevronDown className={`w-3.5 h-3.5 text-slate-400 dark:text-zinc-500 group-hover:text-slate-700 dark:group-hover:text-zinc-300 transition-transform ${isTopbarUserMenuOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {/* Top-Right Dropdown Menu */}
+                  {isTopbarUserMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-[#121216] border border-slate-200 dark:border-white/[0.08] rounded-2xl shadow-2xl p-1.5 z-50 animate-in fade-in zoom-in-95 duration-100 text-xs">
+                      {/* Identity Header */}
+                      <div className="px-3 py-2.5 border-b border-slate-100 dark:border-white/[0.08]">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                            Signed in
+                          </span>
+                        </div>
+                        <p className="font-semibold text-slate-900 dark:text-zinc-100 truncate" title={displayName}>
+                          {displayName}
+                        </p>
+                        <p className="text-[10px] text-slate-500 dark:text-zinc-400 truncate font-mono" title={userEmail}>
+                          {userEmail}
+                        </p>
+                      </div>
+
+                      {/* Cloud Sync Quick Action */}
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          setIsTopbarUserMenuOpen(false);
+                          showToast('Syncing with Supabase Cloud...');
+                          await flushSyncQueue(session.user.id);
+                          if (tasks.length > 0) {
+                            for (const t of tasks) {
+                              await upsertTaskToCloud(t, session.user.id);
+                            }
+                          }
+                          showToast('Cloud sync complete!');
+                        }}
+                        className="w-full px-3 py-2 text-left rounded-lg text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-white/[0.06] flex items-center justify-between transition-colors font-medium mt-1"
+                      >
+                        <div className="flex items-center gap-2">
+                          <RefreshCw className="w-3.5 h-3.5 text-emerald-500" />
+                          <span>Sync Cloud Database</span>
+                        </div>
+                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">Active</span>
+                      </button>
+
+                      <div className="my-1 border-t border-slate-100 dark:border-white/[0.08]" />
+
+                      {/* Sign out Action with Subtle Destructive Hover */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsTopbarUserMenuOpen(false);
+                          handleSignOut();
+                        }}
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-600 dark:text-zinc-300 hover:bg-red-500/10 hover:text-red-400 transition-colors font-medium"
+                      >
+                        <LogOut className="w-3.5 h-3.5" />
+                        <span>Sign out</span>
+                      </button>
+                    </div>
+                  )}
+                </>
+              ) : isGuest ? (
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/40 text-[11px] font-semibold text-amber-700 dark:text-amber-400">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                    <span>Guest Mode</span>
+                  </div>
+                  <button
+                    onClick={() => { setAuthMode('login'); setShowAuthModal(true); }}
+                    className="px-3 py-1 text-xs font-semibold rounded-full bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200 transition-colors"
+                  >
+                    Sign In
+                  </button>
                 </div>
-              </div>
-            ) : isGuest ? (
-              <div
-                className="hidden xl:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/40 text-[11px] font-bold text-amber-700 dark:text-amber-400"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                <span>Guest Mode</span>
-              </div>
-            ) : null}
+              ) : null}
+            </div>
 
             {/* Quick Add Button Header */}
             <button

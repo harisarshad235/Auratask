@@ -21,12 +21,12 @@ export default function LandingPage({
   const [activeTemplateTab, setActiveTemplateTab] = useState('All');
 
   const templates = [
-    { title: 'Engineering Sprint & Backlog', category: 'Work', tasks: 12, icon: '💻', color: 'bg-neutral-100 text-neutral-800 dark:bg-[#121214] dark:text-[#ededed]' },
-    { title: 'Product Launch & GTM Plan', category: 'Work', tasks: 18, icon: '🚀', color: 'bg-neutral-100 text-neutral-800 dark:bg-[#121214] dark:text-[#ededed]' },
-    { title: 'Personal Habit & Goal Tracker', category: 'Personal', tasks: 7, icon: '🌱', color: 'bg-neutral-100 text-neutral-800 dark:bg-[#121214] dark:text-[#ededed]' },
-    { title: 'Weekly Deep Work & Time Boxing', category: 'Personal', tasks: 5, icon: '⏱️', color: 'bg-neutral-100 text-neutral-800 dark:bg-[#121214] dark:text-[#ededed]' },
-    { title: 'Design System & Component Sprint', category: 'Work', tasks: 14, icon: '🎨', color: 'bg-neutral-100 text-neutral-800 dark:bg-[#121214] dark:text-[#ededed]' },
-    { title: 'Daily Shutdown & Evening Ritual', category: 'Personal', tasks: 4, icon: '🌙', color: 'bg-neutral-100 text-neutral-800 dark:bg-[#121214] dark:text-[#ededed]' }
+    { title: 'Engineering Sprint & Backlog', category: 'Work', tasks: 12, icon: '💻' },
+    { title: 'Product Launch & GTM Plan', category: 'Work', tasks: 18, icon: '🚀' },
+    { title: 'Personal Habit & Goal Tracker', category: 'Personal', tasks: 7, icon: '🌱' },
+    { title: 'Weekly Deep Work & Time Boxing', category: 'Personal', tasks: 5, icon: '⏱️' },
+    { title: 'Design System & Component Sprint', category: 'Work', tasks: 14, icon: '🎨' },
+    { title: 'Daily Shutdown & Evening Ritual', category: 'Personal', tasks: 4, icon: '🌙' }
   ];
 
   const filteredTemplates = activeTemplateTab === 'All'
@@ -34,24 +34,24 @@ export default function LandingPage({
     : templates.filter(t => t.category === activeTemplateTab);
 
   return (
-    <div className={`min-h-screen selection:bg-red-500 selection:text-white ${darkMode ? 'dark bg-[#151821] text-[#e3e6ee]' : 'bg-[#fafafa] text-neutral-900'}`}>
+    <div className={`min-h-screen selection:bg-rose-500 selection:text-white ${darkMode ? 'dark bg-[#09090b] text-zinc-100' : 'bg-[#fafafa] text-neutral-900'}`}>
       
       {/* =========================================================================
-          1. TOP NAVIGATION BAR (Eye-Comfort Slate Aesthetic)
+          1. TOP NAVIGATION BAR (Obsidian High-Contrast Aesthetic)
          ========================================================================= */}
-      <header className="sticky top-0 z-40 w-full border-b border-neutral-200/80 dark:border-[#31384c] bg-[#fafafa]/80 dark:bg-[#151821]/80 backdrop-blur-md transition-colors">
+      <header className="sticky top-0 z-40 w-full border-b border-neutral-200/80 dark:border-white/[0.08] bg-[#fafafa]/80 dark:bg-[#09090b]/80 backdrop-blur-md transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Logo & Brand */}
           <div className="flex items-center gap-6">
             <Logo onClick={hasActiveSession && onOpenApp ? onOpenApp : onTryDemo} href="/" />
 
             {/* Nav Links */}
-            <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-neutral-600 dark:text-[#a1a1aa]">
-              <a href="#purpose" className="hover:text-neutral-900 dark:hover:text-[#ededed] transition-colors">App Purpose</a>
-              <a href="#features" className="hover:text-neutral-900 dark:hover:text-[#ededed] transition-colors">Features</a>
-              <a href="#scratchpad" className="hover:text-neutral-900 dark:hover:text-[#ededed] transition-colors">Meeting Scratchpad</a>
-              <a href="#calendar-view" className="hover:text-neutral-900 dark:hover:text-[#ededed] transition-colors">7-Day Horizon</a>
-              <a href="#workflow-suite" className="hover:text-neutral-900 dark:hover:text-[#ededed] transition-colors">Workflow Tools</a>
+            <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-neutral-600 dark:text-zinc-400">
+              <a href="#purpose" className="hover:text-neutral-900 dark:hover:text-zinc-100 transition-colors">App Purpose</a>
+              <a href="#features" className="hover:text-neutral-900 dark:hover:text-zinc-100 transition-colors">Features</a>
+              <a href="#scratchpad" className="hover:text-neutral-900 dark:hover:text-zinc-100 transition-colors">Meeting Scratchpad</a>
+              <a href="#calendar-view" className="hover:text-neutral-900 dark:hover:text-zinc-100 transition-colors">7-Day Horizon</a>
+              <a href="#workflow-suite" className="hover:text-neutral-900 dark:hover:text-zinc-100 transition-colors">Workflow Tools</a>
               <a href="/privacy" className="text-rose-600 dark:text-rose-400 font-bold hover:underline transition-colors flex items-center gap-1">
                 <Shield className="w-3.5 h-3.5" />
                 <span>Privacy Policy</span>
@@ -63,16 +63,16 @@ export default function LandingPage({
           <div className="flex items-center gap-3">
             <button
               onClick={() => setDarkMode(!darkMode)}
-              className="p-2 rounded-xl text-neutral-500 hover:text-neutral-800 dark:text-[#a1a1aa] dark:hover:text-[#ededed] hover:bg-neutral-200/50 dark:hover:bg-[#121214] transition-colors"
+              className="p-2 rounded-xl text-neutral-500 hover:text-neutral-800 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-neutral-200/50 dark:hover:bg-white/[0.06] transition-colors"
               title="Toggle Theme"
             >
-              {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
             </button>
 
             {hasActiveSession ? (
               <button
                 onClick={onOpenApp}
-                className="px-4 py-2 text-xs font-bold rounded-xl bg-red-600 hover:bg-red-700 text-white shadow-sm shadow-red-600/20 active:scale-[0.98] transition-all flex items-center gap-1.5"
+                className="px-4 py-2 text-xs font-medium rounded-full bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200 shadow-sm active:scale-[0.98] transition-all flex items-center gap-1.5"
               >
                 <span>Go to Workspace</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -81,14 +81,14 @@ export default function LandingPage({
               <>
                 <button
                   onClick={onOpenLogin}
-                  className="px-3.5 py-2 text-xs font-semibold text-neutral-700 dark:text-[#a1a1aa] hover:text-neutral-900 dark:hover:text-[#ededed] transition-colors"
+                  className="px-3.5 py-2 text-xs font-medium text-neutral-700 dark:text-zinc-400 hover:text-neutral-900 dark:hover:text-zinc-100 transition-colors"
                 >
                   Log in
                 </button>
 
                 <button
                   onClick={onStartForFree}
-                  className="px-4 py-2 text-xs font-bold rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-rose-600 dark:hover:bg-rose-500 shadow-xs transition-all active:scale-[0.98]"
+                  className="px-4 py-2 text-xs font-medium rounded-full bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200 shadow-sm transition-all active:scale-[0.98]"
                 >
                   Start for free
                 </button>
@@ -99,31 +99,36 @@ export default function LandingPage({
       </header>
 
       {/* =========================================================================
-          2. HERO SECTION: "Clarity, finally." (Fey Obsidian Style)
+          2. HERO SECTION: "Clarity, finally." (High-Contrast Obsidian Polish)
          ========================================================================= */}
-      <section className="relative pt-16 pb-20 sm:pt-24 sm:pb-28 overflow-hidden">
-        {/* Subtle Ambient Glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-gradient-to-tr from-rose-500/10 via-purple-500/5 to-transparent rounded-full blur-3xl pointer-events-none"></div>
+      <section className="relative pt-20 pb-20 sm:pt-28 sm:pb-32 overflow-hidden">
+        {/* Subtle Ambient Centered Gradient Glow */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[720px] h-[450px] bg-gradient-to-tr from-indigo-500/20 via-purple-500/15 to-rose-500/10 rounded-full blur-[120px] pointer-events-none opacity-80 dark:opacity-60" />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[420px] h-[260px] bg-indigo-500/10 rounded-full blur-[80px] pointer-events-none" />
 
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 dark:bg-[#121214] border border-slate-200 dark:border-[#222225] text-slate-700 dark:text-[#a1a1aa] text-xs font-semibold mb-6">
-            <Sparkles className="w-3.5 h-3.5 text-rose-500" />
-            <span>Tactile Task Management & Day-Wise Calendar Planning</span>
+          {/* Centered Pill Badge */}
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-neutral-100 dark:bg-white/[0.04] border border-neutral-200/80 dark:border-white/[0.08] text-neutral-700 dark:text-zinc-300 text-xs font-medium mb-7 shadow-xs">
+            <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+            <span>Tactile Task Management &amp; Day-Wise Calendar Planning</span>
           </div>
 
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-neutral-950 dark:text-[#ededed] leading-[1.08] mb-6">
+          {/* Crisp Headline */}
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-semibold tracking-tight text-neutral-950 dark:text-zinc-100 leading-[1.08] mb-6">
             Clarity, finally.
           </h1>
 
-          <p className="text-base sm:text-xl text-neutral-600 dark:text-[#a1a1aa] max-w-2xl mx-auto mb-9 font-normal leading-relaxed">
+          {/* Muted Subtitle */}
+          <p className="text-base sm:text-lg text-neutral-600 dark:text-zinc-400 max-w-2xl mx-auto mb-10 font-normal leading-relaxed">
             Organize tasks, projects, and high-velocity daily sprints. Designed with obsidian depth, tactile Kanban swimlanes, and built-in Pomodoro flow sessions.
           </p>
 
+          {/* CTAs: High-Contrast Pill Button + Ghost Border Pill */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 max-w-md mx-auto">
             {hasActiveSession ? (
               <button
                 onClick={onOpenApp}
-                className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-rose-600 dark:hover:bg-rose-500 font-extrabold text-sm shadow-md transition-all active:scale-[0.99] flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-7 py-3 rounded-full bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200 font-medium text-sm shadow-sm transition-all active:scale-[0.99] flex items-center justify-center gap-2"
               >
                 <span>Enter Your Workspace</span>
                 <ArrowRight className="w-4 h-4" />
@@ -132,14 +137,14 @@ export default function LandingPage({
               <>
                 <button
                   onClick={onStartForFree}
-                  className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-rose-600 dark:hover:bg-rose-500 font-extrabold text-sm shadow-md transition-all active:scale-[0.99] flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto px-7 py-3 rounded-full bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200 font-medium text-sm shadow-sm transition-all active:scale-[0.99] flex items-center justify-center gap-2"
                 >
                   <span>Start for free</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
                 <button
                   onClick={onTryDemo}
-                  className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-white dark:bg-[#121214] border border-neutral-200 dark:border-[#222225] hover:bg-neutral-50 dark:hover:bg-[#1c1c20] text-neutral-800 dark:text-[#ededed] font-bold text-sm shadow-xs flex items-center justify-center gap-2 transition-all"
+                  className="w-full sm:w-auto px-6 py-3 rounded-full bg-white dark:bg-transparent border border-neutral-200 dark:border-white/10 hover:bg-neutral-50 dark:hover:bg-white/5 text-neutral-800 dark:text-zinc-300 font-medium text-sm shadow-xs flex items-center justify-center gap-2 transition-all"
                 >
                   <span>Try Live Interactive Demo</span>
                 </button>
@@ -147,70 +152,70 @@ export default function LandingPage({
             )}
           </div>
 
-          <p className="text-[11px] text-neutral-400 dark:text-[#52525b] mt-3">
-            100% Free forever • Daily local & cloud backup • Full features included
+          <p className="text-[11px] text-neutral-400 dark:text-zinc-500 mt-4">
+            100% Free forever • Daily local &amp; cloud backup • Full features included
           </p>
 
           {/* =========================================================================
-              HERO APP MOCKUP PREVIEW (Fey Dark Style)
+              HERO APP MOCKUP PREVIEW (Obsidian Surface with Ambient Glow)
              ========================================================================= */}
-          <div className="mt-12 sm:mt-16 max-w-5xl mx-auto rounded-3xl p-2 sm:p-3 bg-gradient-to-b from-neutral-200/60 dark:from-[#222225] to-transparent shadow-2xl border border-neutral-200 dark:border-[#222225]">
-            <div className="bg-white dark:bg-[#09090b] rounded-2xl overflow-hidden border border-neutral-200/80 dark:border-[#222225] text-left">
+          <div className="mt-14 sm:mt-20 max-w-5xl mx-auto rounded-3xl p-2 sm:p-3 bg-gradient-to-b from-neutral-200/60 dark:from-white/[0.08] to-transparent shadow-[0_0_50px_-12px_rgba(99,102,241,0.15)] border border-neutral-200 dark:border-white/[0.08]">
+            <div className="bg-white dark:bg-[#09090b] rounded-2xl overflow-hidden border border-neutral-200/80 dark:border-white/[0.08] text-left">
               {/* Simulated Window Top Bar */}
-              <div className="px-4 py-2.5 bg-neutral-50 dark:bg-[#121214] border-b border-neutral-200/70 dark:border-[#222225] flex items-center justify-between">
+              <div className="px-4 py-2.5 bg-neutral-50 dark:bg-[#121216] border-b border-neutral-200/70 dark:border-white/[0.08] flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-neutral-400/80"></div>
-                  <div className="w-3 h-3 rounded-full bg-neutral-400/80"></div>
-                  <div className="w-3 h-3 rounded-full bg-neutral-400/80"></div>
-                  <span className="ml-2 text-xs font-semibold text-neutral-500 dark:text-[#a1a1aa]">Takt Command Center — Day-Wise Inbox</span>
+                  <div className="w-3 h-3 rounded-full bg-neutral-300 dark:bg-white/20"></div>
+                  <div className="w-3 h-3 rounded-full bg-neutral-300 dark:bg-white/20"></div>
+                  <div className="w-3 h-3 rounded-full bg-neutral-300 dark:bg-white/20"></div>
+                  <span className="ml-2 text-xs font-medium text-neutral-500 dark:text-zinc-400">Takt Command Center — Day-Wise Inbox</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-[#0d261a] dark:text-emerald-400 border border-transparent dark:border-emerald-500/20">
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-transparent dark:border-emerald-500/20">
                     Live Demo Ready
                   </span>
                 </div>
               </div>
 
               {/* Simulated Kanban & List Preview Grid */}
-              <div className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-3 gap-4 bg-neutral-50/50 dark:bg-[#1c202c]">
+              <div className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-3 gap-4 bg-neutral-50/50 dark:bg-[#09090b]">
                 {/* Stage 1: To Do */}
-                <div className="bg-white dark:bg-[#09090b] border border-neutral-200 dark:border-[#222225] rounded-xl p-3 space-y-2.5">
-                  <div className="flex items-center justify-between text-xs font-bold text-neutral-700 dark:text-[#ededed]">
-                    <span className="flex items-center gap-1.5"><Layers className="w-3.5 h-3.5 text-neutral-400" /> To Do</span>
-                    <span className="text-[11px] font-mono text-neutral-400">2</span>
+                <div className="bg-white dark:bg-[#121216] border border-neutral-200 dark:border-white/[0.08] rounded-xl p-3.5 space-y-2.5 shadow-sm">
+                  <div className="flex items-center justify-between text-xs font-semibold text-neutral-700 dark:text-zinc-200">
+                    <span className="flex items-center gap-1.5"><Layers className="w-3.5 h-3.5 text-neutral-400 dark:text-zinc-500" /> To Do</span>
+                    <span className="text-[11px] font-mono text-neutral-400 dark:text-zinc-500">2</span>
                   </div>
-                  <div className="p-2.5 bg-neutral-50 dark:bg-[#121214] border border-neutral-200/80 dark:border-[#222225] rounded-lg">
-                    <div className="flex items-center gap-2 text-xs font-semibold text-neutral-900 dark:text-[#ededed]">
-                      <Circle className="w-3.5 h-3.5 text-neutral-400" />
-                      <span>Review API architecture & database indexes</span>
+                  <div className="p-2.5 bg-neutral-50 dark:bg-[#18181b]/80 border border-neutral-200/80 dark:border-white/[0.08] rounded-lg">
+                    <div className="flex items-center gap-2 text-xs font-medium text-neutral-900 dark:text-zinc-200">
+                      <Circle className="w-3.5 h-3.5 text-neutral-400 dark:text-zinc-500" />
+                      <span>Review API architecture &amp; indexes</span>
                     </div>
                     <div className="flex items-center gap-2 mt-2">
-                      <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-red-100 dark:bg-[#2a1215] text-red-600 dark:text-red-400">P1</span>
-                      <span className="text-[9px] text-neutral-400">#Engineering</span>
+                      <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-red-100 dark:bg-red-950/50 text-red-600 dark:text-red-400 border border-transparent dark:border-red-500/20">P1</span>
+                      <span className="text-[9px] text-neutral-400 dark:text-zinc-500 font-mono">#Engineering</span>
                     </div>
                   </div>
-                  <div className="p-2.5 bg-neutral-50 dark:bg-[#121214] border border-neutral-200/80 dark:border-[#222225] rounded-lg">
-                    <div className="flex items-center gap-2 text-xs font-semibold text-neutral-900 dark:text-[#ededed]">
-                      <Circle className="w-3.5 h-3.5 text-neutral-400" />
+                  <div className="p-2.5 bg-neutral-50 dark:bg-[#18181b]/80 border border-neutral-200/80 dark:border-white/[0.08] rounded-lg">
+                    <div className="flex items-center gap-2 text-xs font-medium text-neutral-900 dark:text-zinc-200">
+                      <Circle className="w-3.5 h-3.5 text-neutral-400 dark:text-zinc-500" />
                       <span>Prepare release changelog notes</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Stage 2: In Progress */}
-                <div className="bg-white dark:bg-[#09090b] border border-neutral-200 dark:border-[#222225] rounded-xl p-3 space-y-2.5">
-                  <div className="flex items-center justify-between text-xs font-bold text-amber-600 dark:text-amber-400">
+                <div className="bg-white dark:bg-[#121216] border border-neutral-200 dark:border-white/[0.08] rounded-xl p-3.5 space-y-2.5 shadow-sm">
+                  <div className="flex items-center justify-between text-xs font-semibold text-amber-600 dark:text-amber-400">
                     <span className="flex items-center gap-1.5"><Flame className="w-3.5 h-3.5" /> In Progress</span>
-                    <span className="text-[11px] font-mono text-neutral-400">1</span>
+                    <span className="text-[11px] font-mono text-neutral-400 dark:text-zinc-500">1</span>
                   </div>
-                  <div className="p-2.5 bg-neutral-50 dark:bg-[#121214] border border-amber-300 dark:border-amber-500/30 rounded-lg shadow-xs">
-                    <div className="flex items-center gap-2 text-xs font-semibold text-neutral-900 dark:text-[#ededed]">
+                  <div className="p-2.5 bg-neutral-50 dark:bg-[#18181b]/80 border border-amber-300/80 dark:border-amber-500/30 rounded-lg shadow-xs">
+                    <div className="flex items-center gap-2 text-xs font-medium text-neutral-900 dark:text-zinc-200">
                       <Circle className="w-3.5 h-3.5 text-amber-500" />
                       <span>Design tactile Obsidian dark theme</span>
                     </div>
                     <div className="flex items-center gap-2 mt-2">
-                      <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-100 dark:bg-[#281a0b] text-amber-600 dark:text-amber-400">P2</span>
-                      <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-0.5">
+                      <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-100 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 border border-transparent dark:border-amber-500/20">P2</span>
+                      <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-0.5">
                         <Flame className="w-2.5 h-2.5" /> 25m Focus
                       </span>
                     </div>
@@ -218,14 +223,14 @@ export default function LandingPage({
                 </div>
 
                 {/* Stage 3: Completed */}
-                <div className="bg-white dark:bg-[#09090b] border border-neutral-200 dark:border-[#222225] rounded-xl p-3 space-y-2.5">
-                  <div className="flex items-center justify-between text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                <div className="bg-white dark:bg-[#121216] border border-neutral-200 dark:border-white/[0.08] rounded-xl p-3.5 space-y-2.5 shadow-sm">
+                  <div className="flex items-center justify-between text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                     <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> Completed</span>
-                    <span className="text-[11px] font-mono text-neutral-400">1</span>
+                    <span className="text-[11px] font-mono text-neutral-400 dark:text-zinc-500">1</span>
                   </div>
-                  <div className="p-2.5 bg-neutral-50 dark:bg-[#121214] border border-neutral-200/80 dark:border-[#22304e] rounded-lg opacity-80">
-                    <div className="flex items-center gap-2 text-xs font-semibold line-through text-neutral-400 dark:text-[#52525b]">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 fill-emerald-50 dark:fill-[#0d261a]" />
+                  <div className="p-2.5 bg-neutral-50 dark:bg-[#18181b]/80 border border-neutral-200/80 dark:border-white/[0.08] rounded-lg opacity-80">
+                    <div className="flex items-center gap-2 text-xs font-medium line-through text-neutral-400 dark:text-zinc-500">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 fill-emerald-50 dark:fill-emerald-950/40" />
                       <span>Automated daily database backup snapshots</span>
                     </div>
                   </div>
@@ -239,41 +244,41 @@ export default function LandingPage({
       {/* =========================================================================
           2.5 APPLICATION PURPOSE & GOOGLE DATA TRANSPARENCY (Google OAuth Compliance)
          ========================================================================= */}
-      <section id="purpose" className="py-20 border-t border-neutral-200/60 dark:border-[#222225] bg-neutral-50/70 dark:bg-[#10131b]">
+      <section id="purpose" className="py-20 border-t border-neutral-200/60 dark:border-white/[0.08] bg-neutral-50/70 dark:bg-[#0c0c0e]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="text-center max-w-3xl mx-auto mb-14">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-50 dark:bg-[#2a1215] border border-rose-200/80 dark:border-rose-900/40 text-rose-700 dark:text-rose-400 text-xs font-bold mb-4">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rose-50 dark:bg-rose-950/30 border border-rose-200/80 dark:border-rose-900/40 text-rose-700 dark:text-rose-400 text-xs font-semibold mb-4">
               <Shield className="w-3.5 h-3.5" />
               <span>Verified App Purpose &amp; Privacy Transparency</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-neutral-900 dark:text-[#ededed] mb-4">
+            <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-neutral-900 dark:text-zinc-100 mb-4">
               Application Purpose &amp; Google Data Transparency
             </h2>
-            <p className="text-sm sm:text-base text-neutral-600 dark:text-[#a1a1aa] leading-relaxed">
+            <p className="text-sm sm:text-base text-neutral-600 dark:text-zinc-400 leading-relaxed">
               Takt is an open, privacy-first workspace engineered by <strong>Haris Arshad</strong>. We believe in complete transparency regarding what our application does, why we request sign-in, and how your data is protected.
             </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch mb-10">
             {/* Column 1: Application Purpose & Core Functionality */}
-            <div className="p-7 rounded-3xl bg-white dark:bg-[#151821] border border-neutral-200/80 dark:border-[#22304e] shadow-lg flex flex-col justify-between">
+            <div className="p-7 rounded-3xl bg-white dark:bg-[#121216] border border-neutral-200/80 dark:border-white/[0.08] shadow-[0_0_50px_-12px_rgba(99,102,241,0.15)] flex flex-col justify-between">
               <div>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-2xl bg-rose-50 dark:bg-[#2a1215] text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold">
+                  <div className="w-10 h-10 rounded-2xl bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold">
                     <Target className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="font-extrabold text-lg text-neutral-900 dark:text-[#ededed]">
+                    <h3 className="font-semibold text-lg text-neutral-900 dark:text-zinc-100">
                       Application Purpose &amp; Functionality
                     </h3>
-                    <p className="text-xs text-neutral-500 dark:text-[#919bb0]">
+                    <p className="text-xs text-neutral-500 dark:text-zinc-500">
                       What Takt is and what it allows you to accomplish
                     </p>
                   </div>
                 </div>
 
-                <p className="text-xs sm:text-sm text-neutral-600 dark:text-[#a1a1aa] leading-relaxed mb-5">
+                <p className="text-xs sm:text-sm text-neutral-600 dark:text-zinc-400 leading-relaxed mb-5">
                   <strong>Takt</strong> (<a href="https://takt.harisarshad.site/" className="text-rose-600 dark:text-rose-400 font-semibold underline">https://takt.harisarshad.site/</a>) is a high-velocity productivity command center, Kanban cadence workspace, and personal focus manager. Its primary purpose is to help knowledge workers, developers, and teams plan and execute work with zero cognitive overload.
                 </p>
 
@@ -300,10 +305,10 @@ export default function LandingPage({
                       desc: 'Run 25-minute deep work intervals directly on tasks to maintain unbroken flow state.'
                     }
                   ].map((f, i) => (
-                    <div key={i} className="flex items-start gap-2.5 text-xs text-neutral-600 dark:text-[#a1a1aa]">
+                    <div key={i} className="flex items-start gap-2.5 text-xs text-neutral-600 dark:text-zinc-400">
                       <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
                       <div>
-                        <strong className="text-neutral-900 dark:text-[#ededed] font-bold">{f.title}: </strong>
+                        <strong className="text-neutral-900 dark:text-zinc-200 font-semibold">{f.title}: </strong>
                         <span>{f.desc}</span>
                       </div>
                     </div>
@@ -311,11 +316,11 @@ export default function LandingPage({
                 </div>
               </div>
 
-              <div className="mt-6 pt-5 border-t border-neutral-100 dark:border-[#22304e] flex items-center justify-between text-xs">
-                <span className="text-neutral-500 dark:text-[#919bb0]">Publicly accessible with zero login barriers</span>
+              <div className="mt-6 pt-5 border-t border-neutral-100 dark:border-white/[0.08] flex items-center justify-between text-xs">
+                <span className="text-neutral-500 dark:text-zinc-500">Publicly accessible with zero login barriers</span>
                 <button
                   onClick={onTryDemo}
-                  className="font-bold text-rose-600 dark:text-rose-400 hover:underline flex items-center gap-1"
+                  className="font-semibold text-rose-600 dark:text-rose-400 hover:underline flex items-center gap-1"
                 >
                   <span>Explore Demo Sandbox</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -324,49 +329,49 @@ export default function LandingPage({
             </div>
 
             {/* Column 2: Why Takt Requests Google User Data & Compliance */}
-            <div className="p-7 rounded-3xl bg-white dark:bg-[#151821] border border-neutral-200/80 dark:border-[#22304e] shadow-lg flex flex-col justify-between">
+            <div className="p-7 rounded-3xl bg-white dark:bg-[#121216] border border-neutral-200/80 dark:border-white/[0.08] shadow-[0_0_50px_-12px_rgba(99,102,241,0.15)] flex flex-col justify-between">
               <div>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-[#0e2138] text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
+                  <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
                     <Lock className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="font-extrabold text-lg text-neutral-900 dark:text-[#ededed]">
+                    <h3 className="font-semibold text-lg text-neutral-900 dark:text-zinc-100">
                       Why Takt Requests Google User Data
                     </h3>
-                    <p className="text-xs text-neutral-500 dark:text-[#919bb0]">
+                    <p className="text-xs text-neutral-500 dark:text-zinc-500">
                       Transparent explanation of Google OAuth 2.0 integration
                     </p>
                   </div>
                 </div>
 
-                <p className="text-xs sm:text-sm text-neutral-600 dark:text-[#a1a1aa] leading-relaxed mb-4">
+                <p className="text-xs sm:text-sm text-neutral-600 dark:text-zinc-400 leading-relaxed mb-4">
                   When you sign in using Google Single Sign-On (SSO), we request access exclusively to basic profile identity. We request this data solely to authenticate your session and sync your personal tasks securely across devices.
                 </p>
 
                 {/* Scope Table */}
-                <div className="overflow-hidden rounded-xl border border-neutral-200 dark:border-[#22304e] mb-4 text-xs">
+                <div className="overflow-hidden rounded-xl border border-neutral-200 dark:border-white/[0.08] mb-4 text-xs">
                   <table className="w-full text-left">
-                    <thead className="bg-neutral-50 dark:bg-[#1c2233] text-neutral-700 dark:text-[#ededed] font-bold">
+                    <thead className="bg-neutral-50 dark:bg-white/[0.04] text-neutral-700 dark:text-zinc-200 font-semibold">
                       <tr>
-                        <th className="p-2.5 border-b border-neutral-200 dark:border-[#22304e]">Scope</th>
-                        <th className="p-2.5 border-b border-neutral-200 dark:border-[#22304e]">Data Received</th>
-                        <th className="p-2.5 border-b border-neutral-200 dark:border-[#22304e]">Purpose in Takt</th>
+                        <th className="p-2.5 border-b border-neutral-200 dark:border-white/[0.08]">Scope</th>
+                        <th className="p-2.5 border-b border-neutral-200 dark:border-white/[0.08]">Data Received</th>
+                        <th className="p-2.5 border-b border-neutral-200 dark:border-white/[0.08]">Purpose in Takt</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-neutral-100 dark:divide-[#22304e] text-neutral-600 dark:text-[#a1a1aa]">
+                    <tbody className="divide-y divide-neutral-100 dark:divide-white/[0.08] text-neutral-600 dark:text-zinc-400">
                       <tr>
-                        <td className="p-2.5 font-mono text-[11px] text-neutral-800 dark:text-neutral-300">openid</td>
+                        <td className="p-2.5 font-mono text-[11px] text-neutral-800 dark:text-zinc-300">openid</td>
                         <td className="p-2.5">User ID</td>
                         <td className="p-2.5">Unique cryptographic key to isolate tasks via Postgres Row Level Security.</td>
                       </tr>
                       <tr>
-                        <td className="p-2.5 font-mono text-[11px] text-neutral-800 dark:text-neutral-300">userinfo.email</td>
+                        <td className="p-2.5 font-mono text-[11px] text-neutral-800 dark:text-zinc-300">userinfo.email</td>
                         <td className="p-2.5">Email address</td>
                         <td className="p-2.5">To verify your account, ensure multi-device sync, and send security alerts.</td>
                       </tr>
                       <tr>
-                        <td className="p-2.5 font-mono text-[11px] text-neutral-800 dark:text-neutral-300">userinfo.profile</td>
+                        <td className="p-2.5 font-mono text-[11px] text-neutral-800 dark:text-zinc-300">userinfo.profile</td>
                         <td className="p-2.5">Name &amp; Avatar</td>
                         <td className="p-2.5">To display your identity in the workspace and attribute task comments.</td>
                       </tr>
@@ -375,19 +380,19 @@ export default function LandingPage({
                 </div>
 
                 {/* Non-access Callout */}
-                <div className="p-3.5 rounded-xl bg-neutral-50 dark:bg-[#1c2233] border border-neutral-200/80 dark:border-[#22304e] text-xs space-y-1.5">
-                  <div className="font-bold text-neutral-900 dark:text-[#ededed] flex items-center gap-1.5">
+                <div className="p-3.5 rounded-xl bg-neutral-50 dark:bg-white/[0.04] border border-neutral-200/80 dark:border-white/[0.08] text-xs space-y-1.5">
+                  <div className="font-semibold text-neutral-900 dark:text-zinc-200 flex items-center gap-1.5">
                     <Shield className="w-3.5 h-3.5 text-rose-500" />
                     <span>Zero Access to Sensitive Google Data</span>
                   </div>
-                  <p className="text-[11px] text-neutral-500 dark:text-[#919bb0]">
+                  <p className="text-[11px] text-neutral-500 dark:text-zinc-400">
                     Takt does <strong>NOT</strong> request, access, read, or store your Gmail messages, Google Drive documents, Calendar entries, or contacts.
                   </p>
                 </div>
               </div>
 
               {/* Limited Use Box */}
-              <div className="mt-4 pt-4 border-t border-neutral-100 dark:border-[#22304e] text-[11px] text-neutral-500 dark:text-[#919bb0] space-y-1">
+              <div className="mt-4 pt-4 border-t border-neutral-100 dark:border-white/[0.08] text-[11px] text-neutral-500 dark:text-zinc-500 space-y-1">
                 <p>
                   <strong>Google Limited Use Compliance:</strong> Takt’s use and transfer to any other app of information received from Google APIs adheres to the <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener noreferrer" className="text-rose-600 dark:text-rose-400 underline">Google API Services User Data Policy</a>, including the Limited Use requirements.
                 </p>
@@ -397,28 +402,28 @@ export default function LandingPage({
           </div>
 
           {/* Banner with Links to Privacy Policy & Data Deletion */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#151821] border border-neutral-200/80 dark:border-[#22304e] shadow-md flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#121216] border border-neutral-200/80 dark:border-white/[0.08] shadow-[0_0_50px_-12px_rgba(99,102,241,0.15)] flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="space-y-1 text-center md:text-left">
-              <h4 className="text-base font-bold text-neutral-900 dark:text-[#ededed] flex items-center justify-center md:justify-start gap-2">
+              <h4 className="text-base font-semibold text-neutral-900 dark:text-zinc-100 flex items-center justify-center md:justify-start gap-2">
                 <FileText className="w-4 h-4 text-rose-500" />
                 <span>Your Data Ownership &amp; Right to Deletion</span>
               </h4>
-              <p className="text-xs text-neutral-500 dark:text-[#a1a1aa] max-w-2xl">
-                You retain 100% ownership of your tasks and notes. You can delete items at any time in-app, revoke Google access via your Google Account settings, or request permanent cloud account deletion by emailing <a href="mailto:harisengr73@gmail.com" className="text-rose-600 dark:text-rose-400 font-bold underline">harisengr73@gmail.com</a> (processed within 7 business days).
+              <p className="text-xs text-neutral-500 dark:text-zinc-400 max-w-2xl">
+                You retain 100% ownership of your tasks and notes. You can delete items at any time in-app, revoke Google access via your Google Account settings, or request permanent cloud account deletion by emailing <a href="mailto:harisengr73@gmail.com" className="text-rose-600 dark:text-rose-400 font-semibold underline">harisengr73@gmail.com</a> (processed within 7 business days).
               </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-3 shrink-0">
               <a
                 href="/privacy"
-                className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-rose-600 dark:hover:bg-rose-500 font-bold text-xs shadow-xs transition-all flex items-center gap-1.5"
+                className="px-5 py-2.5 rounded-full bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200 font-medium text-xs shadow-sm transition-all flex items-center gap-1.5"
               >
                 <Shield className="w-3.5 h-3.5" />
                 <span>Read Full Privacy Policy</span>
               </a>
               <a
                 href="/terms"
-                className="px-4 py-2.5 rounded-xl bg-neutral-100 dark:bg-[#1c2233] text-neutral-700 dark:text-[#ededed] hover:bg-neutral-200 dark:hover:bg-[#222a3d] font-bold text-xs border border-neutral-200 dark:border-[#22304e] transition-all"
+                className="px-4 py-2.5 rounded-full bg-neutral-100 dark:bg-white/[0.06] text-neutral-700 dark:text-zinc-300 hover:bg-neutral-200 dark:hover:bg-white/[0.1] font-medium text-xs border border-neutral-200 dark:border-white/[0.08] transition-all"
               >
                 <span>Terms of Service</span>
               </a>
@@ -430,17 +435,17 @@ export default function LandingPage({
       {/* =========================================================================
           3. FEATURE 1: "Capture tasks at the speed of thought"
          ========================================================================= */}
-      <section id="features" className="py-20 border-t border-neutral-200/60 dark:border-[#222225]">
+      <section id="features" className="py-20 border-t border-neutral-200/60 dark:border-white/[0.08]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-4">
-              <span className="text-xs font-bold uppercase tracking-wider text-red-600 dark:text-red-400">
+              <span className="text-xs font-semibold uppercase tracking-wider text-rose-600 dark:text-rose-400">
                 Fast Capture
               </span>
-              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-neutral-900 dark:text-[#ededed]">
+              <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-neutral-900 dark:text-zinc-100">
                 Capture tasks at the speed of thought
               </h2>
-              <p className="text-sm sm:text-base text-neutral-600 dark:text-[#a1a1aa] leading-relaxed">
+              <p className="text-sm sm:text-base text-neutral-600 dark:text-zinc-400 leading-relaxed">
                 Add tasks in seconds using keyboard shortcuts, natural dates, and priority flags. The rich 2-column task detail modal gives you full control over subtasks, activity discussions, and target deadlines.
               </p>
 
@@ -450,8 +455,8 @@ export default function LandingPage({
                   'P1 to P4 flag priorities with clean monochrome obsidian contrast',
                   'Custom tags and sections with automatic task categorization'
                 ].map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-2.5 text-xs sm:text-sm font-semibold text-neutral-700 dark:text-[#ededed]">
-                    <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 stroke-[3]" />
+                  <div key={idx} className="flex items-center gap-2.5 text-xs sm:text-sm font-medium text-neutral-700 dark:text-zinc-300">
+                    <Check className="w-4 h-4 text-emerald-500 stroke-[3]" />
                     <span>{item}</span>
                   </div>
                 ))}
@@ -459,29 +464,29 @@ export default function LandingPage({
             </div>
 
             {/* Visual representation */}
-            <div className="bg-white dark:bg-[#09090b] border border-neutral-200 dark:border-[#222225] rounded-3xl p-6 shadow-xl">
-              <div className="flex items-center justify-between pb-4 border-b border-neutral-100 dark:border-[#222225]">
-                <div className="flex items-center gap-2 text-xs font-bold text-neutral-700 dark:text-[#ededed]">
-                  <Inbox className="w-4 h-4 text-red-600" />
+            <div className="bg-white dark:bg-[#121216] border border-neutral-200 dark:border-white/[0.08] rounded-3xl p-6 shadow-[0_0_50px_-12px_rgba(99,102,241,0.15)]">
+              <div className="flex items-center justify-between pb-4 border-b border-neutral-100 dark:border-white/[0.08]">
+                <div className="flex items-center gap-2 text-xs font-semibold text-neutral-700 dark:text-zinc-200">
+                  <Inbox className="w-4 h-4 text-rose-500" />
                   <span>Inbox / Quick Add</span>
                 </div>
-                <span className="text-[10px] font-mono text-neutral-400">Ctrl + N</span>
+                <span className="text-[10px] font-mono text-neutral-400 dark:text-zinc-500">Ctrl + N</span>
               </div>
               <div className="py-4 space-y-3">
                 <input
                   type="text"
                   readOnly
                   value="Launch marketing newsletter tomorrow at 10am #Marketing"
-                  className="w-full text-sm font-bold bg-neutral-50 dark:bg-[#121214] border border-neutral-200 dark:border-[#222225] rounded-xl p-3 text-neutral-800 dark:text-[#ededed]"
+                  className="w-full text-sm font-semibold bg-neutral-50 dark:bg-[#18181b] border border-neutral-200 dark:border-white/[0.08] rounded-xl p-3 text-neutral-800 dark:text-zinc-200"
                 />
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 dark:bg-[#0d261a] dark:text-emerald-400">
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-transparent dark:border-emerald-500/20">
                     📅 Tomorrow, 10:00 AM
                   </span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-700 dark:bg-[#2a1215] dark:text-red-400">
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400 border border-transparent dark:border-red-500/20">
                     🚩 P1 Urgent
                   </span>
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-neutral-100 text-neutral-600 dark:bg-[#1c1c20] dark:text-[#a1a1aa]">
+                  <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-neutral-100 text-neutral-600 dark:bg-white/[0.06] dark:text-zinc-400 border border-transparent dark:border-white/[0.08]">
                     #Marketing
                   </span>
                 </div>
@@ -492,19 +497,19 @@ export default function LandingPage({
       </section>
 
       {/* =========================================================================
-          4. NEW FEATURE: MEETING SCRATCHPAD & RICH LIVE NOTES
+          4. FEATURE: MEETING SCRATCHPAD & RICH LIVE NOTES
          ========================================================================= */}
-      <section id="scratchpad" className="py-20 border-t border-neutral-200/60 dark:border-[#222225] bg-neutral-50/50 dark:bg-[#09090b]/40">
+      <section id="scratchpad" className="py-20 border-t border-neutral-200/60 dark:border-white/[0.08] bg-neutral-50/50 dark:bg-[#0c0c0e]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-4">
-              <span className="text-xs font-bold uppercase tracking-wider text-red-600 dark:text-red-400 flex items-center gap-1.5">
+              <span className="text-xs font-semibold uppercase tracking-wider text-rose-600 dark:text-rose-400 flex items-center gap-1.5">
                 <Edit3 className="w-3.5 h-3.5" /> High-Velocity Note Taking
               </span>
-              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-neutral-900 dark:text-[#ededed]">
+              <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-neutral-900 dark:text-zinc-100">
                 Meeting Scratchpad. Capture minutes without losing focus.
               </h2>
-              <p className="text-sm sm:text-base text-neutral-600 dark:text-[#a1a1aa] leading-relaxed">
+              <p className="text-sm sm:text-base text-neutral-600 dark:text-zinc-400 leading-relaxed">
                 Take tactical meeting notes, standup minutes, and sprint agendas directly within your workspace. Format in seconds with a rich markdown toolbar, toggle instant preview, and export to Markdown or let Takt auto-save to your encrypted database partition.
               </p>
 
@@ -518,8 +523,8 @@ export default function LandingPage({
                   <div key={idx} className="flex items-start gap-3 text-xs sm:text-sm">
                     <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
                     <div>
-                      <span className="font-bold text-neutral-900 dark:text-[#ededed]">{item.title}: </span>
-                      <span className="text-neutral-600 dark:text-[#a1a1aa]">{item.desc}</span>
+                      <span className="font-semibold text-neutral-900 dark:text-zinc-200">{item.title}: </span>
+                      <span className="text-neutral-600 dark:text-zinc-400">{item.desc}</span>
                     </div>
                   </div>
                 ))}
@@ -528,7 +533,7 @@ export default function LandingPage({
               <div className="pt-2 flex gap-3">
                 <button
                   onClick={onTryDemo}
-                  className="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all"
+                  className="px-5 py-2.5 bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200 text-xs font-medium rounded-full shadow-sm transition-all"
                 >
                   Test Scratchpad in Demo
                 </button>
@@ -536,47 +541,47 @@ export default function LandingPage({
             </div>
 
             {/* Simulated Scratchpad UI Mockup */}
-            <div className="bg-white dark:bg-[#09090b] border border-neutral-200 dark:border-[#222225] rounded-3xl p-5 shadow-2xl space-y-3">
+            <div className="bg-white dark:bg-[#121216] border border-neutral-200 dark:border-white/[0.08] rounded-3xl p-5 shadow-[0_0_50px_-12px_rgba(99,102,241,0.15)] space-y-3">
               {/* Toolbar Simulation */}
-              <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-neutral-100 dark:border-[#222225]">
-                <div className="flex items-center gap-1 bg-neutral-100 dark:bg-[#121214] p-1 rounded-xl border border-neutral-200/80 dark:border-[#222225]">
-                  <span className="px-2 py-0.5 text-[10px] font-bold text-neutral-700 dark:text-[#ededed] bg-white dark:bg-[#1c1c20] rounded-md shadow-xs">Write</span>
-                  <span className="px-2 py-0.5 text-[10px] font-semibold text-neutral-500 dark:text-[#a1a1aa]">Preview</span>
+              <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-neutral-100 dark:border-white/[0.08]">
+                <div className="flex items-center gap-1 bg-neutral-100 dark:bg-white/[0.04] p-1 rounded-xl border border-neutral-200/80 dark:border-white/[0.08]">
+                  <span className="px-2 py-0.5 text-[10px] font-semibold text-neutral-700 dark:text-zinc-200 bg-white dark:bg-white/[0.08] rounded-md shadow-xs">Write</span>
+                  <span className="px-2 py-0.5 text-[10px] font-medium text-neutral-500 dark:text-zinc-400">Preview</span>
                 </div>
-                <div className="flex items-center gap-1 text-[11px] font-mono text-neutral-600 dark:text-[#a1a1aa]">
-                  <span className="px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-[#121214] border border-neutral-200 dark:border-[#222225]">• Bullet</span>
-                  <span className="px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-[#121214] border border-neutral-200 dark:border-[#222225]">☑ Task</span>
-                  <span className="px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-[#121214] border border-neutral-200 dark:border-[#222225]">H2</span>
-                  <span className="px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-[#121214] border border-neutral-200 dark:border-[#222225]">B</span>
-                  <span className="px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-[#121214] border border-neutral-200 dark:border-[#222225]">&lt;/&gt;</span>
+                <div className="flex items-center gap-1 text-[11px] font-mono text-neutral-600 dark:text-zinc-400">
+                  <span className="px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-white/[0.04] border border-neutral-200 dark:border-white/[0.08]">• Bullet</span>
+                  <span className="px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-white/[0.04] border border-neutral-200 dark:border-white/[0.08]">☑ Task</span>
+                  <span className="px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-white/[0.04] border border-neutral-200 dark:border-white/[0.08]">H2</span>
+                  <span className="px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-white/[0.04] border border-neutral-200 dark:border-white/[0.08]">B</span>
+                  <span className="px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-white/[0.04] border border-neutral-200 dark:border-white/[0.08]">&lt;/&gt;</span>
                 </div>
               </div>
 
               {/* Note Content Simulation */}
-              <div className="p-4 rounded-2xl bg-neutral-50/80 dark:bg-[#121214] border border-neutral-200/80 dark:border-[#222225] font-sans text-xs space-y-2.5">
-                <div className="font-bold text-sm text-neutral-900 dark:text-[#ededed] flex items-center justify-between">
-                  <span>Product Sprint & Architecture Review</span>
+              <div className="p-4 rounded-2xl bg-neutral-50/80 dark:bg-[#18181b]/80 border border-neutral-200/80 dark:border-white/[0.08] font-sans text-xs space-y-2.5">
+                <div className="font-semibold text-sm text-neutral-900 dark:text-zinc-100 flex items-center justify-between">
+                  <span>Product Sprint &amp; Architecture Review</span>
                   <span className="text-[10px] font-mono font-normal text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Auto-Saved to Cloud
                   </span>
                 </div>
-                <div className="text-[11px] text-neutral-700 dark:text-[#ededed] space-y-1 font-mono">
-                  <p className="text-red-600 dark:text-red-400 font-bold">### Standup Sync</p>
-                  <p className="text-neutral-700 dark:text-[#ededed]">• Resolved multi-tenant isolation; zero cross-user visibility.</p>
-                  <p className="text-neutral-700 dark:text-[#ededed]">• 7-day rolling calendar horizon with 1-click reschedule active.</p>
-                  <p className="text-red-600 dark:text-red-400 font-bold pt-1">### Action Items</p>
+                <div className="text-[11px] text-neutral-700 dark:text-zinc-300 space-y-1 font-mono">
+                  <p className="text-rose-600 dark:text-rose-400 font-semibold">### Standup Sync</p>
+                  <p className="text-neutral-700 dark:text-zinc-300">• Resolved multi-tenant isolation; zero cross-user visibility.</p>
+                  <p className="text-neutral-700 dark:text-zinc-300">• 7-day rolling calendar horizon with 1-click reschedule active.</p>
+                  <p className="text-rose-600 dark:text-rose-400 font-semibold pt-1">### Action Items</p>
                   <p className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
                     <CheckSquare className="w-3.5 h-3.5" /> Deploy release v3.4 to production
                   </p>
-                  <p className="text-neutral-500 dark:text-[#a1a1aa] flex items-center gap-1.5">
-                    <Square className="w-3.5 h-3.5 text-neutral-400" /> Share meeting summary with team
+                  <p className="text-neutral-500 dark:text-zinc-500 flex items-center gap-1.5">
+                    <Square className="w-3.5 h-3.5 text-neutral-400 dark:text-zinc-600" /> Share meeting summary with team
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between text-[11px] text-neutral-500 dark:text-[#a1a1aa] px-1">
+              <div className="flex items-center justify-between text-[11px] text-neutral-500 dark:text-zinc-400 px-1">
                 <span>124 words • Markdown Formatted</span>
-                <span className="flex items-center gap-1 text-red-600 dark:text-red-400 font-bold">
+                <span className="flex items-center gap-1 text-rose-600 dark:text-rose-400 font-medium">
                   <Download className="w-3.5 h-3.5" /> Export as .md
                 </span>
               </div>
@@ -588,17 +593,17 @@ export default function LandingPage({
       {/* =========================================================================
           5. FEATURE: 7-DAY CALENDAR HORIZON & 1-CLICK RESCHEDULE
          ========================================================================= */}
-      <section id="calendar-view" className="py-20 bg-neutral-50/60 dark:bg-[#09090b]/50 border-t border-neutral-200/60 dark:border-[#222225]">
+      <section id="calendar-view" className="py-20 bg-neutral-50/60 dark:bg-[#09090b] border-t border-neutral-200/60 dark:border-white/[0.08]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Visual preview of 7-Day Horizon Strip & Reschedule */}
-            <div className="order-2 lg:order-1 bg-white dark:bg-[#09090b] border border-neutral-200 dark:border-[#222225] rounded-3xl p-6 shadow-xl space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-neutral-100 dark:border-[#222225]">
+            <div className="order-2 lg:order-1 bg-white dark:bg-[#121216] border border-neutral-200 dark:border-white/[0.08] rounded-3xl p-6 shadow-[0_0_50px_-12px_rgba(99,102,241,0.15)] space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-neutral-100 dark:border-white/[0.08]">
                 <div className="flex items-center gap-2">
-                  <CalendarDays className="w-4 h-4 text-red-600" />
-                  <h3 className="font-extrabold text-base text-neutral-900 dark:text-[#ededed]">7-Day Calendar Horizon</h3>
+                  <CalendarDays className="w-4 h-4 text-rose-500" />
+                  <h3 className="font-semibold text-base text-neutral-900 dark:text-zinc-100">7-Day Calendar Horizon</h3>
                 </div>
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-100 dark:bg-[#2a1215] text-red-600 dark:text-red-400">
+                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-transparent dark:border-rose-500/20">
                   Rolling Week
                 </span>
               </div>
@@ -608,41 +613,41 @@ export default function LandingPage({
                 {['Today', 'Tomorrow', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
                   <div
                     key={day}
-                    className={`p-2 rounded-xl border text-[11px] font-bold ${
+                    className={`p-2 rounded-xl border text-[11px] font-semibold ${
                       i === 0
-                        ? 'bg-red-50 dark:bg-[#2a1215] border-red-300 dark:border-red-500/30 text-red-600 dark:text-red-400'
+                        ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-500/30 text-rose-600 dark:text-rose-400'
                         : i === 1
-                        ? 'bg-neutral-100 dark:bg-[#121214] border-neutral-300 dark:border-[#222225] text-neutral-800 dark:text-[#ededed]'
-                        : 'border-transparent text-neutral-400'
+                        ? 'bg-neutral-100 dark:bg-white/[0.04] border-neutral-300 dark:border-white/[0.08] text-neutral-800 dark:text-zinc-200'
+                        : 'border-transparent text-neutral-400 dark:text-zinc-500'
                     }`}
                   >
                     <div>{day}</div>
-                    <div className="text-[10px] font-normal text-neutral-400 mt-0.5">{i === 0 ? '4 tasks' : i === 1 ? '2 tasks' : '0'}</div>
+                    <div className="text-[10px] font-normal text-neutral-400 dark:text-zinc-500 mt-0.5">{i === 0 ? '4 tasks' : i === 1 ? '2 tasks' : '0'}</div>
                   </div>
                 ))}
               </div>
 
               {/* Task with 1-Click "Tomorrow" Reschedule */}
               <div className="space-y-2 pt-2">
-                <div className="p-3 bg-neutral-50 dark:bg-[#121214] border border-neutral-200/80 dark:border-[#222225] rounded-xl flex items-center justify-between">
+                <div className="p-3 bg-neutral-50 dark:bg-[#18181b]/80 border border-neutral-200/80 dark:border-white/[0.08] rounded-xl flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
-                    <Circle className="w-4 h-4 text-neutral-400" />
+                    <Circle className="w-4 h-4 text-neutral-400 dark:text-zinc-500" />
                     <div>
-                      <div className="text-xs font-bold text-neutral-900 dark:text-[#ededed]">Finalize sprint retro documentation</div>
-                      <div className="text-[10px] text-red-500 font-medium">Due Today • P1 Urgent</div>
+                      <div className="text-xs font-semibold text-neutral-900 dark:text-zinc-200">Finalize sprint retro documentation</div>
+                      <div className="text-[10px] text-rose-500 font-medium">Due Today • P1 Urgent</div>
                     </div>
                   </div>
-                  <button className="px-2.5 py-1 text-[10px] font-bold rounded-lg bg-white dark:bg-[#1c1c20] border border-neutral-200 dark:border-[#222225] text-neutral-700 dark:text-[#ededed] hover:border-red-500 hover:text-red-600 dark:hover:text-red-400 transition-colors flex items-center gap-1 shadow-xs">
-                    <FastForward className="w-3 h-3 text-red-600" />
+                  <button className="px-2.5 py-1 text-[10px] font-semibold rounded-lg bg-white dark:bg-white/[0.08] border border-neutral-200 dark:border-white/[0.08] text-neutral-700 dark:text-zinc-300 hover:border-rose-500 hover:text-rose-600 dark:hover:text-rose-400 transition-colors flex items-center gap-1 shadow-xs">
+                    <FastForward className="w-3 h-3 text-rose-500" />
                     <span>Tomorrow</span>
                   </button>
                 </div>
 
-                <div className="p-3 bg-neutral-50 dark:bg-[#121214] border border-neutral-200/80 dark:border-[#222225] rounded-xl flex items-center justify-between">
+                <div className="p-3 bg-neutral-50 dark:bg-[#18181b]/80 border border-neutral-200/80 dark:border-white/[0.08] rounded-xl flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
                     <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                     <div>
-                      <div className="text-xs font-bold line-through text-neutral-400">Deploy isolated tenant schema migrations</div>
+                      <div className="text-xs font-semibold line-through text-neutral-400 dark:text-zinc-500">Deploy isolated tenant schema migrations</div>
                       <div className="text-[10px] text-emerald-500 font-medium">Completed</div>
                     </div>
                   </div>
@@ -651,16 +656,16 @@ export default function LandingPage({
             </div>
 
             <div className="order-1 lg:order-2 space-y-4">
-              <span className="text-xs font-bold uppercase tracking-wider text-red-600 dark:text-red-400">
+              <span className="text-xs font-semibold uppercase tracking-wider text-rose-600 dark:text-rose-400">
                 Effortless Rescheduling
               </span>
-              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-neutral-900 dark:text-[#ededed]">
+              <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-neutral-900 dark:text-zinc-100">
                 Plan today. Postpone to tomorrow with 1-click.
               </h2>
-              <p className="text-sm sm:text-base text-neutral-600 dark:text-[#a1a1aa] leading-relaxed">
-                Tackle high workloads without anxiety. If tasks roll over, never spend time clicking date pickers. The dedicated 1-click <strong className="text-neutral-900 dark:text-[#ededed]">"⏩ Tomorrow"</strong> button moves overdue or unfinished tasks forward instantly.
+              <p className="text-sm sm:text-base text-neutral-600 dark:text-zinc-400 leading-relaxed">
+                Tackle high workloads without anxiety. If tasks roll over, never spend time clicking date pickers. The dedicated 1-click <strong className="text-neutral-900 dark:text-zinc-100">"⏩ Tomorrow"</strong> button moves overdue or unfinished tasks forward instantly.
               </p>
-              <div className="space-y-2 pt-1 text-xs sm:text-sm font-semibold text-neutral-700 dark:text-[#ededed]">
+              <div className="space-y-2 pt-1 text-xs sm:text-sm font-medium text-neutral-700 dark:text-zinc-300">
                 <div className="flex items-center gap-2">
                   <Check className="w-4 h-4 text-emerald-500" />
                   <span>Rolling 7-day timeline view of upcoming commitments</span>
@@ -677,7 +682,7 @@ export default function LandingPage({
               <div className="pt-2 flex gap-3">
                 <button
                   onClick={onTryDemo}
-                  className="px-4 py-2.5 bg-neutral-900 dark:bg-[#e3e6ee] text-white dark:text-[#151821] text-xs font-bold rounded-xl"
+                  className="px-5 py-2.5 bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200 text-xs font-medium rounded-full shadow-sm transition-all"
                 >
                   Explore Calendar Horizon
                 </button>
@@ -688,59 +693,59 @@ export default function LandingPage({
       </section>
 
       {/* =========================================================================
-          6. NEW FEATURE: ADVANCED WORKFLOW TOOLS (SCREENSHOT 1 SUITE)
+          6. ADVANCED WORKFLOW TOOLS
          ========================================================================= */}
-      <section id="workflow-suite" className="py-20 border-t border-neutral-200/60 dark:border-[#222225]">
+      <section id="workflow-suite" className="py-20 border-t border-neutral-200/60 dark:border-white/[0.08] bg-neutral-50/50 dark:bg-[#0c0c0e]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-14">
-            <span className="text-xs font-bold uppercase tracking-wider text-red-600 dark:text-red-400">
+            <span className="text-xs font-semibold uppercase tracking-wider text-rose-600 dark:text-rose-400">
               Power User Suite
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-neutral-900 dark:text-[#ededed] mt-2 mb-4">
+            <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-neutral-900 dark:text-zinc-100 mt-2 mb-4">
               Advanced workflows that adapt to your exact stack
             </h2>
-            <p className="text-sm sm:text-base text-neutral-600 dark:text-[#a1a1aa]">
+            <p className="text-sm sm:text-base text-neutral-600 dark:text-zinc-400">
               Everything power users demand: calendar feeds, dynamic swimlanes, email ingestion, and spreadsheet portability.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="p-6 rounded-3xl bg-white dark:bg-[#09090b] border border-neutral-200 dark:border-[#222225] shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-10 h-10 rounded-2xl bg-emerald-100 dark:bg-[#0d261a] text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-4">
+            <div className="p-6 rounded-3xl bg-white dark:bg-[#121216] border border-neutral-200 dark:border-white/[0.08] shadow-[0_0_50px_-12px_rgba(99,102,241,0.15)] hover:border-white/20 transition-all">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-4">
                 <CalendarDays className="w-5 h-5" />
               </div>
-              <h3 className="font-extrabold text-base text-neutral-900 dark:text-[#ededed] mb-2">Inbox Calendar Feed (iCal)</h3>
-              <p className="text-xs text-neutral-600 dark:text-[#a1a1aa] leading-relaxed">
+              <h3 className="font-semibold text-base text-neutral-900 dark:text-zinc-100 mb-2">Inbox Calendar Feed (iCal)</h3>
+              <p className="text-xs text-neutral-600 dark:text-zinc-400 leading-relaxed">
                 Subscribe to your Takt tasks directly inside Apple Calendar, Google Calendar, or Outlook with live webcal feed sync.
               </p>
             </div>
 
-            <div className="p-6 rounded-3xl bg-white dark:bg-[#09090b] border border-neutral-200 dark:border-[#222225] shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-10 h-10 rounded-2xl bg-red-100 dark:bg-[#2a1215] text-red-600 dark:text-red-400 flex items-center justify-center mb-4">
+            <div className="p-6 rounded-3xl bg-white dark:bg-[#121216] border border-neutral-200 dark:border-white/[0.08] shadow-[0_0_50px_-12px_rgba(99,102,241,0.15)] hover:border-white/20 transition-all">
+              <div className="w-10 h-10 rounded-2xl bg-red-100 dark:bg-red-950/40 text-red-600 dark:text-red-400 flex items-center justify-center mb-4">
                 <Mail className="w-5 h-5" />
               </div>
-              <h3 className="font-extrabold text-base text-neutral-900 dark:text-[#ededed] mb-2">Email Tasks to Inbox</h3>
-              <p className="text-xs text-neutral-600 dark:text-[#a1a1aa] leading-relaxed">
+              <h3 className="font-semibold text-base text-neutral-900 dark:text-zinc-100 mb-2">Email Tasks to Inbox</h3>
+              <p className="text-xs text-neutral-600 dark:text-zinc-400 leading-relaxed">
                 Forward messages from your email client to your private inbox address to convert important emails into actionable tasks.
               </p>
             </div>
 
-            <div className="p-6 rounded-3xl bg-white dark:bg-[#09090b] border border-neutral-200 dark:border-[#222225] shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-10 h-10 rounded-2xl bg-blue-100 dark:bg-[#0e2138] text-blue-600 dark:text-blue-400 flex items-center justify-center mb-4">
+            <div className="p-6 rounded-3xl bg-white dark:bg-[#121216] border border-neutral-200 dark:border-white/[0.08] shadow-[0_0_50px_-12px_rgba(99,102,241,0.15)] hover:border-white/20 transition-all">
+              <div className="w-10 h-10 rounded-2xl bg-blue-100 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-4">
                 <Layers className="w-5 h-5" />
               </div>
-              <h3 className="font-extrabold text-base text-neutral-900 dark:text-[#ededed] mb-2">Dynamic Custom Sections</h3>
-              <p className="text-xs text-neutral-600 dark:text-[#a1a1aa] leading-relaxed">
+              <h3 className="font-semibold text-base text-neutral-900 dark:text-zinc-100 mb-2">Dynamic Custom Sections</h3>
+              <p className="text-xs text-neutral-600 dark:text-zinc-400 leading-relaxed">
                 Create custom stages like "Client Review", "Blocked", or "Backlog" with 1-click and drag tasks freely across columns.
               </p>
             </div>
 
-            <div className="p-6 rounded-3xl bg-white dark:bg-[#09090b] border border-neutral-200 dark:border-[#222225] shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-10 h-10 rounded-2xl bg-purple-100 dark:bg-[#201538] text-purple-600 dark:text-purple-400 flex items-center justify-center mb-4">
+            <div className="p-6 rounded-3xl bg-white dark:bg-[#121216] border border-neutral-200 dark:border-white/[0.08] shadow-[0_0_50px_-12px_rgba(99,102,241,0.15)] hover:border-white/20 transition-all">
+              <div className="w-10 h-10 rounded-2xl bg-purple-100 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-4">
                 <BarChart3 className="w-5 h-5" />
               </div>
-              <h3 className="font-extrabold text-base text-neutral-900 dark:text-[#ededed] mb-2">Audit Log & CSV Tools</h3>
-              <p className="text-xs text-neutral-600 dark:text-[#a1a1aa] leading-relaxed">
+              <h3 className="font-semibold text-base text-neutral-900 dark:text-zinc-100 mb-2">Audit Log &amp; CSV Tools</h3>
+              <p className="text-xs text-neutral-600 dark:text-zinc-400 leading-relaxed">
                 Audit every change with timestamped activity history. Full data export and import via CSV for complete data freedom.
               </p>
             </div>
@@ -751,57 +756,57 @@ export default function LandingPage({
       {/* =========================================================================
           7. FEATURE: TAKT CADENCE & STRICT MULTI-TENANT PRIVACY
          ========================================================================= */}
-      <section id="takt-assist" className="py-20 border-t border-neutral-200/60 dark:border-[#31384c] bg-neutral-50/40 dark:bg-[#151821]">
+      <section id="takt-assist" className="py-20 border-t border-neutral-200/60 dark:border-white/[0.08] bg-neutral-50/40 dark:bg-[#09090b]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-14">
-            <span className="text-xs font-bold uppercase tracking-wider text-red-600 dark:text-red-400">
-              Intelligent Flow & Privacy
+            <span className="text-xs font-semibold uppercase tracking-wider text-rose-600 dark:text-rose-400">
+              Intelligent Flow &amp; Privacy
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-neutral-900 dark:text-[#ededed] mt-2 mb-4">
+            <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-neutral-900 dark:text-zinc-100 mt-2 mb-4">
               Takt Cadence — Focus tools and guaranteed privacy
             </h2>
-            <p className="text-sm sm:text-base text-neutral-600 dark:text-[#a1a1aa]">
+            <p className="text-sm sm:text-base text-neutral-600 dark:text-zinc-400">
               Engineered for absolute privacy and peak focus with zero bloat or advertisements.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="p-6 rounded-3xl bg-white dark:bg-[#09090b] border border-neutral-200 dark:border-[#222225] shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-10 h-10 rounded-2xl bg-red-100 dark:bg-[#2a1215] text-red-600 dark:text-red-400 flex items-center justify-center mb-4">
+            <div className="p-6 rounded-3xl bg-white dark:bg-[#121216] border border-neutral-200 dark:border-white/[0.08] shadow-[0_0_50px_-12px_rgba(99,102,241,0.15)] hover:border-white/20 transition-all">
+              <div className="w-10 h-10 rounded-2xl bg-rose-100 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center mb-4">
                 <Flame className="w-5 h-5" />
               </div>
-              <h3 className="font-extrabold text-base text-neutral-900 dark:text-[#ededed] mb-2">Pomodoro Flow Timer</h3>
-              <p className="text-xs text-neutral-600 dark:text-[#a1a1aa] leading-relaxed">
+              <h3 className="font-semibold text-base text-neutral-900 dark:text-zinc-100 mb-2">Pomodoro Flow Timer</h3>
+              <p className="text-xs text-neutral-600 dark:text-zinc-400 leading-relaxed">
                 Start 25-minute laser focus intervals directly on any task with automatic minute tracking and karma rewards.
               </p>
             </div>
 
-            <div className="p-6 rounded-3xl bg-white dark:bg-[#09090b] border border-neutral-200 dark:border-[#222225] shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-10 h-10 rounded-2xl bg-amber-100 dark:bg-[#281a0b] text-amber-600 dark:text-amber-400 flex items-center justify-center mb-4">
+            <div className="p-6 rounded-3xl bg-white dark:bg-[#121216] border border-neutral-200 dark:border-white/[0.08] shadow-[0_0_50px_-12px_rgba(99,102,241,0.15)] hover:border-white/20 transition-all">
+              <div className="w-10 h-10 rounded-2xl bg-amber-100 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-4">
                 <Shield className="w-5 h-5" />
               </div>
-              <h3 className="font-extrabold text-base text-neutral-900 dark:text-[#ededed] mb-2">Daily Shutdown Ritual</h3>
-              <p className="text-xs text-neutral-600 dark:text-[#a1a1aa] leading-relaxed">
+              <h3 className="font-semibold text-base text-neutral-900 dark:text-zinc-100 mb-2">Daily Shutdown Ritual</h3>
+              <p className="text-xs text-neutral-600 dark:text-zinc-400 leading-relaxed">
                 Review completed goals, celebrate your wins with confetti, and disconnect cleanly for the evening.
               </p>
             </div>
 
-            <div className="p-6 rounded-3xl bg-white dark:bg-[#09090b] border border-neutral-200 dark:border-[#222225] shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-10 h-10 rounded-2xl bg-blue-100 dark:bg-[#0e2138] text-blue-600 dark:text-blue-400 flex items-center justify-center mb-4">
+            <div className="p-6 rounded-3xl bg-white dark:bg-[#121216] border border-neutral-200 dark:border-white/[0.08] shadow-[0_0_50px_-12px_rgba(99,102,241,0.15)] hover:border-white/20 transition-all">
+              <div className="w-10 h-10 rounded-2xl bg-blue-100 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-4">
                 <Lock className="w-5 h-5" />
               </div>
-              <h3 className="font-extrabold text-base text-neutral-900 dark:text-[#ededed] mb-2">Zero Cross-User Leakage</h3>
-              <p className="text-xs text-neutral-600 dark:text-[#a1a1aa] leading-relaxed">
+              <h3 className="font-semibold text-base text-neutral-900 dark:text-zinc-100 mb-2">Zero Cross-User Leakage</h3>
+              <p className="text-xs text-neutral-600 dark:text-zinc-400 leading-relaxed">
                 Strict multi-tenant isolation. Your tasks and meeting scratchpad are visible only to you. Isolated sandbox for guests.
               </p>
             </div>
 
-            <div className="p-6 rounded-3xl bg-white dark:bg-[#09090b] border border-neutral-200 dark:border-[#222225] shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-10 h-10 rounded-2xl bg-emerald-100 dark:bg-[#0d261a] text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-4">
+            <div className="p-6 rounded-3xl bg-white dark:bg-[#121216] border border-neutral-200 dark:border-white/[0.08] shadow-[0_0_50px_-12px_rgba(99,102,241,0.15)] hover:border-white/20 transition-all">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-4">
                 <Download className="w-5 h-5" />
               </div>
-              <h3 className="font-extrabold text-base text-neutral-900 dark:text-[#ededed] mb-2">Daily Auto-Backup & Snapshots</h3>
-              <p className="text-xs text-neutral-600 dark:text-[#a1a1aa] leading-relaxed">
+              <h3 className="font-semibold text-base text-neutral-900 dark:text-zinc-100 mb-2">Daily Auto-Backup &amp; Snapshots</h3>
+              <p className="text-xs text-neutral-600 dark:text-zinc-400 leading-relaxed">
                 Never lose a task. Real-time persistent local backup snapshots, cloud database synchronization, and CSV export.
               </p>
             </div>
@@ -810,15 +815,15 @@ export default function LandingPage({
       </section>
 
       {/* =========================================================================
-          6. TEMPLATES SHOWCASE
+          8. TEMPLATES SHOWCASE
          ========================================================================= */}
-      <section id="templates" className="py-20 bg-neutral-50/50 dark:bg-[#09090b]/40 border-t border-neutral-200/60 dark:border-[#222225]">
+      <section id="templates" className="py-20 bg-neutral-50/50 dark:bg-[#0c0c0e] border-t border-neutral-200/60 dark:border-white/[0.08]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-10">
-            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-neutral-900 dark:text-[#ededed] mb-3">
+            <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-neutral-900 dark:text-zinc-100 mb-3">
               Kickstart your next project with templates
             </h2>
-            <p className="text-sm text-neutral-600 dark:text-[#a1a1aa]">
+            <p className="text-sm text-neutral-600 dark:text-zinc-400">
               Pre-built project layouts for high performers, startups, and creative thinkers.
             </p>
 
@@ -828,10 +833,10 @@ export default function LandingPage({
                 <button
                   key={tab}
                   onClick={() => setActiveTemplateTab(tab)}
-                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+                  className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
                     activeTemplateTab === tab
-                      ? 'bg-neutral-900 text-white dark:bg-[#e3e6ee] dark:text-[#151821]'
-                      : 'bg-white dark:bg-[#121214] text-neutral-600 dark:text-[#a1a1aa] border border-neutral-200 dark:border-[#222225]'
+                      ? 'bg-neutral-900 text-white dark:bg-white dark:text-zinc-950 shadow-sm'
+                      : 'bg-white dark:bg-white/[0.04] text-neutral-600 dark:text-zinc-400 border border-neutral-200 dark:border-white/[0.08] hover:text-neutral-900 dark:hover:text-zinc-200'
                   }`}
                 >
                   {tab}
@@ -845,18 +850,18 @@ export default function LandingPage({
               <div
                 key={idx}
                 onClick={onTryDemo}
-                className="group p-5 bg-white dark:bg-[#09090b] border border-neutral-200/80 dark:border-[#222225] rounded-2xl hover:border-red-500/50 dark:hover:border-red-500/40 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
+                className="group p-5 bg-white dark:bg-[#121216] border border-neutral-200/80 dark:border-white/[0.08] rounded-2xl hover:border-white/20 dark:hover:border-white/25 shadow-[0_0_50px_-12px_rgba(99,102,241,0.15)] transition-all cursor-pointer flex flex-col justify-between"
               >
                 <div>
                   <div className="text-2xl mb-3">{tmpl.icon}</div>
-                  <h4 className="font-bold text-sm text-neutral-900 dark:text-[#ededed] group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
+                  <h4 className="font-semibold text-sm text-neutral-900 dark:text-zinc-100 group-hover:text-rose-500 dark:group-hover:text-rose-400 transition-colors">
                     {tmpl.title}
                   </h4>
-                  <p className="text-[11px] text-neutral-500 dark:text-[#a1a1aa] mt-1">
-                    {tmpl.tasks} pre-configured tasks & swimlanes
+                  <p className="text-[11px] text-neutral-500 dark:text-zinc-400 mt-1">
+                    {tmpl.tasks} pre-configured tasks &amp; swimlanes
                   </p>
                 </div>
-                <div className="mt-4 pt-3 border-t border-neutral-100 dark:border-[#222225] flex items-center justify-between text-xs font-semibold text-red-600 dark:text-red-400">
+                <div className="mt-4 pt-3 border-t border-neutral-100 dark:border-white/[0.08] flex items-center justify-between text-xs font-semibold text-rose-600 dark:text-rose-400">
                   <span>Use template</span>
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
@@ -867,26 +872,29 @@ export default function LandingPage({
       </section>
 
       {/* =========================================================================
-          7. CALL TO ACTION FOOTER BANNER
+          9. CALL TO ACTION FOOTER BANNER
          ========================================================================= */}
-      <section className="py-20 text-center relative overflow-hidden border-t border-neutral-200/60 dark:border-[#222225]">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6">
-          <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-neutral-950 dark:text-[#ededed] mb-4">
+      <section className="py-24 text-center relative overflow-hidden border-t border-neutral-200/60 dark:border-white/[0.08] bg-white dark:bg-[#09090b]">
+        {/* Subtle Bottom Glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-gradient-to-tr from-indigo-500/15 via-purple-500/10 to-transparent rounded-full blur-[100px] pointer-events-none" />
+
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 relative z-10">
+          <h2 className="text-3xl sm:text-5xl font-semibold tracking-tight text-neutral-950 dark:text-zinc-100 mb-4">
             Gain clarity today.
           </h2>
-          <p className="text-sm sm:text-base text-neutral-600 dark:text-[#a1a1aa] mb-8">
+          <p className="text-sm sm:text-base text-neutral-600 dark:text-zinc-400 mb-8 max-w-xl mx-auto leading-relaxed">
             Start organizing your work and life with the most tactile, low-eyestrain obsidian workspace.
           </p>
-          <div className="flex items-center justify-center gap-3">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5">
             <button
               onClick={onStartForFree}
-              className="px-8 py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-rose-600 dark:hover:bg-rose-500 font-semibold text-sm shadow-sm active:scale-[0.99] transition-all"
+              className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200 font-medium text-sm shadow-sm active:scale-[0.99] transition-all"
             >
               Start for free
             </button>
             <button
               onClick={onTryDemo}
-              className="px-6 py-3.5 rounded-xl bg-neutral-100 dark:bg-[#121214] text-neutral-800 dark:text-[#ededed] font-bold text-sm hover:bg-neutral-200 dark:hover:bg-[#1c1c20] transition-all"
+              className="w-full sm:w-auto px-6 py-3.5 rounded-full border border-neutral-200 dark:border-white/10 hover:bg-neutral-50 dark:hover:bg-white/5 text-neutral-800 dark:text-zinc-300 font-medium text-sm transition-all"
             >
               Launch Live App
             </button>
@@ -895,23 +903,23 @@ export default function LandingPage({
       </section>
 
       {/* =========================================================================
-          8. FOOTER
+          10. FOOTER
          ========================================================================= */}
-      <footer className="border-t border-neutral-200/60 dark:border-[#31384c] py-12 text-xs text-neutral-500 dark:text-[#919bb0] bg-white dark:bg-[#151821]">
+      <footer className="border-t border-neutral-200/60 dark:border-white/[0.08] py-12 text-xs text-neutral-500 dark:text-zinc-500 bg-white dark:bg-[#09090b]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Logo onClick={onTryDemo} href="/" />
-            <span className="text-neutral-400 dark:text-[#52525b] border-l border-neutral-200 dark:border-[#222225] pl-3">© {new Date().getFullYear()} Takt by Haris Arshad</span>
+            <span className="text-neutral-400 dark:text-zinc-500 border-l border-neutral-200 dark:border-white/[0.08] pl-3">© {new Date().getFullYear()} Takt by Haris Arshad</span>
           </div>
 
           <div className="flex items-center gap-6 text-xs flex-wrap">
-            <a href="#purpose" className="hover:text-neutral-900 dark:hover:text-[#ededed]">App Purpose</a>
-            <a href="#features" className="hover:text-neutral-900 dark:hover:text-[#ededed]">Features</a>
-            <a href="#templates" className="hover:text-neutral-900 dark:hover:text-[#ededed]">Templates</a>
-            <a href="/privacy" className="text-rose-600 dark:text-rose-400 font-bold hover:underline">Privacy Policy</a>
-            <a href="/terms" className="hover:text-neutral-900 dark:hover:text-[#ededed]">Terms of Service</a>
-            <a href="mailto:harisengr73@gmail.com" className="hover:text-neutral-900 dark:hover:text-[#ededed]">Support &amp; Data Deletion</a>
-            <button onClick={onTryDemo} className="hover:text-neutral-900 dark:hover:text-[#ededed]">Live Demo</button>
+            <a href="#purpose" className="hover:text-neutral-900 dark:hover:text-zinc-200 transition-colors">App Purpose</a>
+            <a href="#features" className="hover:text-neutral-900 dark:hover:text-zinc-200 transition-colors">Features</a>
+            <a href="#templates" className="hover:text-neutral-900 dark:hover:text-zinc-200 transition-colors">Templates</a>
+            <a href="/privacy" className="text-rose-600 dark:text-rose-400 font-semibold hover:underline transition-colors">Privacy Policy</a>
+            <a href="/terms" className="hover:text-neutral-900 dark:hover:text-zinc-200 transition-colors">Terms of Service</a>
+            <a href="mailto:harisengr73@gmail.com" className="hover:text-neutral-900 dark:hover:text-zinc-200 transition-colors">Support &amp; Data Deletion</a>
+            <button onClick={onTryDemo} className="hover:text-neutral-900 dark:hover:text-zinc-200 transition-colors">Live Demo</button>
           </div>
         </div>
       </footer>
