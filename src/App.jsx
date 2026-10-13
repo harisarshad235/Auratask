@@ -117,7 +117,7 @@ const generateUUID = () => {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     try {
       return crypto.randomUUID();
-    } catch {}
+    } catch { }
   }
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
@@ -152,7 +152,7 @@ export const autoHealTask = (t) => {
     try {
       meta = JSON.parse(metaMatch[1]);
       desc = desc.replace(TAKT_META_REGEX, '').trim();
-    } catch {}
+    } catch { }
   }
 
   // 2. Check JSONB subtasks metadata envelope
@@ -282,7 +282,7 @@ export const findOrphanedTasks = (userId) => {
         keysToScan.push(k);
       }
     }
-  } catch {}
+  } catch { }
 
   keysToScan.forEach(k => {
     try {
@@ -305,7 +305,7 @@ export const findOrphanedTasks = (userId) => {
           });
         }
       }
-    } catch {}
+    } catch { }
   });
 
   return found;
@@ -400,7 +400,7 @@ export default function App() {
             if (val && JSON.parse(val)?.user) return true;
           }
         }
-      } catch {}
+      } catch { }
     }
     return false;
   });
@@ -434,7 +434,7 @@ export default function App() {
         const parsed = JSON.parse(authStr);
         if (parsed?.user?.id) return loadScopedWorkspaceData(parsed.user.id);
       }
-    } catch {}
+    } catch { }
     return loadScopedWorkspaceData(null);
   }, []);
 
@@ -545,7 +545,7 @@ export default function App() {
       const filtered = queue.filter(item => item.id !== taskObj.id);
       filtered.push(taskObj);
       localStorage.setItem(key, JSON.stringify(filtered));
-    } catch {}
+    } catch { }
   };
 
   const removeFromSyncQueue = (taskId, userId) => {
@@ -559,7 +559,7 @@ export default function App() {
       } else {
         localStorage.removeItem(key);
       }
-    } catch {}
+    } catch { }
   };
 
   // Bulletproof Cloud Upsert that targets primary key (.eq('id', taskId)), supports full schema + metadata fallback
@@ -653,7 +653,7 @@ export default function App() {
       for (const item of queue) {
         await upsertTaskToCloud(item, userId);
       }
-    } catch {}
+    } catch { }
   };
 
   // --- MEETING SCRATCHPAD HANDLERS ---
@@ -772,7 +772,7 @@ export default function App() {
       const dataStr = JSON.stringify(updated);
       localStorage.setItem(key, dataStr);
       localStorage.setItem(backupKey, dataStr);
-    } catch {}
+    } catch { }
     showToast("Cleared Today's Big 3 Spotlight");
   };
 
@@ -793,7 +793,7 @@ export default function App() {
             if (val && JSON.parse(val)?.user) return false;
           }
         }
-      } catch {}
+      } catch { }
     }
     return true;
   });
@@ -889,7 +889,7 @@ export default function App() {
       const dataStr = JSON.stringify(tasks);
       localStorage.setItem(taskKey, dataStr);
       localStorage.setItem(legacyKey, dataStr);
-      
+
       // Scoped Day-wise snapshot rolling backup
       const todayStr = new Date().toISOString().split('T')[0];
       const backupKey = uId ? `takt_backup_${uId}_${todayStr}` : `takt_guest_backup_${todayStr}`;
@@ -936,7 +936,7 @@ export default function App() {
       const dataStr = JSON.stringify(customSections);
       localStorage.setItem(secKey, dataStr);
       localStorage.setItem(uId ? `auratask_sections_u_${uId}` : 'auratask_guest_sections', dataStr);
-    } catch {}
+    } catch { }
   }, [customSections, session?.user?.id]);
 
   // Sync Activity Logs scoped to user
@@ -947,7 +947,7 @@ export default function App() {
       const dataStr = JSON.stringify(activityLogs);
       localStorage.setItem(actKey, dataStr);
       localStorage.setItem(uId ? `auratask_activity_u_${uId}` : 'auratask_guest_activity', dataStr);
-    } catch {}
+    } catch { }
   }, [activityLogs, session?.user?.id]);
 
   const handleOpenTaskModal = (taskToEdit = null, defaultSec = 'todo') => {
@@ -996,7 +996,7 @@ export default function App() {
       const dataStr = JSON.stringify(updatedTasks);
       localStorage.setItem(key, dataStr);
       localStorage.setItem(backupKey, dataStr);
-    } catch {}
+    } catch { }
 
     if (session?.user?.id) {
       await upsertTaskToCloud(finalPayload, session.user.id);
@@ -1068,7 +1068,7 @@ export default function App() {
             }));
             try {
               localStorage.setItem(`takt_tasks_u_${uId}`, JSON.stringify(migrated));
-            } catch {}
+            } catch { }
             return migrated;
           }
           return [];
@@ -1132,7 +1132,7 @@ export default function App() {
         )) {
           try {
             window.history.replaceState({}, document.title, window.location.pathname);
-          } catch {}
+          } catch { }
         }
       } else if (event === 'SIGNED_OUT') {
         handleUserSignedOut();
@@ -1197,7 +1197,7 @@ export default function App() {
                   if (t?.id && !localMap.has(t.id)) localMap.set(t.id, autoHealTask(t));
                 });
               }
-            } catch {}
+            } catch { }
 
             // Check for orphaned local tasks (e.g. from guest sandbox or backup keys)
             const orphaned = findOrphanedTasks(currentUserId);
@@ -1216,8 +1216,8 @@ export default function App() {
               );
 
               // If local is marked completed, or local was updated more recently, keep local section & priority
-              const section = (localIsNewer || local.section === 'completed') 
-                ? normalizeSectionKey(local.section) 
+              const section = (localIsNewer || local.section === 'completed')
+                ? normalizeSectionKey(local.section)
                 : normalizeSectionKey(cloudTask.section || local.section);
               const priority = localIsNewer ? local.priority : (cloudTask.priority || local.priority);
 
@@ -1292,7 +1292,7 @@ export default function App() {
               localStorage.setItem(`takt_tasks_u_${currentUserId}`, dataStr);
               localStorage.setItem(`takt_tasks_backup_u_${currentUserId}`, dataStr);
               localStorage.setItem(`auratask_tasks_u_${currentUserId}`, dataStr);
-            } catch {}
+            } catch { }
             return merged;
           });
 
@@ -1340,7 +1340,7 @@ export default function App() {
                 const dataStr = JSON.stringify(next);
                 localStorage.setItem(`takt_tasks_u_${currentUserId}`, dataStr);
                 localStorage.setItem(`takt_tasks_backup_u_${currentUserId}`, dataStr);
-              } catch {}
+              } catch { }
               return next;
             });
             setModalTask(prev => (prev && prev.id === liveTask.id ? { ...prev, ...liveTask } : prev));
@@ -1353,7 +1353,7 @@ export default function App() {
                   const dataStr = JSON.stringify(next);
                   localStorage.setItem(`takt_tasks_u_${currentUserId}`, dataStr);
                   localStorage.setItem(`takt_tasks_backup_u_${currentUserId}`, dataStr);
-                } catch {}
+                } catch { }
                 return next;
               });
               setModalTask(prev => (prev && prev.id === deletedId ? null : prev));
@@ -1397,7 +1397,7 @@ export default function App() {
       }
       try {
         confetti({ particleCount: 50, spread: 60, origin: { y: 0.8 } });
-      } catch {}
+      } catch { }
       showToast('🎉 Focus session complete! Take a well-deserved 5-minute break.');
     }
     return () => clearInterval(interval);
@@ -1412,7 +1412,7 @@ export default function App() {
         origin: { y: 0.6 },
         colors: ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6']
       });
-    } catch {}
+    } catch { }
   };
 
   // Bulleproof Task CRUD Operations
@@ -1454,7 +1454,7 @@ export default function App() {
       const dataStr = JSON.stringify([taskObj, ...tasks]);
       localStorage.setItem(key, dataStr);
       localStorage.setItem(backupKey, dataStr);
-    } catch {}
+    } catch { }
 
     if (session?.user?.id) {
       await upsertTaskToCloud(taskObj, session.user.id);
@@ -1486,7 +1486,7 @@ export default function App() {
         const dataStr = JSON.stringify(next);
         localStorage.setItem(key, dataStr);
         localStorage.setItem(backupKey, dataStr);
-      } catch {}
+      } catch { }
       return next;
     });
 
@@ -1509,7 +1509,7 @@ export default function App() {
         const dataStr = JSON.stringify(next);
         localStorage.setItem(key, dataStr);
         localStorage.setItem(backupKey, dataStr);
-      } catch {}
+      } catch { }
       return next;
     });
     showToast('Task removed');
@@ -1731,7 +1731,7 @@ export default function App() {
         const dataStr = JSON.stringify(nextTasks);
         localStorage.setItem(key, dataStr);
         localStorage.setItem(backupKey, dataStr);
-      } catch {}
+      } catch { }
 
       return nextTasks;
     });
@@ -1773,7 +1773,7 @@ export default function App() {
         const dataStr = JSON.stringify(nextTasks);
         localStorage.setItem(key, dataStr);
         localStorage.setItem(backupKey, dataStr);
-      } catch {}
+      } catch { }
 
       return nextTasks;
     });
@@ -2062,7 +2062,7 @@ export default function App() {
   const handleSignOut = async () => {
     try {
       await supabase.auth.signOut();
-    } catch {}
+    } catch { }
     handleUserSignedOut();
     setShowLandingPage(true);
     showToast('Signed out successfully.');
@@ -2506,84 +2506,76 @@ export default function App() {
         <nav className="space-y-1 text-xs font-medium">
           <button
             onClick={() => { setActiveTab('inbox'); setSelectedTag(null); setMobileMenuOpen(false); }}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group ${
-              activeTab === 'inbox' && !selectedTag
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group ${activeTab === 'inbox' && !selectedTag
                 ? 'bg-slate-900 text-white dark:bg-[#1a243a] dark:text-white font-bold shadow-2xs'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-white'
-            }`}
+              }`}
           >
             <div className="flex items-center gap-2.5">
               <Inbox className={`w-4 h-4 transition-colors ${activeTab === 'inbox' && !selectedTag ? 'text-rose-500 dark:text-rose-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`} />
               <span>Inbox</span>
             </div>
-            <span className={`text-[11px] font-mono px-1.5 py-0.5 rounded ${
-              activeTab === 'inbox' && !selectedTag
+            <span className={`text-[11px] font-mono px-1.5 py-0.5 rounded ${activeTab === 'inbox' && !selectedTag
                 ? 'bg-slate-800 text-slate-300 dark:bg-white/10 dark:text-slate-300'
                 : 'text-slate-400 dark:text-slate-500'
-            }`}>
+              }`}>
               {tasks.filter(t => t.section !== 'completed').length}
             </span>
           </button>
 
           <button
             onClick={() => { setActiveTab('today'); setSelectedTag(null); setMobileMenuOpen(false); }}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group ${
-              activeTab === 'today' && !selectedTag
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group ${activeTab === 'today' && !selectedTag
                 ? 'bg-slate-900 text-white dark:bg-[#1a243a] dark:text-white font-bold shadow-2xs'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-white'
-            }`}
+              }`}
           >
             <div className="flex items-center gap-2.5">
               <Calendar className={`w-4 h-4 transition-colors ${activeTab === 'today' && !selectedTag ? 'text-rose-500 dark:text-rose-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`} />
               <span>Today</span>
             </div>
-            <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded-full font-mono ${
-              activeTab === 'today' && !selectedTag
+            <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded-full font-mono ${activeTab === 'today' && !selectedTag
                 ? 'bg-rose-500 text-white'
                 : todayDueCount > 0 ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400' : 'text-slate-400 dark:text-slate-500'
-            }`}>
+              }`}>
               {todayDueCount}
             </span>
           </button>
 
           <button
             onClick={() => { setActiveTab('upcoming'); setSelectedTag(null); setMobileMenuOpen(false); }}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group ${
-              activeTab === 'upcoming' && !selectedTag
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group ${activeTab === 'upcoming' && !selectedTag
                 ? 'bg-slate-900 text-white dark:bg-[#1a243a] dark:text-white font-bold shadow-2xs'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-white'
-            }`}
+              }`}
           >
             <div className="flex items-center gap-2.5">
               <Clock className={`w-4 h-4 transition-colors ${activeTab === 'upcoming' && !selectedTag ? 'text-rose-500 dark:text-rose-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`} />
               <span>Upcoming</span>
             </div>
-            <span className={`text-[11px] font-mono px-1.5 py-0.5 rounded ${
-              activeTab === 'upcoming' && !selectedTag
+            <span className={`text-[11px] font-mono px-1.5 py-0.5 rounded ${activeTab === 'upcoming' && !selectedTag
                 ? 'bg-slate-800 text-slate-300 dark:bg-white/10 dark:text-slate-300'
                 : 'text-slate-400 dark:text-slate-500'
-            }`}>
+              }`}>
               {tasks.filter(t => t.due_date > todayDateStr && t.section !== 'completed').length}
             </span>
           </button>
 
           <button
             onClick={() => { setActiveTab('completed'); setSelectedTag(null); setMobileMenuOpen(false); }}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group ${
-              activeTab === 'completed' && !selectedTag
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group ${activeTab === 'completed' && !selectedTag
                 ? 'bg-slate-900 text-white dark:bg-[#1a243a] dark:text-white font-bold shadow-2xs'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-white'
-            }`}
+              }`}
           >
             <div className="flex items-center gap-2.5">
               <CheckCircle2 className={`w-4 h-4 transition-colors ${activeTab === 'completed' && !selectedTag ? 'text-rose-500 dark:text-rose-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`} />
               <span>Completed</span>
             </div>
-            <span className={`text-[11px] font-mono px-1.5 py-0.5 rounded ${
-              activeTab === 'completed' && !selectedTag
+            <span className={`text-[11px] font-mono px-1.5 py-0.5 rounded ${activeTab === 'completed' && !selectedTag
                 ? 'bg-slate-800 text-slate-300 dark:bg-white/10 dark:text-slate-300'
                 : 'text-slate-400 dark:text-slate-500'
-            }`}>
+              }`}>
               {completedCount}
             </span>
           </button>
@@ -2737,22 +2729,20 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => setBoardGrouping('stage')}
-                      className={`px-2 py-1 text-[11px] font-semibold rounded-lg transition-all ${
-                        boardGrouping === 'stage'
+                      className={`px-2 py-1 text-[11px] font-semibold rounded-lg transition-all ${boardGrouping === 'stage'
                           ? 'bg-slate-900 text-white dark:bg-white/10 dark:text-white'
                           : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-white/[0.05]'
-                      }`}
+                        }`}
                     >
                       Workflow Stage
                     </button>
                     <button
                       type="button"
                       onClick={() => setBoardGrouping('priority')}
-                      className={`px-2 py-1 text-[11px] font-semibold rounded-lg transition-all ${
-                        boardGrouping === 'priority'
+                      className={`px-2 py-1 text-[11px] font-semibold rounded-lg transition-all ${boardGrouping === 'priority'
                           ? 'bg-slate-900 text-white dark:bg-white/10 dark:text-white'
                           : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-white/[0.05]'
-                      }`}
+                        }`}
                     >
                       Priority (P1-P4)
                     </button>
@@ -2801,11 +2791,10 @@ export default function App() {
                     key={tag}
                     type="button"
                     onClick={() => setSelectedTag(isSelected ? null : tag)}
-                    className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                      isSelected
+                    className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${isSelected
                         ? 'bg-rose-50 dark:bg-[#2a1215] text-rose-600 dark:text-rose-400 font-bold border border-rose-200/40 dark:border-rose-500/30'
                         : 'text-slate-500 dark:text-[#a1a1aa] hover:text-slate-800 dark:hover:text-[#ededed] hover:bg-slate-100 dark:hover:bg-[#121214]'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-2">
                       <Tag className="w-3.5 h-3.5 opacity-60" />
@@ -3204,13 +3193,12 @@ export default function App() {
                           {/* Footer: Priority & ETA Badges & Actions */}
                           <div className="flex items-center justify-between pt-1.5 border-t border-slate-100 dark:border-[#262c3d]">
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded ${
-                                task.priority === 'P1'
+                              <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded ${task.priority === 'P1'
                                   ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
                                   : task.priority === 'P2'
-                                  ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
-                                  : 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20'
-                              }`}>
+                                    ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
+                                    : 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20'
+                                }`}>
                                 {task.priority}
                               </span>
 
@@ -3606,11 +3594,10 @@ export default function App() {
                         if (taskId) handleDropTask(taskId, column.key);
                         handleCardDragEnd();
                       }}
-                      className={`w-80 shrink-0 flex flex-col bg-slate-100/70 dark:bg-[#0c101c]/70 backdrop-blur-md border rounded-2xl p-3.5 max-h-full transition-all duration-200 ${
-                        isOver
+                      className={`w-80 shrink-0 flex flex-col bg-slate-100/70 dark:bg-[#0c101c]/70 backdrop-blur-md border rounded-2xl p-3.5 max-h-full transition-all duration-200 ${isOver
                           ? 'ring-2 ring-rose-500/50 border-rose-400 dark:border-rose-500/60 bg-rose-50/40 dark:bg-[#1a1020]/50 shadow-lg'
                           : 'border-slate-200/80 dark:border-[#1e2638] shadow-2xs'
-                      }`}
+                        }`}
                     >
                       {/* Column Header: Editable Lane Name & Actions */}
                       <div className="flex items-center justify-between pb-3 px-1">
@@ -3800,11 +3787,10 @@ export default function App() {
                           showToast(`Rescheduled to ${day.weekday} (${day.dayMonth})`);
                         }
                       }}
-                      className={`flex flex-col rounded-2xl p-3 border transition-all ${
-                        day.isToday
+                      className={`flex flex-col rounded-2xl p-3 border transition-all ${day.isToday
                           ? 'bg-red-50/30 dark:bg-[#121214] border-red-300 dark:border-red-900/60 ring-1 ring-red-500/20'
                           : 'bg-white dark:bg-[#09090b] border-slate-200/80 dark:border-[#222225]'
-                      }`}
+                        }`}
                     >
                       {/* Day Header */}
                       <div className="pb-3 border-b border-slate-100 dark:border-[#222225] flex items-center justify-between">
@@ -4140,11 +4126,11 @@ export default function App() {
 
       {/* --- TODAY'S BIG 3 PRIORITY PICKER MODAL --- */}
       {showBig3Picker && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in"
           onClick={() => setShowBig3Picker(false)}
         >
-          <div 
+          <div
             className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-[#26262a] rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
@@ -4254,13 +4240,12 @@ export default function App() {
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded ${
-                          t.priority === 'P1'
+                        <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded ${t.priority === 'P1'
                             ? 'bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400'
                             : t.priority === 'P2'
-                            ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400'
-                            : 'bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400'
-                        }`}>
+                              ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400'
+                              : 'bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400'
+                          }`}>
                           {t.priority || 'P2'}
                         </span>
                         <span className="text-xs font-bold text-slate-800 dark:text-[#ededed] group-hover:text-amber-600 dark:group-hover:text-amber-400 truncate">
