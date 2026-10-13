@@ -445,8 +445,8 @@ export default function App() {
   const [activityLogs, setActivityLogs] = useState(() => initialData.activity);
 
   // --- UI NAVIGATION & VIEW MODES ---
-  const [activeTab, setActiveTab] = useState('inbox'); // 'inbox', 'today', 'upcoming', 'completed', 'tag-...'
-  const [viewMode, setViewMode] = useState('list'); // 'board' | 'list' | 'calendar'
+  const [activeTab, setActiveTab] = useState('today'); // By default open Today
+  const [viewMode, setViewMode] = useState('board'); // By default open Board view
   const [searchQuery, setSearchQuery] = useState('');
   // Default to Eye-Comfort Light Mode (soothing, zero eye-strain, user friendly)
   const [darkMode, setDarkMode] = useState(() => {
@@ -1058,6 +1058,8 @@ export default function App() {
     setShowLandingPage(false);
     setShowAuthModal(false);
     setIsAuthResolving(false);
+    setActiveTab('today');
+    setViewMode('board');
     localStorage.removeItem('takt_guest_mode');
     localStorage.removeItem('auratask_guest_mode');
     if (userSession?.user?.id) {
@@ -2066,6 +2068,8 @@ export default function App() {
     setMeetingNotes(guestData.notes);
     setCustomSections(guestData.sections);
     setActivityLogs(guestData.activity);
+    setActiveTab('today');
+    setViewMode('board');
     setShowLandingPage(false);
     setShowAuthModal(false);
     showToast('Entered Guest Sandbox. All features active!');
@@ -2196,7 +2200,11 @@ export default function App() {
           onStartForFree={() => { setAuthMode('register'); setShowAuthModal(true); }}
           onTryDemo={handleGuestLogin}
           onOpenLogin={() => { setAuthMode('login'); setShowAuthModal(true); }}
-          onOpenApp={() => setShowLandingPage(false)}
+          onOpenApp={() => {
+            setActiveTab('today');
+            setViewMode('board');
+            setShowLandingPage(false);
+          }}
           hasActiveSession={Boolean(session || isGuest)}
           darkMode={darkMode}
           setDarkMode={setDarkMode}
@@ -2430,7 +2438,8 @@ export default function App() {
             <Logo
               onClick={(e) => {
                 e.preventDefault();
-                setActiveTab('inbox');
+                setActiveTab('today');
+                setViewMode('board');
               }}
             />
             <div className="flex flex-col min-w-0">
