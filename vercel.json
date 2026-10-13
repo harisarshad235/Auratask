@@ -40,7 +40,11 @@
   ],
   "rewrites": [
     {
-      "source": "/((?!api/|assets/|brand/|privacy|terms|favicon|manifest|.*\\..*).*)",
+      "source": "/supabase/:path*",
+      "destination": "https://zamtslutoccexvqjepqz.supabase.co/:path*"
+    },
+    {
+      "source": "/((?!supabase/|api/|assets/|brand/|privacy|terms|favicon|manifest|.*\\..*).*)",
       "destination": "/index.html"
     }
   ]
