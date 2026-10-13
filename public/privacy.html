@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Privacy Policy - Takt Workspace</title>
-  <meta name="description" content="Comprehensive Privacy Policy for Takt task management and focus workspace by Haris Arshad, detailing data collection, Google OAuth user data compliance, and user rights.">
+  <meta name="description" content="Comprehensive Privacy Policy for Takt task management workspace by Haris Arshad, detailing data collection, Google OAuth user data compliance, encryption, and deletion procedures.">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <style>
     :root {
@@ -40,7 +40,7 @@
       padding: 2.5rem 1rem;
     }
     .container {
-      max-width: 860px;
+      max-width: 880px;
       margin: 0 auto;
       background: var(--card-bg);
       border: 1px solid var(--border);
@@ -193,28 +193,37 @@
       <h1>Privacy Policy</h1>
       <div class="meta-badges">
         <span class="badge">Application: Takt</span>
-        <span class="badge">Domain: https://takt.harisarshad.site/</span>
-        <span class="badge">Effective Date: October 13, 2026</span>
+        <span class="badge">Homepage: https://takt.harisarshad.site/</span>
+        <span class="badge">Privacy Policy URL: https://takt.harisarshad.site/privacy</span>
         <span class="badge">Developer: Haris Arshad</span>
+        <span class="badge">Organization: Haris Arshad</span>
+        <span class="badge">Effective Date: October 13, 2026</span>
+        <span class="badge">Last Updated: October 13, 2026</span>
       </div>
     </div>
 
+    <!-- Application & Organization Identity Statement -->
     <p>
-      This Privacy Policy applies to the <strong>Takt</strong> web application (&ldquo;Takt&rdquo;, &ldquo;we&rdquo;, &ldquo;our&rdquo;, or &ldquo;the Service&rdquo;) accessible at 
-      <a href="https://takt.harisarshad.site/">https://takt.harisarshad.site/</a>, developed, owned, and operated by <strong>Haris Arshad</strong>.
+      This Privacy Policy applies to the <strong>Takt</strong> web application (&ldquo;Takt&rdquo;, &ldquo;we&rdquo;, &ldquo;our&rdquo;, or &ldquo;the Service&rdquo;), accessible at 
+      <a href="https://takt.harisarshad.site/">https://takt.harisarshad.site/</a>. Takt is developed, owned, and operated by independent software engineer and organization <strong>Haris Arshad</strong>.
     </p>
     <p>
       Takt is a high-velocity personal and team task command center, Kanban cadence workspace, daily planner, and Pomodoro focus manager. This policy provides a comprehensive, transparent explanation of how our application accesses, collects, uses, stores, protects, and discloses user information, with specific focus on data obtained via <strong>Google Identity Services (Google OAuth 2.0)</strong>.
     </p>
 
-    <h2>1. What Data We Access &amp; Collect</h2>
-    <p>We believe in strict data minimization. We only collect and process data that is essential for providing the task management and synchronization features of Takt:</p>
-
-    <h3>A. Google OAuth 2.0 User Data</h3>
+    <!-- SECTION 1: GOOGLE USER DATA ACCESSED -->
+    <h2>1. What Google User Data is Accessed by Our Application</h2>
     <p>
-      When you elect to sign in using Google Single Sign-On (SSO), Google requests your explicit authorization to share basic identity profile data. The specific OAuth scopes requested are:
+      Our application will access the data you have provided to us when you elect to sign in using Google Single Sign-On (SSO). We may collect, or process on behalf of our customers, the following categories of personal data when you use or interact with our products and services:
     </p>
-    
+    <ul>
+      <li><strong>Your Name:</strong> Your full name, display name, and given name as provided by your Google account.</li>
+      <li><strong>Your Email Address:</strong> The primary email address associated with your Google account.</li>
+      <li><strong>Your Profile Picture / Avatar URL:</strong> The URL link to your public Google account profile image.</li>
+      <li><strong>Unique Google Account Identifier (Subject ID):</strong> A unique alphanumeric identifier provided by Google (<code>openid</code> / <code>sub</code> claim) to identify your account across sessions.</li>
+    </ul>
+
+    <p>The specific OAuth 2.0 scopes requested from Google Identity Services are:</p>
     <div class="table-container">
       <table>
         <thead>
@@ -231,12 +240,12 @@
             <td>To establish a secure, unique account key in our database to isolate your workspace records.</td>
           </tr>
           <tr>
-            <td><code>.../auth/userinfo.email</code></td>
+            <td><code>https://www.googleapis.com/auth/userinfo.email</code></td>
             <td>Email Address</td>
             <td>To identify your account, send critical account-related security notices, and prevent duplicate accounts.</td>
           </tr>
           <tr>
-            <td><code>.../auth/userinfo.profile</code></td>
+            <td><code>https://www.googleapis.com/auth/userinfo.profile</code></td>
             <td>Display Name &amp; Profile Picture URL</td>
             <td>To display your name in the workspace header and your avatar on comments and task activities you create.</td>
           </tr>
@@ -244,90 +253,125 @@
       </table>
     </div>
 
+    <div class="callout">
+      <p style="margin-bottom: 0;">
+        <strong>Zero Sensitive Scopes Guarantee:</strong> Our application does <strong>NOT</strong> request, access, read, or store any sensitive or restricted Google user data such as Google Drive files, Gmail messages, Google Calendar entries, contacts, location data, browsing history, or payment credentials.
+      </p>
+    </div>
+
+    <!-- SECTION 2: HOW WE USE GOOGLE USER DATA -->
+    <h2>2. How Our Application Uses Google User Data</h2>
     <p>
-      <strong>Important Clarification:</strong> Takt does <strong>NOT</strong> request, access, read, or store any sensitive or restricted Google user data such as Google Drive files, Gmail messages, Google Calendar entries, contacts, browsing history, or payment credentials.
+      We will use your data to provide you with the services you requested. Specifically, we use your Google user data solely for the following legitimate purposes:
+    </p>
+    <ol>
+      <li><strong>Authentication &amp; Account Management:</strong> To verify your identity, establish and maintain your secure login session, and allow you to log in to Takt seamlessly without managing separate passwords.</li>
+      <li><strong>Database Workspace Isolation:</strong> To cryptographically isolate and protect your personal tasks, Kanban boards, and scratchpad notes using PostgreSQL Row-Level Security (RLS) bound to your unique Google user ID (<code>auth.uid() = user_id</code>).</li>
+      <li><strong>User Profile Presentation:</strong> To personalize your interface by displaying your name in the application header, and showing your avatar beside comments and activity history you post on tasks.</li>
+      <li><strong>Cross-Device Real-Time Synchronization:</strong> To sync your tasks, duration estimates, deadlines, checklists, and notes in real time across multiple computers and web browsers.</li>
+      <li><strong>Application Stability &amp; Support:</strong> To troubleshoot user-reported issues and maintain system performance.</li>
+    </ol>
+    <p>
+      <strong>Strict Limitation of Use:</strong> We use Google user data <strong>ONLY</strong> for providing or improving our application&rsquo;s core functionality. We do <strong>NOT</strong> use Google user data for reasons other than providing or improving your application&rsquo;s functionality. We do not use your data for advertising, marketing, profiling, or training generalized artificial intelligence (AI) / machine learning (ML) models.
     </p>
 
-    <h3>B. User-Created Workspace Data</h3>
-    <p>When you actively use Takt, you may create and store the following productivity content:</p>
+    <!-- SECTION 3: SHARING, TRANSFER & DISCLOSURE -->
+    <h2>3. With Whom We Share, Transfer, or Disclose Google User Data</h2>
+    <p>
+      We will not sell your data to third parties, but we may share it with our partners who help us provide our services.
+    </p>
+    <p>
+      <strong>We do not transfer or disclose your information to third parties for purposes other than the ones provided.</strong> We do not sell, rent, monetize, or trade your Google user data or personal information to third parties, data brokers, advertising networks, or marketing companies.
+    </p>
+    <p>
+      We do not transfer Google user data to third parties for reasons other than providing or improving our application&rsquo;s functionality. We only transfer or disclose data to vetted, essential infrastructure providers strictly necessary to operate Takt:
+    </p>
     <ul>
-      <li><strong>Tasks &amp; Metadata:</strong> Task titles, descriptions, due dates, scheduled times, estimated duration / ETAs, deadlines, priorities (P1&ndash;P4), tags, subtask checklists, and completion statuses.</li>
-      <li><strong>Activity Logs &amp; Comments:</strong> Task comments, status transition records, and Pomodoro session logs.</li>
-      <li><strong>Meeting Notes:</strong> Content created inside the private Meeting Scratchpad tool.</li>
+      <li><strong>Google LLC (Google Identity Services):</strong> Used to provide OAuth 2.0 authentication and verify identity tokens. Subject to <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google Privacy Policy</a>.</li>
+      <li><strong>Supabase Inc. (Database &amp; Authentication Host):</strong> Managed cloud PostgreSQL database and auth provider where your encrypted account profile, task records, and notes are securely stored. Supabase is SOC 2 Type II certified.</li>
+      <li><strong>Cloudflare Inc. (CDN &amp; Security Proxy):</strong> Provides DDoS mitigation, global edge delivery, and secure TLS/HTTPS termination for web application traffic.</li>
     </ul>
 
-    <h3>C. Browser Local Storage Data</h3>
+    <!-- SECTION 4: DATA PROTECTION & SECURITY -->
+    <h2>4. Data Protection Mechanisms for Sensitive Data</h2>
     <p>
-      To enable fast offline access and preserve user preferences, we store non-tracking state in your browser’s <code>localStorage</code>, including UI theme (dark/light mode), view layouts (Kanban board vs. List view), and cached authentication tokens.
+      Security procedures are in place to protect the confidentiality of your data. We use encryption to protect your information and apply industry best practices to prevent unauthorized access, alteration, or disclosure:
     </p>
+    <ul>
+      <li><strong>Encryption in Transit:</strong> All communication between your web browser, our frontend application, and our backend APIs is encrypted using modern Transport Layer Security (TLS 1.3 / HTTPS). Plaintext HTTP connections are automatically upgraded.</li>
+      <li><strong>Encryption at Rest:</strong> All database records, user identifiers, profile records, and task contents are encrypted at rest using industry-standard AES-256 encryption via our cloud database provider (Supabase).</li>
+      <li><strong>Row-Level Security (RLS):</strong> Our database employs PostgreSQL Row-Level Security policies. Every query requires a verified JSON Web Token (JWT) matching the user&rsquo;s unique Google ID (<code>auth.uid() = user_id</code>). No user can query or modify another user&rsquo;s data.</li>
+      <li><strong>Defense-in-Depth HTTP Security Headers:</strong> We enforce strict HTTP headers including Content Security Policy (CSP), Strict-Transport-Security (HSTS), X-Content-Type-Options: nosniff, and Cross-Origin-Opener-Policy.</li>
+    </ul>
 
-    <h2>2. Purpose Specification: How We Use Your Data</h2>
-    <p>We use the data we collect solely for the following legitimate purposes:</p>
-    <ol>
-      <li><strong>Authentication &amp; Account Access:</strong> To verify your identity, maintain your authenticated session, and grant access to your private workspace.</li>
-      <li><strong>Cross-Device Task Synchronization:</strong> To sync your tasks, ETAs, deadlines, and comments in real-time across multiple computers, tablets, and browsers using Supabase PostgreSQL.</li>
-      <li><strong>Row-Level Security Enforcement:</strong> To cryptographically restrict database access so that only your authenticated Google user ID (<code>auth.uid() = user_id</code>) can query, update, or delete your tasks.</li>
-      <li><strong>Application Stability:</strong> To monitor application performance and troubleshoot software bugs.</li>
-    </ol>
+    <!-- SECTION 5: DATA RETENTION & DELETION DISCLOSURES -->
+    <h2>5. Disclosures About Data Retention and Deletion</h2>
+    <p>
+      We retain your personal data and Google user data only for as long as your account is active and as necessary to provide the services you requested.
+    </p>
+    <p>Users have complete ownership and control over their data, including the following deletion options:</p>
+    <ul>
+      <li>
+        <strong>In-App Immediate Deletion:</strong> You can delete any individual task, note, comment, or checklist item at any time using the delete icon inside the Takt interface. Deleted items are immediately removed from our active database.
+      </li>
+      <li>
+        <strong>Permanent Account &amp; Complete Data Erasure:</strong> You can request permanent, irrevocable deletion of your account and all associated cloud data by emailing the developer at:
+        <br>
+        <a href="mailto:harisengr73@gmail.com" style="font-weight: 700;">harisengr73@gmail.com</a> with the subject line <em>&ldquo;Takt Data Deletion Request&rdquo;</em>.
+        <br>
+        Upon receipt, all your profile data, tasks, notes, comments, and authentication tokens will be permanently expunged from all active databases and automated backups within <strong>7 business days</strong>.
+      </li>
+      <li>
+        <strong>Revoke Google OAuth Access:</strong> You can disconnect Takt from your Google account at any time by visiting the 
+        <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener noreferrer">Google Account Permissions Center</a>.
+      </li>
+    </ul>
 
-    <h2>3. Mandatory Google User Data Compliance Disclosure</h2>
+    <!-- SECTION 6: MANDATORY GOOGLE LIMITED USE DISCLOSURE -->
+    <h2>6. Google API Services User Data Policy Compliance</h2>
     <div class="callout">
-      <p style="margin-bottom: 0.75rem;"><strong>Limited Use Policy Adherence:</strong></p>
+      <p style="margin-bottom: 0.75rem;"><strong>Limited Use Requirements:</strong></p>
       <p style="margin-bottom: 0.75rem;">
-        Takt’s use and transfer to any other app of information received from Google APIs will adhere to the 
+        Takt&rsquo;s use and transfer to any other app of information received from Google APIs will adhere to the 
         <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener noreferrer"><strong>Google API Services User Data Policy</strong></a>, including the <strong>Limited Use</strong> requirements.
       </p>
       <ul style="margin-bottom: 0; padding-left: 1.25rem;">
         <li>We do <strong>NOT</strong> use Google user data to serve advertisements or retarget users.</li>
         <li>We do <strong>NOT</strong> sell, rent, or monetize Google user data to third parties, data brokers, or marketing exchanges.</li>
         <li>We do <strong>NOT</strong> use Google user data to train generalized machine learning or artificial intelligence models.</li>
-        <li>We do <strong>NOT</strong> allow human personnel to read your private tasks or Google profile data, unless explicitly requested by you for technical support or required by law.</li>
+        <li>We do <strong>NOT</strong> allow humans to read your private data unless you have given explicit prior consent for technical support, or where required by applicable law.</li>
       </ul>
     </div>
 
-    <h2>4. Third-Party Service Providers</h2>
-    <p>We only share data with essential infrastructure providers strictly required to host and run Takt:</p>
+    <!-- SECTION 7: USER-CREATED WORKSPACE DATA -->
+    <h2>7. User-Created Workspace Data &amp; Local Storage</h2>
+    <p>When you use Takt, you may create productivity content including:</p>
     <ul>
-      <li><strong>Google LLC (Google Identity Services):</strong> Provides OAuth 2.0 authentication infrastructure.</li>
-      <li><strong>Supabase Inc.:</strong> Provides our managed cloud database and authentication service. Supabase adheres to SOC 2 Type II compliance, encrypts data at rest via AES-256, and encrypts all connections in transit via TLS/HTTPS.</li>
-      <li><strong>Cloudflare Inc.:</strong> Provides DDoS protection, global CDN caching, and secure SSL/TLS termination for the frontend web application.</li>
+      <li><strong>Tasks &amp; Metadata:</strong> Task titles, descriptions, due dates, scheduled times, estimated duration / ETAs, priority flags (P1&ndash;P4), tags, subtask checklists, and completion statuses.</li>
+      <li><strong>Activity Logs &amp; Comments:</strong> Task comments, status transition records, and Pomodoro session logs.</li>
+      <li><strong>Meeting Notes:</strong> Content created inside the Meeting Scratchpad tool.</li>
+      <li><strong>Browser Local Storage:</strong> To preserve your UI preferences (dark/light theme, Kanban board vs. list layout) and cached tokens, non-tracking state is stored in your browser&rsquo;s <code>localStorage</code>.</li>
     </ul>
 
-    <h2>5. Data Storage, Security &amp; Retention</h2>
+    <!-- SECTION 8: POLICY CHANGES & NOTIFICATIONS -->
+    <h2>8. Policy Updates &amp; User Notification</h2>
     <p>
-      All communication between your browser and our servers is secured using modern TLS 1.3 encryption. Task records, notes, and user profiles are stored in isolated cloud databases protected by Postgres Row-Level Security (RLS).
+      We are committed to notifying users if we change how our application uses Google user data. If we make material modifications to this Privacy Policy, we will notify users by:
     </p>
-    <p>
-      <strong>Retention Period:</strong> We retain your user data for as long as your account is active. When you delete a task, comment, or note within the app, it is immediately deleted from the active database.
-    </p>
-
-    <h2>6. How to Delete Your Data (User Rights &amp; Instructions)</h2>
-    <p>You maintain complete ownership and control over your data. You may exercise your rights through any of the following methods:</p>
     <ul>
-      <li><strong>In-App Task Deletion:</strong> You can delete any task, note, or comment at any time using the delete button inside the application interface.</li>
-      <li><strong>Complete Account &amp; Data Deletion Request:</strong> You can request permanent deletion of your account and all associated cloud data by sending an email from your registered address to:
-        <br>
-        <a href="mailto:harisengr73@gmail.com" style="font-weight: 700;">harisengr73@gmail.com</a> with the subject line <em>&ldquo;Takt Data Deletion Request&rdquo;</em>.
-        <br>
-        Upon receipt, all your tasks, notes, comments, and authentication records will be permanently expunged within <strong>7 business days</strong>.
-      </li>
-      <li><strong>Revoke Google OAuth Permission:</strong> You can disconnect Takt from your Google Account at any time by visiting your 
-        <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener noreferrer">Google Account Permissions Center</a>.
-      </li>
+      <li>Posting a prominent announcement notice on the <a href="https://takt.harisarshad.site/">Takt homepage</a> and within the app interface prior to changes taking effect.</li>
+      <li>Updating the &ldquo;Last Updated&rdquo; date at the top of this Privacy Policy.</li>
     </ul>
 
-    <h2>7. Policy Changes &amp; User Notification</h2>
-    <p>
-      If we make material changes to how we handle personal data or Google user data, we will update the &ldquo;Last Updated&rdquo; date at the top of this page and post a prominent notice on the Takt homepage prior to the changes taking effect.
-    </p>
-
-    <h2>8. Contact &amp; Developer Information</h2>
-    <p>For any privacy inquiries, compliance verification questions, or data deletion requests, please contact the developer:</p>
+    <!-- SECTION 9: DEVELOPER & CONTACT INFORMATION -->
+    <h2>9. Developer, Application &amp; Organization Information</h2>
+    <p>For any questions regarding this Privacy Policy, Google OAuth compliance, or data deletion requests, please contact:</p>
     <ul>
-      <li><strong>Application Name:</strong> Takt</li>
+      <li><strong>Application Name:</strong> Takt (also referenced as Takt Workspace / Auratask)</li>
       <li><strong>Application URL:</strong> <a href="https://takt.harisarshad.site/">https://takt.harisarshad.site/</a></li>
-      <li><strong>Lead Developer:</strong> Haris Arshad</li>
-      <li><strong>Support Email:</strong> <a href="mailto:harisengr73@gmail.com">harisengr73@gmail.com</a></li>
+      <li><strong>Privacy Policy URL:</strong> <a href="https://takt.harisarshad.site/privacy">https://takt.harisarshad.site/privacy</a></li>
+      <li><strong>Developer &amp; Organization:</strong> Haris Arshad</li>
+      <li><strong>Contact Email:</strong> <a href="mailto:harisengr73@gmail.com">harisengr73@gmail.com</a></li>
     </ul>
 
     <div class="footer">

@@ -14,6 +14,8 @@ export default function LandingPage({
   onTryDemo,
   onOpenLogin,
   onOpenApp,
+  onOpenPrivacy,
+  onOpenTerms,
   hasActiveSession = false,
   darkMode,
   setDarkMode
@@ -51,10 +53,30 @@ export default function LandingPage({
               <a href="#features" className="hover:text-neutral-900 dark:hover:text-zinc-100 transition-colors">Features</a>
               <a href="#scratchpad" className="hover:text-neutral-900 dark:hover:text-zinc-100 transition-colors">Meeting Scratchpad</a>
               <a href="#calendar-view" className="hover:text-neutral-900 dark:hover:text-zinc-100 transition-colors">7-Day Horizon</a>
-              <a href="#workflow-suite" className="hover:text-neutral-900 dark:hover:text-zinc-100 transition-colors">Workflow Tools</a>
-              <a href="/privacy" className="text-rose-600 dark:text-rose-400 font-bold hover:underline transition-colors flex items-center gap-1">
+              <a
+                href="/privacy"
+                onClick={(e) => {
+                  if (onOpenPrivacy) {
+                    e.preventDefault();
+                    onOpenPrivacy();
+                  }
+                }}
+                className="text-rose-600 dark:text-rose-400 font-bold hover:underline transition-colors flex items-center gap-1"
+              >
                 <Shield className="w-3.5 h-3.5" />
                 <span>Privacy Policy</span>
+              </a>
+              <a
+                href="/terms"
+                onClick={(e) => {
+                  if (onOpenTerms) {
+                    e.preventDefault();
+                    onOpenTerms();
+                  }
+                }}
+                className="hover:text-neutral-900 dark:hover:text-zinc-100 transition-colors"
+              >
+                Terms of Service
               </a>
             </nav>
           </div>
@@ -416,6 +438,12 @@ export default function LandingPage({
             <div className="flex flex-wrap items-center gap-3 shrink-0">
               <a
                 href="/privacy"
+                onClick={(e) => {
+                  if (onOpenPrivacy) {
+                    e.preventDefault();
+                    onOpenPrivacy();
+                  }
+                }}
                 className="px-5 py-2.5 rounded-full bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200 font-medium text-xs shadow-sm transition-all flex items-center gap-1.5"
               >
                 <Shield className="w-3.5 h-3.5" />
@@ -423,6 +451,12 @@ export default function LandingPage({
               </a>
               <a
                 href="/terms"
+                onClick={(e) => {
+                  if (onOpenTerms) {
+                    e.preventDefault();
+                    onOpenTerms();
+                  }
+                }}
                 className="px-4 py-2.5 rounded-full bg-neutral-100 dark:bg-white/[0.06] text-neutral-700 dark:text-zinc-300 hover:bg-neutral-200 dark:hover:bg-white/[0.1] font-medium text-xs border border-neutral-200 dark:border-white/[0.08] transition-all"
               >
                 <span>Terms of Service</span>
@@ -916,8 +950,30 @@ export default function LandingPage({
             <a href="#purpose" className="hover:text-neutral-900 dark:hover:text-zinc-200 transition-colors">App Purpose</a>
             <a href="#features" className="hover:text-neutral-900 dark:hover:text-zinc-200 transition-colors">Features</a>
             <a href="#templates" className="hover:text-neutral-900 dark:hover:text-zinc-200 transition-colors">Templates</a>
-            <a href="/privacy" className="text-rose-600 dark:text-rose-400 font-semibold hover:underline transition-colors">Privacy Policy</a>
-            <a href="/terms" className="hover:text-neutral-900 dark:hover:text-zinc-200 transition-colors">Terms of Service</a>
+            <a
+              href="/privacy"
+              onClick={(e) => {
+                if (onOpenPrivacy) {
+                  e.preventDefault();
+                  onOpenPrivacy();
+                }
+              }}
+              className="text-rose-600 dark:text-rose-400 font-semibold hover:underline transition-colors"
+            >
+              Privacy Policy
+            </a>
+            <a
+              href="/terms"
+              onClick={(e) => {
+                if (onOpenTerms) {
+                  e.preventDefault();
+                  onOpenTerms();
+                }
+              }}
+              className="hover:text-neutral-900 dark:hover:text-zinc-200 transition-colors"
+            >
+              Terms of Service
+            </a>
             <a href="mailto:harisengr73@gmail.com" className="hover:text-neutral-900 dark:hover:text-zinc-200 transition-colors">Support &amp; Data Deletion</a>
             <button onClick={onTryDemo} className="hover:text-neutral-900 dark:hover:text-zinc-200 transition-colors">Live Demo</button>
           </div>

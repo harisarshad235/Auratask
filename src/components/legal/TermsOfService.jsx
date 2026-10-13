@@ -1,16 +1,29 @@
 import React from 'react';
-import { ArrowLeft, FileText, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, FileText, CheckCircle2, Shield } from 'lucide-react';
 import { TaktLogo } from '../brand/TaktLogo';
 
 export default function TermsOfService({ onBack }) {
+  const handleHomeClick = (e) => {
+    if (onBack) {
+      e.preventDefault();
+      onBack();
+    } else {
+      window.location.href = '/';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#090b11] text-slate-800 dark:text-zinc-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto bg-white dark:bg-[#0e121b] border border-slate-200 dark:border-white/[0.1] rounded-3xl p-6 sm:p-12 shadow-xl">
         {/* Navigation & Header */}
         <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/[0.08] pb-6 mb-8">
-          <a href="/" onClick={(e) => { if (onBack) { e.preventDefault(); onBack(); } }} className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+          <a
+            href="/"
+            onClick={handleHomeClick}
+            className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+          >
             <ArrowLeft className="w-4 h-4" />
-            <span>Back to Takt</span>
+            <span>Back to Takt Homepage</span>
           </a>
           <TaktLogo className="h-7 w-auto" href="/" />
         </div>
@@ -23,14 +36,19 @@ export default function TermsOfService({ onBack }) {
             Terms of Service
           </h1>
         </div>
-        <p className="text-xs text-slate-400 dark:text-[#71717a] mb-8">
-          Effective Date: October 13, 2026 &bull; Last Updated: October 13, 2026
-        </p>
+
+        <div className="flex flex-wrap gap-2 text-[11px] font-semibold text-slate-500 dark:text-[#a1a1aa] mb-8">
+          <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-[#1c1c20] border border-slate-200 dark:border-[#28282e]">Application: Takt</span>
+          <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-[#1c1c20] border border-slate-200 dark:border-[#28282e]">Homepage: https://takt.harisarshad.site/</span>
+          <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-[#1c1c20] border border-slate-200 dark:border-[#28282e]">Terms URL: https://takt.harisarshad.site/terms</span>
+          <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-[#1c1c20] border border-slate-200 dark:border-[#28282e]">Developer: Haris Arshad</span>
+          <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-[#1c1c20] border border-slate-200 dark:border-[#28282e]">Effective: October 13, 2026</span>
+        </div>
 
         <div className="prose prose-slate dark:prose-invert max-w-none text-sm space-y-6 text-slate-600 dark:text-[#a1a1aa] leading-relaxed">
           <p>
             Please read these Terms of Service (&ldquo;Terms&rdquo;) carefully before using the <strong className="text-slate-900 dark:text-white">Takt</strong> web application hosted at{' '}
-            <a href="https://takt.harisarshad.site/" className="text-rose-600 dark:text-rose-400 underline font-medium">https://takt.harisarshad.site/</a> (&ldquo;Service&rdquo;), operated by <strong className="text-slate-900 dark:text-white">Haris Arshad</strong> (&ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;our&rdquo;).
+            <a href="https://takt.harisarshad.site/" className="text-rose-600 dark:text-rose-400 underline font-medium">https://takt.harisarshad.site/</a> (&ldquo;Service&rdquo;), developed, owned, and operated by independent software engineer <strong className="text-slate-900 dark:text-white">Haris Arshad</strong> (&ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;our&rdquo;).
           </p>
           <p>
             By accessing or using Takt, you agree to be bound by these Terms. If you do not agree to these Terms, please do not use the Service.
@@ -40,7 +58,7 @@ export default function TermsOfService({ onBack }) {
             1. Description of the Service
           </h2>
           <p>
-            Takt is a personal productivity, task execution cadence, and focus workspace designed to assist users in tracking tasks, organizing workflows, managing Pomodoro sessions, and taking private meeting notes.
+            Takt is a personal productivity, task execution cadence, and focus workspace designed to assist users in tracking tasks, organizing workflows, managing Pomodoro sessions, and taking private meeting notes with real-time cloud synchronization across devices.
           </p>
 
           <h2 className="text-lg font-bold text-slate-900 dark:text-white pt-4 border-t border-slate-100 dark:border-[#222225]">
@@ -50,26 +68,28 @@ export default function TermsOfService({ onBack }) {
             <li>To synchronize data across multiple devices, you may register or log in using Google OAuth 2.0 or email credentials.</li>
             <li>You are responsible for safeguarding your account access and for all actions that occur under your account.</li>
             <li>You must provide accurate and lawful information when creating an account.</li>
+            <li>You can disconnect Google OAuth authentication at any time through Google Account Permissions.</li>
           </ul>
 
           <h2 className="text-lg font-bold text-slate-900 dark:text-white pt-4 border-t border-slate-100 dark:border-[#222225]">
             3. Ownership of User Content
           </h2>
           <p>
-            You retain 100% intellectual property ownership of all tasks, notes, comments, and data you create within Takt. We do not claim any rights over your content.
+            You retain 100% intellectual property ownership of all tasks, notes, comments, checklists, and data you create within Takt. We do not claim any rights over your content.
           </p>
           <p>
             We will never sell, analyze, or distribute your private tasks or notes to third-party marketing companies.
           </p>
 
           <h2 className="text-lg font-bold text-slate-900 dark:text-white pt-4 border-t border-slate-100 dark:border-[#222225]">
-            4. Acceptable Use
+            4. Acceptable Use Policy
           </h2>
           <p>You agree not to:</p>
           <ul className="list-disc pl-5 space-y-1.5">
             <li>Interfere with or compromise the security or integrity of our servers or database infrastructure.</li>
-            <li>Attempt to access another user's private data or circumvent Row-Level Security policies.</li>
+            <li>Attempt to access another user's private data or circumvent PostgreSQL Row-Level Security policies.</li>
             <li>Use the service for any unlawful purpose or in violation of applicable laws.</li>
+            <li>Introduce malicious code, viruses, or disruptive scripts.</li>
           </ul>
 
           <h2 className="text-lg font-bold text-slate-900 dark:text-white pt-4 border-t border-slate-100 dark:border-[#222225]">
@@ -80,13 +100,21 @@ export default function TermsOfService({ onBack }) {
           </p>
 
           <h2 className="text-lg font-bold text-slate-900 dark:text-white pt-4 border-t border-slate-100 dark:border-[#222225]">
-            6. Contact
+            6. Termination &amp; Data Deletion
+          </h2>
+          <p>
+            You may stop using Takt at any time. You can delete your content in-app or request full erasure by emailing <a href="mailto:harisengr73@gmail.com" className="text-rose-600 dark:text-rose-400 font-semibold underline">harisengr73@gmail.com</a> (completed within 7 business days).
+          </p>
+
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white pt-4 border-t border-slate-100 dark:border-[#222225]">
+            7. Contact Information
           </h2>
           <p>For questions regarding these Terms, contact:</p>
-          <ul className="list-none space-y-1 pl-0">
-            <li><strong>Developer:</strong> Haris Arshad</li>
+          <ul className="list-none space-y-1.5 pl-0 text-xs">
+            <li><strong>Developer &amp; Organization:</strong> Haris Arshad</li>
             <li><strong>Application:</strong> Takt (<a href="https://takt.harisarshad.site/" className="underline">https://takt.harisarshad.site/</a>)</li>
-            <li><strong>Email:</strong> <a href="mailto:harisengr73@gmail.com" className="text-rose-600 dark:text-rose-400 underline font-medium">harisengr73@gmail.com</a></li>
+            <li><strong>Terms URL:</strong> <a href="https://takt.harisarshad.site/terms" className="underline">https://takt.harisarshad.site/terms</a></li>
+            <li><strong>Contact Email:</strong> <a href="mailto:harisengr73@gmail.com" className="text-rose-600 dark:text-rose-400 underline font-medium">harisengr73@gmail.com</a></li>
           </ul>
         </div>
 
@@ -94,7 +122,7 @@ export default function TermsOfService({ onBack }) {
           <div>&copy; {new Date().getFullYear()} Takt by Haris Arshad. All rights reserved.</div>
           <div className="flex gap-4">
             <a href="/privacy" className="hover:text-slate-600 dark:hover:text-white transition-colors">Privacy Policy</a>
-            <a href="https://takt.harisarshad.site/" className="hover:text-slate-600 dark:hover:text-white transition-colors">Home</a>
+            <a href="https://takt.harisarshad.site/" onClick={handleHomeClick} className="hover:text-slate-600 dark:hover:text-white transition-colors">Home</a>
           </div>
         </div>
       </div>
