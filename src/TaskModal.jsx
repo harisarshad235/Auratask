@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { formatDuration, parseDurationMinutes } from './utils/formatDuration';
 import { supabase } from './supabaseClient';
+import { sanitizeString } from './utils/security';
 
 const TAKT_META_REGEX = /<!--takt:meta\s+({[\s\S]*?})-->/;
 
@@ -258,10 +259,11 @@ export default function TaskModal({
 
   // Add subtask
   const handleAddSubtask = () => {
-    if (!newSubtaskText.trim()) return;
+    const cleanSubtask = sanitizeString(newSubtaskText, 300);
+    if (!cleanSubtask) return;
     const newSt = {
       id: 'st-' + Date.now(),
-      text: newSubtaskText.trim(),
+      text: cleanSubtask,
       completed: false
     };
     setSubtasks([...subtasks, newSt]);
@@ -279,8 +281,8 @@ export default function TaskModal({
 
   // Add Comment (Persisting to both Supabase task_comments and task metadata)
   const handleAddComment = async () => {
-    if (!newCommentText.trim()) return;
-    const commentText = newCommentText.trim();
+    const commentText = sanitizeString(newCommentText, 3000);
+    if (!commentText) return;
     const commentId = generateUUID();
     const nowIso = new Date().toISOString();
 

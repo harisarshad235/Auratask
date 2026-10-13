@@ -23,6 +23,7 @@ import BoardTaskCard from './components/BoardTaskCard';
 import ListTaskCard from './components/ListTaskCard';
 import PrivacyPolicy from './components/legal/PrivacyPolicy';
 import TermsOfService from './components/legal/TermsOfService';
+import { sanitizeString, clientRateLimiter } from './utils/security';
 
 // --- BRAND LOGO ---
 export const AuraLogo = TaktLogo;
@@ -709,26 +710,30 @@ export default function App() {
 
   // --- MEETING SCRATCHPAD HANDLERS ---
   const handleSaveMeetingNote = async (updatedNote) => {
+    const cleanTitle = sanitizeString(updatedNote.title || 'Untitled Meeting Note', 200);
+    const cleanContent = sanitizeString(updatedNote.content || '', 50000);
+    const safeNote = { ...updatedNote, title: cleanTitle, content: cleanContent };
+
     setMeetingNotes(prev => {
-      const exists = prev.some(n => n.id === updatedNote.id);
+      const exists = prev.some(n => n.id === safeNote.id);
       if (exists) {
-        return prev.map(n => n.id === updatedNote.id ? updatedNote : n);
+        return prev.map(n => n.id === safeNote.id ? safeNote : n);
       }
-      return [updatedNote, ...prev];
+      return [safeNote, ...prev];
     });
 
     if (session?.user?.id) {
       try {
         const { error } = await supabase.from('tasks').upsert({
-          id: updatedNote.id,
-          title: updatedNote.title || 'Untitled Meeting Note',
-          description: updatedNote.content || '',
+          id: safeNote.id,
+          title: cleanTitle,
+          description: cleanContent,
           section: 'meeting_notes',
           priority: 'P2',
           due_date: new Date().toISOString().split('T')[0],
           due_time: '',
           subtasks: [],
-          created_at: updatedNote.updated_at || new Date().toISOString(),
+          created_at: safeNote.updated_at || new Date().toISOString(),
           user_id: session.user.id
         });
         if (error) {
@@ -1567,20 +1572,22 @@ export default function App() {
   // Bulleproof Task CRUD Operations
   const handleCreateTask = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
-    if (!newTitle.trim()) return;
+    const cleanTitle = sanitizeString(newTitle, 250);
+    if (!cleanTitle) return;
 
+    const cleanDesc = sanitizeString(newDesc, 5000);
     const chosenDuration = newDuration || '30m';
     const taskObj = {
       id: generateUUID(),
-      title: newTitle.trim(),
-      description: newDesc.trim(),
+      title: cleanTitle,
+      description: cleanDesc,
       section: normalizeSectionKey(composerSection || 'todo'),
       priority: newPriority || 'P2',
       due_date: newDueDate || new Date().toISOString().split('T')[0],
       due_time: newDueTime || '',
       duration: chosenDuration,
       estimated_minutes: parseDurationMinutes(chosenDuration) || 30,
-      tags: [newTag || '#Work'],
+      tags: [sanitizeString(newTag || '#Work', 40)],
       is_focus: false,
       focused_minutes: 0,
       subtasks: [],
@@ -1617,6 +1624,12 @@ export default function App() {
       const next = prev.map(t => {
         if (t.id === id) {
           const mergedUpdates = { ...updates };
+          if (mergedUpdates.title !== undefined) {
+            mergedUpdates.title = sanitizeString(mergedUpdates.title, 250);
+          }
+          if (mergedUpdates.description !== undefined) {
+            mergedUpdates.description = sanitizeString(mergedUpdates.description, 10000);
+          }
           if (mergedUpdates.section) {
             mergedUpdates.section = normalizeSectionKey(mergedUpdates.section);
           }
@@ -2182,12 +2195,37 @@ export default function App() {
     setAuthError(null);
     setAuthSuccessMsg(null);
 
+    // 1. Rate Limiting Check on Sensitive Authentication Action
+    const rl = clientRateLimiter.check('auth_submission', 5, 60000);
+    if (!rl.allowed) {
+      setAuthError(`Too many authentication attempts. Please wait ${rl.waitSeconds}s before trying again.`);
+      setAuthLoading(false);
+      return;
+    }
+
+    // 2. Schema Validation & Input Sanitization
+    const cleanEmail = sanitizeString(authEmail, 254).toLowerCase();
+    const cleanFullName = sanitizeString(authFullName, 100);
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanEmail)) {
+      setAuthError('Please enter a valid email address.');
+      setAuthLoading(false);
+      return;
+    }
+
+    if (authPassword.length < 8) {
+      setAuthError('Password must be at least 8 characters long.');
+      setAuthLoading(false);
+      return;
+    }
+
     try {
       if (rememberMe) {
         localStorage.setItem('takt_remember_me', 'true');
-        localStorage.setItem('takt_remembered_email', authEmail.trim());
+        localStorage.setItem('takt_remembered_email', cleanEmail);
         localStorage.setItem('auratask_remember_me', 'true');
-        localStorage.setItem('auratask_remembered_email', authEmail.trim());
+        localStorage.setItem('auratask_remembered_email', cleanEmail);
       } else {
         localStorage.setItem('takt_remember_me', 'false');
         localStorage.removeItem('takt_remembered_email');
@@ -2197,10 +2235,10 @@ export default function App() {
 
       if (authMode === 'register') {
         const { data, error } = await supabase.auth.signUp({
-          email: authEmail,
+          email: cleanEmail,
           password: authPassword,
           options: {
-            data: { full_name: authFullName || authEmail.split('@')[0] }
+            data: { full_name: cleanFullName || cleanEmail.split('@')[0] }
           }
         });
         if (error) throw error;
@@ -2209,14 +2247,14 @@ export default function App() {
           handleUserSessionEstablished(data.session);
           setShowLandingPage(false);
           setShowAuthModal(false);
-          showToast(`Welcome to Takt, ${authFullName || 'friend'}!`);
+          showToast(`Welcome to Takt, ${cleanFullName || 'friend'}!`);
         } else {
           setAuthSuccessMsg('Account created successfully! Check your email to verify, or sign in.');
           setAuthMode('login');
         }
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({
-          email: authEmail,
+          email: cleanEmail,
           password: authPassword,
         });
         if (error) throw error;
