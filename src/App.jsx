@@ -422,7 +422,14 @@ export default function App() {
   // Initialize workspace data based on guest mode or initial session
   const initialData = useMemo(() => {
     try {
-      const authStr = localStorage.getItem('sb-zamtslutoccexvqjepqz-auth-token');
+      let authStr = null;
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+          authStr = localStorage.getItem(key);
+          break;
+        }
+      }
       if (authStr) {
         const parsed = JSON.parse(authStr);
         if (parsed?.user?.id) return loadScopedWorkspaceData(parsed.user.id);
