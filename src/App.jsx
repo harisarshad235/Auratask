@@ -260,29 +260,41 @@ export const prepareBaseCloudTask = (t, userId) => {
   };
 };
 
-// Scan all local storage keys for any user tasks that were saved under alternate keys or guest keys
+// Tombstone tracking for permanently deleted tasks to prevent zombie resurrections
+export const addDeletedTombstone = (taskId, userId, taskTitle = '') => {
+  if (!userId) return;
+  try {
+    const key = `takt_deleted_ids_u_${userId}`;
+    const list = JSON.parse(localStorage.getItem(key) || '[]');
+    if (taskId && !list.includes(taskId)) list.push(taskId);
+    if (taskTitle) {
+      const titleKey = `title:${taskTitle.trim().toLowerCase()}`;
+      if (!list.includes(titleKey)) list.push(titleKey);
+    }
+    localStorage.setItem(key, JSON.stringify(list.slice(-300)));
+  } catch { }
+};
+
+export const isTaskDeleted = (taskId, userId, taskTitle = '') => {
+  if (!userId) return false;
+  try {
+    const key = `takt_deleted_ids_u_${userId}`;
+    const list = JSON.parse(localStorage.getItem(key) || '[]');
+    if (taskId && list.includes(taskId)) return true;
+    if (taskTitle && list.includes(`title:${taskTitle.trim().toLowerCase()}`)) return true;
+  } catch { }
+  return false;
+};
+
+// Safe scan of legacy auratask keys for this user during one-time migration
 export const findOrphanedTasks = (userId) => {
+  if (!userId) return [];
   const found = [];
   const foundTitles = new Set();
   const keysToScan = [
-    `takt_tasks_u_${userId}`,
-    `takt_tasks_backup_u_${userId}`,
     `auratask_tasks_u_${userId}`,
-    `auratask_tasks_backup_u_${userId}`,
-    'takt_guest_tasks',
-    'takt_guest_tasks_backup',
-    'auratask_guest_tasks',
-    'auratask_guest_tasks_backup'
+    `auratask_tasks_backup_u_${userId}`
   ];
-
-  try {
-    for (let i = 0; i < localStorage.length; i++) {
-      const k = localStorage.key(i);
-      if (k && (k.startsWith('takt_') || k.startsWith('auratask_')) && !keysToScan.includes(k)) {
-        keysToScan.push(k);
-      }
-    }
-  } catch { }
 
   keysToScan.forEach(k => {
     try {
@@ -293,13 +305,12 @@ export const findOrphanedTasks = (userId) => {
           parsed.forEach(item => {
             if (item && item.title) {
               const lowerTitle = item.title.toLowerCase().trim();
+              // NEVER treat meeting scratchpad notes or deleted tasks as tasks
+              if (item.section === 'meeting_notes' || lowerTitle === 'welcome to your private scratchpad') return;
+              if (isTaskDeleted(item.id, userId, item.title)) return;
               if (!foundTitles.has(lowerTitle)) {
-                const isPhotoroom = lowerTitle.includes('photoroom');
-                const isNonDemo = !item.id?.startsWith('guest-demo') && !item.title.includes('(Guest Sandbox)');
-                if (isPhotoroom || isNonDemo) {
-                  foundTitles.add(lowerTitle);
-                  found.push(autoHealTask({ ...item, user_id: userId }));
-                }
+                foundTitles.add(lowerTitle);
+                found.push(autoHealTask({ ...item, user_id: userId }));
               }
             }
           });
@@ -321,11 +332,16 @@ const loadScopedWorkspaceData = (userId = null) => {
       if (!Array.isArray(rawTasks) || rawTasks.length === 0) {
         rawTasks = findOrphanedTasks(userId);
       }
+      const filteredTasks = Array.isArray(rawTasks)
+        ? rawTasks
+            .filter(t => t && t.title && t.title.toLowerCase().trim() !== 'welcome to your private scratchpad' && !isTaskDeleted(t.id, userId, t.title))
+            .map(autoHealTask)
+        : [];
       const savedNotes = localStorage.getItem(`takt_notes_u_${userId}`) || localStorage.getItem(`auratask_notes_u_${userId}`);
       const savedSections = localStorage.getItem(`takt_sections_u_${userId}`) || localStorage.getItem(`auratask_sections_u_${userId}`);
       const savedLogs = localStorage.getItem(`takt_activity_u_${userId}`) || localStorage.getItem(`auratask_activity_u_${userId}`);
       return {
-        tasks: Array.isArray(rawTasks) ? rawTasks.map(autoHealTask) : [],
+        tasks: filteredTasks,
         notes: savedNotes ? JSON.parse(savedNotes) : [
           {
             id: `note-${Date.now()}`,
@@ -682,7 +698,11 @@ export default function App() {
       const queue = JSON.parse(localStorage.getItem(key) || '[]');
       if (!Array.isArray(queue) || queue.length === 0) return;
       for (const item of queue) {
-        await upsertTaskToCloud(item, userId);
+        if (!isTaskDeleted(item?.id, userId, item?.title)) {
+          await upsertTaskToCloud(item, userId);
+        } else {
+          removeFromSyncQueue(item?.id, userId);
+        }
       }
     } catch { }
   };
@@ -1293,31 +1313,44 @@ export default function App() {
           const regularTasks = data.filter(item => item.section !== 'meeting_notes');
           const cloudNotes = data.filter(item => item.section === 'meeting_notes');
 
-          const normalizedCloudTasks = regularTasks.map(item => autoHealTask(item));
+          // Clean up any rogue cloud tasks that were saved with the meeting note title or deleted
+          const rogueScratchpadCloudTasks = regularTasks.filter(item => item.title?.toLowerCase().trim() === 'welcome to your private scratchpad');
+          if (rogueScratchpadCloudTasks.length > 0) {
+            rogueScratchpadCloudTasks.forEach(item => {
+              supabase.from('tasks').delete().eq('id', item.id).eq('user_id', currentUserId).then(() => {});
+            });
+          }
+
+          const normalizedCloudTasks = regularTasks
+            .filter(item => {
+              if (item.title?.toLowerCase().trim() === 'welcome to your private scratchpad') return false;
+              if (isTaskDeleted(item.id, currentUserId, item.title)) return false;
+              return true;
+            })
+            .map(item => autoHealTask(item));
 
           // Merge with any local tasks for this user, NEVER wiping out local duration or details!
           setTasks(prevTasks => {
             const localMap = new Map();
-            prevTasks.forEach(t => { if (t?.id) localMap.set(t.id, t); });
+            prevTasks.forEach(t => {
+              if (t?.id && !isTaskDeleted(t.id, currentUserId, t.title) && t.title?.toLowerCase().trim() !== 'welcome to your private scratchpad') {
+                localMap.set(t.id, t);
+              }
+            });
 
             try {
               const cached = JSON.parse(
                 localStorage.getItem(`takt_tasks_u_${currentUserId}`) ||
-                localStorage.getItem(`takt_tasks_backup_u_${currentUserId}`) ||
-                localStorage.getItem(`auratask_tasks_u_${currentUserId}`) || '[]'
+                localStorage.getItem(`takt_tasks_backup_u_${currentUserId}`) || '[]'
               );
               if (Array.isArray(cached)) {
                 cached.forEach(t => {
-                  if (t?.id && !localMap.has(t.id)) localMap.set(t.id, autoHealTask(t));
+                  if (t?.id && !localMap.has(t.id) && !isTaskDeleted(t.id, currentUserId, t.title) && t.title?.toLowerCase().trim() !== 'welcome to your private scratchpad') {
+                    localMap.set(t.id, autoHealTask(t));
+                  }
                 });
               }
             } catch { }
-
-            // Check for orphaned local tasks (e.g. from guest sandbox or backup keys)
-            const orphaned = findOrphanedTasks(currentUserId);
-            orphaned.forEach(t => {
-              if (t?.id && !localMap.has(t.id)) localMap.set(t.id, t);
-            });
 
             const mergedCloudTasks = normalizedCloudTasks.map(cloudTask => {
               const local = localMap.get(cloudTask.id);
@@ -1361,6 +1394,8 @@ export default function App() {
             const cloudIds = new Set(mergedCloudTasks.map(t => t.id));
             const unsyncedLocal = Array.from(localMap.values()).filter(t =>
               !t.id.startsWith('guest-') &&
+              !isTaskDeleted(t.id, currentUserId, t.title) &&
+              t.title?.toLowerCase().trim() !== 'welcome to your private scratchpad' &&
               !cloudIds.has(t.id) &&
               !mergedCloudTasks.some(ct => ct.title.trim().toLowerCase() === t.title.trim().toLowerCase())
             );
@@ -1611,33 +1646,65 @@ export default function App() {
 
   const handleDeleteTask = async (id) => {
     const taskToDelete = tasks.find(t => t.id === id);
+    const uId = session?.user?.id;
+    const taskTitle = taskToDelete?.title || '';
+
     if (taskToDelete) {
-      recordActivity(`Deleted task "${taskToDelete.title.slice(0, 24)}"`, 'trash');
+      recordActivity(`Deleted task "${taskTitle.slice(0, 24)}"`, 'trash');
     }
+
+    if (uId) {
+      addDeletedTombstone(id, uId, taskTitle);
+      removeFromSyncQueue(id, uId);
+    }
+
     setTasks(prev => {
       const next = prev.filter(t => t.id !== id);
       try {
-        const uId = session?.user?.id;
         const key = uId ? `takt_tasks_u_${uId}` : 'takt_guest_tasks';
         const backupKey = uId ? `takt_tasks_backup_u_${uId}` : 'takt_guest_tasks_backup';
         const dataStr = JSON.stringify(next);
         localStorage.setItem(key, dataStr);
         localStorage.setItem(backupKey, dataStr);
+
+        // Also clean from guest storage and old keys so it can never be pulled back
+        ['takt_guest_tasks', 'takt_guest_tasks_backup', 'auratask_guest_tasks', `auratask_tasks_u_${uId}`].forEach(k => {
+          try {
+            const raw = localStorage.getItem(k);
+            if (raw) {
+              const parsed = JSON.parse(raw);
+              if (Array.isArray(parsed)) {
+                const cleaned = parsed.filter(t => t.id !== id && (!taskTitle || t.title?.trim().toLowerCase() !== taskTitle.trim().toLowerCase()));
+                localStorage.setItem(k, JSON.stringify(cleaned));
+              }
+            }
+          } catch { }
+        });
       } catch { }
       return next;
     });
     showToast('Task removed');
 
-    if (session?.user?.id) {
+    if (uId) {
       try {
         const { error } = await supabase
           .from('tasks')
           .delete()
           .eq('id', id)
-          .eq('user_id', session.user.id);
+          .eq('user_id', uId);
         if (error) {
           console.error("Supabase operation failed on delete task:", error);
           showToast(`Cloud delete notice: ${error.message}`);
+        }
+
+        // If the task had a specific title, also ensure no other duplicate task record with that title exists in cloud
+        if (taskTitle) {
+          await supabase
+            .from('tasks')
+            .delete()
+            .eq('title', taskTitle)
+            .eq('user_id', uId)
+            .neq('section', 'meeting_notes');
         }
       } catch (err) {
         console.error("Supabase delete exception:", err);
