@@ -5,7 +5,7 @@ import {
   Play, Award, ChevronRight, Zap, Target, Layers, FileText, CheckSquare,
   MessageSquare, ExternalLink, Moon, Sun, Laptop, Smartphone, Users, Download,
   Mail, CalendarDays, Lock, Edit3, Heading, List, Code, Quote, Divide, RefreshCw, Eye,
-  FastForward, BarChart3, Upload, Square, CheckCircle
+  FastForward, BarChart3, Upload, Square, CheckCircle, Activity, Command, Timer
 } from 'lucide-react';
 import Logo from './components/brand/Logo';
 
@@ -121,141 +121,320 @@ export default function LandingPage({
       </header>
 
       {/* =========================================================================
-          2. HERO SECTION: "Clarity, finally." (High-Contrast Obsidian Polish)
+          2. HERO SECTION: "Clarity, finally." (Elevated Art Direction & Hierarchy)
          ========================================================================= */}
-      <section className="relative pt-20 pb-20 sm:pt-28 sm:pb-32 overflow-hidden">
-        {/* Subtle Ambient Centered Gradient Glow */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[720px] h-[450px] bg-gradient-to-tr from-indigo-500/20 via-purple-500/15 to-rose-500/10 rounded-full blur-[120px] pointer-events-none opacity-80 dark:opacity-60" />
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[420px] h-[260px] bg-indigo-500/10 rounded-full blur-[80px] pointer-events-none" />
+      <section className="relative pt-24 pb-24 sm:pt-36 sm:pb-40 overflow-hidden">
+        {/* Engineering Dot Matrix Texture & Atmospheric Gradient Falloff */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
 
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          {/* Centered Pill Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-neutral-100 dark:bg-white/[0.04] border border-neutral-200/80 dark:border-white/[0.08] text-neutral-700 dark:text-zinc-300 text-xs font-medium mb-7 shadow-xs">
-            <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-            <span>Tactile Task Management &amp; Day-Wise Calendar Planning</span>
+        {/* Ambient Specular Light Aura */}
+        <div className="absolute top-12 left-1/2 -translate-x-1/2 w-[900px] h-[520px] bg-gradient-to-tr from-indigo-500/20 via-purple-500/15 to-rose-500/10 rounded-full blur-[140px] pointer-events-none opacity-90 dark:opacity-70" />
+        <div className="absolute top-28 left-1/2 -translate-x-1/2 w-[500px] h-[260px] bg-indigo-500/15 rounded-full blur-[90px] pointer-events-none" />
+
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+          {/* Eyebrow Micro-Pill with Breathing Live Indicator */}
+          <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md border border-neutral-200/90 dark:border-white/10 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.8)] dark:shadow-[0_2px_14px_-2px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.08)] mb-8 transition-transform duration-200 hover:scale-[1.02] cursor-default">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span className="font-mono text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-600 dark:bg-indigo-400/15 dark:text-indigo-300 border border-indigo-500/20">
+              TAKT 2.4
+            </span>
+            <span className="text-neutral-300 dark:text-zinc-700">|</span>
+            <span className="text-xs font-medium text-neutral-700 dark:text-zinc-200">
+              Tactile Task Cadence &amp; 7-Day Horizon
+            </span>
+            <ChevronRight className="w-3.5 h-3.5 text-neutral-400 dark:text-zinc-500" />
           </div>
 
-          {/* Crisp Headline */}
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-semibold tracking-tight text-neutral-950 dark:text-zinc-100 leading-[1.08] mb-6">
-            Clarity, finally.
+          {/* Master Headline: High-Contrast Display Typography */}
+          <h1 className="text-5xl sm:text-7xl lg:text-8xl font-extrabold tracking-[-0.04em] leading-[1.02] text-neutral-950 dark:text-white mb-6">
+            <span className="inline-block bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-700 dark:from-white dark:via-zinc-100 dark:to-zinc-400 bg-clip-text text-transparent">
+              Clarity, finally.
+            </span>
+            <span className="block mt-3 sm:mt-4 text-2xl sm:text-4xl lg:text-5xl font-medium tracking-[-0.03em] text-neutral-500 dark:text-zinc-400">
+              The tactile workspace for uninterrupted momentum.
+            </span>
           </h1>
 
-          {/* Muted Subtitle */}
-          <p className="text-base sm:text-lg text-neutral-600 dark:text-zinc-400 max-w-2xl mx-auto mb-10 font-normal leading-relaxed">
-            Organize tasks, projects, and high-velocity daily sprints. Designed with obsidian depth, tactile Kanban swimlanes, and built-in Pomodoro flow sessions.
+          {/* Refined Subhead / Value Proposition */}
+          <p className="text-base sm:text-lg lg:text-xl text-neutral-600 dark:text-zinc-400 max-w-[62ch] mx-auto mb-10 font-normal leading-relaxed tracking-[-0.012em]">
+            Organize tasks, map day-wise calendar horizons, and lock into deep Pomodoro flow. Designed with obsidian tactile depth, instant keyboard navigation, and zero-latency cloud sync.
           </p>
 
-          {/* CTAs: High-Contrast Pill Button + Ghost Border Pill */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 max-w-md mx-auto">
+          {/* Elevated CTAs: Tactile Bevel Button + Frosted Interactive Demo */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 max-w-lg mx-auto">
             {hasActiveSession ? (
               <button
                 onClick={onOpenApp}
-                className="w-full sm:w-auto px-7 py-3 rounded-full bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200 font-medium text-sm shadow-sm transition-all active:scale-[0.99] flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-neutral-950 hover:bg-neutral-800 text-white dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-100 font-semibold text-sm shadow-[0_12px_28px_-6px_rgba(0,0,0,0.22),inset_0_1px_1px_rgba(255,255,255,0.3)] dark:shadow-[0_12px_28px_-6px_rgba(255,255,255,0.18),inset_0_1px_0_rgba(255,255,255,0.9)] transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] flex items-center justify-center gap-2.5 group cursor-pointer"
               >
                 <span>Enter Your Workspace</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
               </button>
             ) : (
               <>
                 <button
                   onClick={onStartForFree}
-                  className="w-full sm:w-auto px-7 py-3 rounded-full bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200 font-medium text-sm shadow-sm transition-all active:scale-[0.99] flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-neutral-950 hover:bg-neutral-800 text-white dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-100 font-semibold text-sm shadow-[0_12px_28px_-6px_rgba(0,0,0,0.22),inset_0_1px_1px_rgba(255,255,255,0.3)] dark:shadow-[0_12px_28px_-6px_rgba(255,255,255,0.18),inset_0_1px_0_rgba(255,255,255,0.9)] transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] flex items-center justify-center gap-2.5 group cursor-pointer"
                 >
                   <span>Start for free</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                 </button>
                 <button
                   onClick={onTryDemo}
-                  className="w-full sm:w-auto px-6 py-3 rounded-full bg-white dark:bg-transparent border border-neutral-200 dark:border-white/10 hover:bg-neutral-50 dark:hover:bg-white/5 text-neutral-800 dark:text-zinc-300 font-medium text-sm shadow-xs flex items-center justify-center gap-2 transition-all"
+                  className="w-full sm:w-auto px-7 py-3.5 rounded-full bg-white/80 dark:bg-white/[0.04] backdrop-blur-md border border-neutral-200/90 dark:border-white/10 hover:border-neutral-300 dark:hover:border-white/20 hover:bg-neutral-50 dark:hover:bg-white/[0.08] text-neutral-800 dark:text-zinc-200 font-medium text-sm shadow-xs flex items-center justify-center gap-2.5 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
                 >
+                  <Play className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400 fill-indigo-500/20" />
                   <span>Try Live Interactive Demo</span>
+                  <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-white/10 text-neutral-500 dark:text-zinc-400 border border-neutral-200/60 dark:border-white/10">
+                    Instant
+                  </span>
                 </button>
               </>
             )}
           </div>
 
-          <p className="text-[11px] text-neutral-400 dark:text-zinc-500 mt-4">
-            100% Free forever • Daily local &amp; cloud backup • Full features included
-          </p>
+          {/* Trust & Guarantee Strip */}
+          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs font-medium text-neutral-500 dark:text-zinc-400 mt-6 pt-2">
+            <span className="flex items-center gap-1.5">
+              <Check className="w-3.5 h-3.5 text-emerald-500" />
+              <span><strong className="text-neutral-800 dark:text-zinc-200">100% Free</strong> forever</span>
+            </span>
+            <span className="text-neutral-300 dark:text-zinc-700 hidden sm:inline">•</span>
+            <span className="flex items-center gap-1.5">
+              <Check className="w-3.5 h-3.5 text-emerald-500" />
+              <span><strong className="text-neutral-800 dark:text-zinc-200">Offline-first</strong> zero latency</span>
+            </span>
+            <span className="text-neutral-300 dark:text-zinc-700 hidden sm:inline">•</span>
+            <span className="flex items-center gap-1.5">
+              <Check className="w-3.5 h-3.5 text-emerald-500" />
+              <span><strong className="text-neutral-800 dark:text-zinc-200">Multi-device</strong> encrypted sync</span>
+            </span>
+            <span className="text-neutral-300 dark:text-zinc-700 hidden sm:inline">•</span>
+            <span className="flex items-center gap-1.5">
+              <Check className="w-3.5 h-3.5 text-emerald-500" />
+              <span><strong className="text-neutral-800 dark:text-zinc-200">Zero</strong> ads or trackers</span>
+            </span>
+          </div>
 
           {/* =========================================================================
-              HERO APP MOCKUP PREVIEW (Obsidian Surface with Ambient Glow)
+              HERO APP MOCKUP PREVIEW: Studio-Grade Obsidian Command Center
              ========================================================================= */}
-          <div className="mt-14 sm:mt-20 max-w-5xl mx-auto rounded-3xl p-2 sm:p-3 bg-gradient-to-b from-neutral-200/60 dark:from-white/[0.08] to-transparent shadow-[0_0_50px_-12px_rgba(99,102,241,0.15)] border border-neutral-200 dark:border-white/[0.08]">
-            <div className="bg-white dark:bg-[#09090b] rounded-2xl overflow-hidden border border-neutral-200/80 dark:border-white/[0.08] text-left">
-              {/* Simulated Window Top Bar */}
-              <div className="px-4 py-2.5 bg-neutral-50 dark:bg-[#121216] border-b border-neutral-200/70 dark:border-white/[0.08] flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-neutral-300 dark:bg-white/20"></div>
-                  <div className="w-3 h-3 rounded-full bg-neutral-300 dark:bg-white/20"></div>
-                  <div className="w-3 h-3 rounded-full bg-neutral-300 dark:bg-white/20"></div>
-                  <span className="ml-2 text-xs font-medium text-neutral-500 dark:text-zinc-400">Takt Command Center — Day-Wise Inbox</span>
+          <div className="relative mt-16 sm:mt-24 max-w-5xl mx-auto rounded-[2rem] p-2.5 sm:p-4 bg-gradient-to-b from-neutral-200/80 via-neutral-200/30 to-transparent dark:from-white/12 dark:via-white/[0.03] dark:to-transparent border border-neutral-200/90 dark:border-white/[0.08] shadow-[0_30px_90px_-20px_rgba(0,0,0,0.18),0_0_80px_-20px_rgba(99,102,241,0.15)] dark:shadow-[0_35px_100px_-25px_rgba(0,0,0,0.85),0_0_100px_-25px_rgba(99,102,241,0.2)]">
+            {/* Top Specular Hairline Highlight */}
+            <div className="absolute inset-x-12 top-0 h-px bg-gradient-to-r from-transparent via-indigo-500/40 dark:via-indigo-400/50 to-transparent pointer-events-none" />
+
+            <div className="bg-white dark:bg-[#0c0d12] rounded-2xl overflow-hidden border border-neutral-200/80 dark:border-white/[0.08] text-left backdrop-blur-xl">
+              {/* Window Navigation & Command Bar */}
+              <div className="px-4 py-3 bg-neutral-50/90 dark:bg-[#12141c]/90 border-b border-neutral-200/70 dark:border-white/[0.08] flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-3 h-3 rounded-full bg-rose-500/80 dark:bg-rose-500/70 shadow-xs"></div>
+                    <div className="w-3 h-3 rounded-full bg-amber-500/80 dark:bg-amber-500/70 shadow-xs"></div>
+                    <div className="w-3 h-3 rounded-full bg-emerald-500/80 dark:bg-emerald-500/70 shadow-xs"></div>
+                  </div>
+                  <div className="h-4 w-px bg-neutral-200 dark:bg-white/10 hidden sm:block"></div>
+                  <div className="flex items-center gap-2 text-xs font-semibold text-neutral-800 dark:text-zinc-200">
+                    <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+                    <span className="hidden sm:inline">Takt Command Center</span>
+                    <span className="text-neutral-400 dark:text-zinc-500 font-normal">/ Q4 High-Velocity Sprint</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-transparent dark:border-emerald-500/20">
-                    Live Demo Ready
+
+                {/* Simulated Quick Search / ⌘K Bar */}
+                <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-lg bg-white dark:bg-white/[0.04] border border-neutral-200/80 dark:border-white/[0.08] text-xs text-neutral-400 dark:text-zinc-500 w-64 shadow-2xs">
+                  <Search className="w-3.5 h-3.5 text-neutral-400 dark:text-zinc-500" />
+                  <span className="truncate flex-1">Quick capture or search...</span>
+                  <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-white/10 text-neutral-500 dark:text-zinc-400">⌘K</span>
+                </div>
+
+                {/* Right Status Badge */}
+                <div className="flex items-center gap-2.5">
+                  <span className="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Live Synced</span>
                   </span>
                 </div>
               </div>
 
-              {/* Simulated Kanban & List Preview Grid */}
-              <div className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-3 gap-4 bg-neutral-50/50 dark:bg-[#09090b]">
+              {/* View Selector Rail */}
+              <div className="px-4 py-2 bg-neutral-100/50 dark:bg-[#0e1017] border-b border-neutral-200/60 dark:border-white/[0.06] flex items-center justify-between text-xs">
+                <div className="flex items-center gap-1">
+                  <span className="px-2.5 py-1 rounded-md font-semibold bg-white dark:bg-white/10 text-neutral-900 dark:text-white shadow-2xs flex items-center gap-1.5">
+                    <Kanban className="w-3.5 h-3.5 text-indigo-500" />
+                    <span>Kanban Swimlanes</span>
+                  </span>
+                  <span className="px-2.5 py-1 rounded-md text-neutral-500 dark:text-zinc-400 hover:text-neutral-900 dark:hover:text-zinc-200 transition-colors flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5" />
+                    <span>7-Day Horizon</span>
+                  </span>
+                  <span className="px-2.5 py-1 rounded-md text-neutral-500 dark:text-zinc-400 hover:text-neutral-900 dark:hover:text-zinc-200 transition-colors hidden sm:flex items-center gap-1.5">
+                    <Timer className="w-3.5 h-3.5" />
+                    <span>Pomodoro Cadence</span>
+                  </span>
+                </div>
+                <div className="text-[11px] font-mono text-neutral-400 dark:text-zinc-500 hidden sm:block">
+                  Today: 4/5 Tasks Done (80%)
+                </div>
+              </div>
+
+              {/* Three-Column Tactile Kanban Preview */}
+              <div className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-3 gap-4 bg-neutral-50/50 dark:bg-[#090b11]">
                 {/* Stage 1: To Do */}
-                <div className="bg-white dark:bg-[#121216] border border-neutral-200 dark:border-white/[0.08] rounded-xl p-3.5 space-y-2.5 shadow-sm">
-                  <div className="flex items-center justify-between text-xs font-semibold text-neutral-700 dark:text-zinc-200">
-                    <span className="flex items-center gap-1.5"><Layers className="w-3.5 h-3.5 text-neutral-400 dark:text-zinc-500" /> To Do</span>
-                    <span className="text-[11px] font-mono text-neutral-400 dark:text-zinc-500">2</span>
+                <div className="bg-white dark:bg-[#121520] border border-neutral-200 dark:border-white/[0.08] rounded-xl p-3.5 space-y-2.5 shadow-sm">
+                  <div className="flex items-center justify-between text-xs font-semibold text-neutral-700 dark:text-zinc-200 pb-1">
+                    <span className="flex items-center gap-1.5">
+                      <Layers className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
+                      <span>Backlog &amp; Up Next</span>
+                    </span>
+                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-white/10 text-neutral-500 dark:text-zinc-400">2</span>
                   </div>
-                  <div className="p-2.5 bg-neutral-50 dark:bg-[#18181b]/80 border border-neutral-200/80 dark:border-white/[0.08] rounded-lg">
-                    <div className="flex items-center gap-2 text-xs font-medium text-neutral-900 dark:text-zinc-200">
-                      <Circle className="w-3.5 h-3.5 text-neutral-400 dark:text-zinc-500" />
-                      <span>Review API architecture &amp; indexes</span>
+
+                  {/* Card 1 */}
+                  <div className="p-3 bg-neutral-50/80 dark:bg-[#181c2b]/90 border border-neutral-200/80 dark:border-white/[0.08] rounded-lg hover:border-neutral-300 dark:hover:border-white/20 transition-colors">
+                    <div className="flex items-start gap-2 text-xs font-medium text-neutral-900 dark:text-zinc-200">
+                      <Circle className="w-3.5 h-3.5 text-neutral-400 dark:text-zinc-500 mt-0.5 shrink-0" />
+                      <span>Design fluid typography scale &amp; obsidian tokens</span>
                     </div>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-red-100 dark:bg-red-950/50 text-red-600 dark:text-red-400 border border-transparent dark:border-red-500/20">P1</span>
-                      <span className="text-[9px] text-neutral-400 dark:text-zinc-500 font-mono">#Engineering</span>
+                    <div className="flex items-center justify-between mt-2.5 pt-1.5 border-t border-neutral-200/50 dark:border-white/[0.05]">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-500/20">P1</span>
+                        <span className="text-[9px] text-neutral-400 dark:text-zinc-500 font-mono">#Design</span>
+                      </div>
+                      <span className="text-[10px] font-mono text-neutral-400 dark:text-zinc-500 flex items-center gap-1">
+                        <Clock className="w-3 h-3" /> 35m
+                      </span>
                     </div>
                   </div>
-                  <div className="p-2.5 bg-neutral-50 dark:bg-[#18181b]/80 border border-neutral-200/80 dark:border-white/[0.08] rounded-lg">
-                    <div className="flex items-center gap-2 text-xs font-medium text-neutral-900 dark:text-zinc-200">
-                      <Circle className="w-3.5 h-3.5 text-neutral-400 dark:text-zinc-500" />
-                      <span>Prepare release changelog notes</span>
+
+                  {/* Card 2 */}
+                  <div className="p-3 bg-neutral-50/80 dark:bg-[#181c2b]/90 border border-neutral-200/80 dark:border-white/[0.08] rounded-lg hover:border-neutral-300 dark:hover:border-white/20 transition-colors">
+                    <div className="flex items-start gap-2 text-xs font-medium text-neutral-900 dark:text-zinc-200">
+                      <Circle className="w-3.5 h-3.5 text-neutral-400 dark:text-zinc-500 mt-0.5 shrink-0" />
+                      <span>Audit edge API endpoints &amp; CORS access guards</span>
+                    </div>
+                    <div className="flex items-center justify-between mt-2.5 pt-1.5 border-t border-neutral-200/50 dark:border-white/[0.05]">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-200/60 dark:border-amber-500/20">P2</span>
+                        <span className="text-[9px] text-neutral-400 dark:text-zinc-500 font-mono">#Security</span>
+                      </div>
+                      <span className="text-[10px] font-mono text-neutral-400 dark:text-zinc-500 flex items-center gap-1">
+                        <Clock className="w-3 h-3" /> 20m
+                      </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Stage 2: In Progress */}
-                <div className="bg-white dark:bg-[#121216] border border-neutral-200 dark:border-white/[0.08] rounded-xl p-3.5 space-y-2.5 shadow-sm">
-                  <div className="flex items-center justify-between text-xs font-semibold text-amber-600 dark:text-amber-400">
-                    <span className="flex items-center gap-1.5"><Flame className="w-3.5 h-3.5" /> In Progress</span>
-                    <span className="text-[11px] font-mono text-neutral-400 dark:text-zinc-500">1</span>
+                {/* Stage 2: In Progress (Spotlight Deep Work Card) */}
+                <div className="bg-white dark:bg-[#121520] border border-indigo-200/70 dark:border-indigo-500/30 rounded-xl p-3.5 space-y-2.5 shadow-sm">
+                  <div className="flex items-center justify-between text-xs font-semibold text-amber-600 dark:text-amber-400 pb-1">
+                    <span className="flex items-center gap-1.5">
+                      <Flame className="w-3.5 h-3.5 text-amber-500" />
+                      <span>Active Flow Session</span>
+                    </span>
+                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300">1</span>
                   </div>
-                  <div className="p-2.5 bg-neutral-50 dark:bg-[#18181b]/80 border border-amber-300/80 dark:border-amber-500/30 rounded-lg shadow-xs">
-                    <div className="flex items-center gap-2 text-xs font-medium text-neutral-900 dark:text-zinc-200">
-                      <Circle className="w-3.5 h-3.5 text-amber-500" />
-                      <span>Design tactile Obsidian dark theme</span>
+
+                  {/* Featured Spotlight Active Card */}
+                  <div className="p-3.5 bg-gradient-to-b from-indigo-50/60 to-white dark:from-indigo-950/25 dark:to-[#181c2b] border border-indigo-300 dark:border-indigo-500/40 rounded-lg shadow-[0_4px_20px_-4px_rgba(99,102,241,0.2)]">
+                    <div className="flex items-start gap-2 text-xs font-medium text-neutral-900 dark:text-zinc-100">
+                      <div className="w-3.5 h-3.5 rounded-full border-2 border-indigo-500 flex items-center justify-center mt-0.5 shrink-0">
+                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></div>
+                      </div>
+                      <span>Elevate landing hero with high-contrast art direction</span>
                     </div>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-100 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 border border-transparent dark:border-amber-500/20">P2</span>
-                      <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-0.5">
-                        <Flame className="w-2.5 h-2.5" /> 25m Focus
+
+                    {/* Integrated Flow Timer Progress */}
+                    <div className="mt-3 p-2 rounded-md bg-white/80 dark:bg-[#0c0d12]/80 border border-indigo-200/60 dark:border-indigo-500/20">
+                      <div className="flex items-center justify-between text-[11px] font-mono font-medium text-indigo-700 dark:text-indigo-300 mb-1.5">
+                        <span className="flex items-center gap-1">
+                          <Activity className="w-3 h-3 text-indigo-500 animate-pulse" />
+                          <span>24:18 remaining</span>
+                        </span>
+                        <span className="text-[10px] text-neutral-400 dark:text-zinc-500">Pomodoro 2/4</span>
+                      </div>
+                      <div className="w-full h-1.5 rounded-full bg-neutral-200 dark:bg-white/10 overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-indigo-500 to-rose-500 rounded-full w-[72%]"></div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between mt-2.5">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400">P1</span>
+                        <span className="text-[9px] text-neutral-400 dark:text-zinc-500 font-mono">#Frontend</span>
+                      </div>
+                      <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                        <Zap className="w-3 h-3" /> Focus Locked
                       </span>
                     </div>
                   </div>
                 </div>
 
                 {/* Stage 3: Completed */}
-                <div className="bg-white dark:bg-[#121216] border border-neutral-200 dark:border-white/[0.08] rounded-xl p-3.5 space-y-2.5 shadow-sm">
-                  <div className="flex items-center justify-between text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                    <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> Completed</span>
-                    <span className="text-[11px] font-mono text-neutral-400 dark:text-zinc-500">1</span>
+                <div className="bg-white dark:bg-[#121520] border border-neutral-200 dark:border-white/[0.08] rounded-xl p-3.5 space-y-2.5 shadow-sm">
+                  <div className="flex items-center justify-between text-xs font-semibold text-emerald-600 dark:text-emerald-400 pb-1">
+                    <span className="flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                      <span>Completed &amp; Shipped</span>
+                    </span>
+                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">2</span>
                   </div>
-                  <div className="p-2.5 bg-neutral-50 dark:bg-[#18181b]/80 border border-neutral-200/80 dark:border-white/[0.08] rounded-lg opacity-80">
-                    <div className="flex items-center gap-2 text-xs font-medium line-through text-neutral-400 dark:text-zinc-500">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 fill-emerald-50 dark:fill-emerald-950/40" />
-                      <span>Automated daily database backup snapshots</span>
+
+                  {/* Card 1 */}
+                  <div className="p-3 bg-neutral-50/80 dark:bg-[#181c2b]/90 border border-neutral-200/80 dark:border-white/[0.08] rounded-lg opacity-80">
+                    <div className="flex items-start gap-2 text-xs font-medium line-through text-neutral-400 dark:text-zinc-500">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 fill-emerald-50 dark:fill-emerald-950/40 mt-0.5 shrink-0" />
+                      <span>Automated daily backup &amp; sync tombstones</span>
+                    </div>
+                    <div className="text-[9px] font-mono text-neutral-400 dark:text-zinc-500 mt-2 pl-5.5">
+                      Finished at 10:45 AM · Saved to cloud
                     </div>
                   </div>
+
+                  {/* Card 2 */}
+                  <div className="p-3 bg-neutral-50/80 dark:bg-[#181c2b]/90 border border-neutral-200/80 dark:border-white/[0.08] rounded-lg opacity-80">
+                    <div className="flex items-start gap-2 text-xs font-medium line-through text-neutral-400 dark:text-zinc-500">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 fill-emerald-50 dark:fill-emerald-950/40 mt-0.5 shrink-0" />
+                      <span>Deploy Edge CDN &amp; Cloudflare Pages</span>
+                    </div>
+                    <div className="text-[9px] font-mono text-neutral-400 dark:text-zinc-500 mt-2 pl-5.5">
+                      Finished at 09:12 AM · Zero latency
+                    </div>
+                  </div>
+
+                  {/* Daily Momentum Summary */}
+                  <div className="p-2.5 rounded-lg bg-emerald-50/80 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-800/30 text-[11px] text-emerald-700 dark:text-emerald-300 font-medium flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <Sparkles className="w-3 h-3 text-emerald-500" />
+                      <span>Daily Velocity: 100% Met</span>
+                    </span>
+                    <span className="font-mono font-bold">+520 XP</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Tactile Keyboard & Flow Toolbar */}
+              <div className="px-4 py-2.5 bg-neutral-100/70 dark:bg-[#10121a] border-t border-neutral-200/70 dark:border-white/[0.06] flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-3 text-neutral-500 dark:text-zinc-400 text-[11px]">
+                  <span className="flex items-center gap-1 font-mono">
+                    <kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-white/10 border border-neutral-300 dark:border-white/10 text-[10px] text-neutral-700 dark:text-zinc-300 font-semibold shadow-2xs">N</kbd>
+                    <span>New Task</span>
+                  </span>
+                  <span className="flex items-center gap-1 font-mono">
+                    <kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-white/10 border border-neutral-300 dark:border-white/10 text-[10px] text-neutral-700 dark:text-zinc-300 font-semibold shadow-2xs">Space</kbd>
+                    <span>Toggle Timer</span>
+                  </span>
+                  <span className="hidden sm:flex items-center gap-1 font-mono">
+                    <kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-white/10 border border-neutral-300 dark:border-white/10 text-[10px] text-neutral-700 dark:text-zinc-300 font-semibold shadow-2xs inline-flex items-center gap-0.5">
+                      <Command className="w-2.5 h-2.5" />K
+                    </kbd>
+                    <span>Command Bar</span>
+                  </span>
+                </div>
+                <div className="text-[11px] text-neutral-500 dark:text-zinc-400 font-medium flex items-center gap-1">
+                  <span>Engineered with Obsidian Tactile Precision</span>
                 </div>
               </div>
             </div>
