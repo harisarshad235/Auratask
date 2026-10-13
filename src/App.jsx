@@ -1114,24 +1114,86 @@ export default function App() {
   useEffect(() => {
     let isMounted = true;
 
-    // Check existing session
-    supabase.auth.getSession().then(({ data: { session: existingSession } }) => {
+    // 1. Detect if URL hash or search params contains an OAuth error
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash || '';
+      const search = window.location.search || '';
+      if (hash.includes('error=') || search.includes('error=')) {
+        try {
+          const rawParams = hash.includes('error=')
+            ? (hash.startsWith('#') ? hash.substring(1) : hash)
+            : (search.startsWith('?') ? search.substring(1) : search);
+          const params = new URLSearchParams(rawParams);
+          const errorDesc = params.get('error_description') || params.get('error') || 'Authentication failed';
+          showToast(`⚠️ ${decodeURIComponent(errorDesc)}`);
+          window.history.replaceState({}, document.title, window.location.pathname);
+        } catch { }
+      }
+    }
+
+    // 2. Direct extraction helper for URL hash fragments
+    const extractHashTokens = () => {
+      if (typeof window === 'undefined' || !window.location.hash) return null;
+      try {
+        const hashStr = window.location.hash.startsWith('#') ? window.location.hash.substring(1) : window.location.hash;
+        const params = new URLSearchParams(hashStr);
+        const access_token = params.get('access_token');
+        const refresh_token = params.get('refresh_token');
+        if (access_token && refresh_token) {
+          return { access_token, refresh_token };
+        }
+      } catch { }
+      return null;
+    };
+
+    // 3. Check existing session and fallback to manual token hydration
+    supabase.auth.getSession().then(async ({ data: { session: existingSession } }) => {
       if (!isMounted) return;
       if (existingSession) {
         handleUserSessionEstablished(existingSession);
+        if (typeof window !== 'undefined' && window.location.hash) {
+          try { window.history.replaceState({}, document.title, window.location.pathname); } catch { }
+        }
       } else {
-        const hasOAuthParams = typeof window !== 'undefined' && (
-          window.location.hash.includes('access_token') ||
-          window.location.hash.includes('refresh_token') ||
-          window.location.search.includes('code=')
-        );
-        if (!hasOAuthParams) {
+        const tokens = extractHashTokens();
+        if (tokens) {
+          try {
+            const { data: setRes, error: setErr } = await supabase.auth.setSession({
+              access_token: tokens.access_token,
+              refresh_token: tokens.refresh_token,
+            });
+            if (setRes?.session) {
+              handleUserSessionEstablished(setRes.session);
+              if (typeof window !== 'undefined') {
+                try { window.history.replaceState({}, document.title, window.location.pathname); } catch { }
+              }
+              return;
+            } else if (setErr) {
+              console.warn("Stale token in URL notice:", setErr);
+              if (typeof window !== 'undefined') {
+                try { window.history.replaceState({}, document.title, window.location.pathname); } catch { }
+              }
+              setIsAuthResolving(false);
+            }
+          } catch (e) {
+            console.warn("Failed to set session from hash:", e);
+            if (typeof window !== 'undefined') {
+              try { window.history.replaceState({}, document.title, window.location.pathname); } catch { }
+            }
+            setIsAuthResolving(false);
+          }
+        } else {
           setIsAuthResolving(false);
         }
       }
     }).catch(err => {
       console.warn("Supabase auth session check notice:", err);
-      if (isMounted) setIsAuthResolving(false);
+      if (isMounted) {
+        setIsAuthResolving(false);
+        if (typeof window !== 'undefined' && window.location.hash) {
+          try { window.history.replaceState({}, document.title, window.location.pathname); } catch { }
+        }
+      }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
@@ -1150,14 +1212,27 @@ export default function App() {
         }
       } else if (event === 'SIGNED_OUT') {
         handleUserSignedOut();
+        if (typeof window !== 'undefined' && window.location.hash) {
+          try { window.history.replaceState({}, document.title, window.location.pathname); } catch { }
+        }
       } else {
         setIsAuthResolving(false);
+        if (!s && typeof window !== 'undefined' && (window.location.hash || window.location.search.includes('code='))) {
+          try {
+            window.history.replaceState({}, document.title, window.location.pathname);
+          } catch { }
+        }
       }
     });
 
     // Safety fallback: never remain stuck in resolving screen longer than 3.5 seconds
     const fallbackTimer = setTimeout(() => {
-      if (isMounted) setIsAuthResolving(false);
+      if (isMounted) {
+        setIsAuthResolving(false);
+        if (typeof window !== 'undefined' && window.location.hash) {
+          try { window.history.replaceState({}, document.title, window.location.pathname); } catch { }
+        }
+      }
     }, 3500);
 
     return () => {
@@ -1980,18 +2055,29 @@ export default function App() {
     try {
       localStorage.removeItem('takt_guest_mode');
       localStorage.removeItem('auratask_guest_mode');
+      // Strip any trailing hash fragments before initiating redirect
+      if (typeof window !== 'undefined' && window.location.hash) {
+        try { window.history.replaceState({}, document.title, window.location.pathname); } catch { }
+      }
       const redirectUrl = window.location.origin + window.location.pathname;
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: redirectUrl,
+          queryParams: {
+            prompt: 'select_account',
+            access_type: 'offline',
+          }
         }
       });
       if (error) throw error;
+      if (data?.url) {
+        window.location.assign(data.url);
+      }
     } catch (err) {
       console.warn("Google OAuth notice:", err);
       setAuthError(
-        'Google Sign-In is connecting. You can sign in instantly using Email or "Explore as Guest" below!'
+        err.message || 'Google Sign-In failed. Please try Email or Explore as Guest below.'
       );
     } finally {
       setAuthLoading(false);
@@ -2080,6 +2166,9 @@ export default function App() {
       await supabase.auth.signOut();
     } catch { }
     handleUserSignedOut();
+    if (typeof window !== 'undefined' && window.location.hash) {
+      try { window.history.replaceState({}, document.title, window.location.pathname); } catch { }
+    }
     setShowLandingPage(true);
     showToast('Signed out successfully.');
   };
