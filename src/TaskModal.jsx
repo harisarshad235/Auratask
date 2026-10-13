@@ -8,6 +8,7 @@ import {
 import { formatDuration, parseDurationMinutes } from './utils/formatDuration';
 import { supabase } from './supabaseClient';
 import { sanitizeString } from './utils/security';
+import { formatLocalDate, getTodayDateStr, getTomorrowDateStr, getDaysFromNowStr } from './utils/dateUtils';
 
 const TAKT_META_REGEX = /<!--takt:meta\s+({[\s\S]*?})-->/;
 
@@ -105,7 +106,7 @@ export default function TaskModal({
       setDescription('');
       setSection(defaultSection);
       setPriority('P4');
-      setDueDate(new Date().toISOString().split('T')[0]);
+      setDueDate(getTodayDateStr());
       setDueTime('');
       setDeadlineTime('');
       setTags(['#Work']);
@@ -780,27 +781,21 @@ export default function TaskModal({
               <div className="flex gap-1.5 pt-1">
                 <button
                   type="button"
-                  onClick={() => setDueDate(new Date().toISOString().split('T')[0])}
+                  onClick={() => setDueDate(getTodayDateStr())}
                   className="text-[10px] font-semibold px-2 py-0.5 rounded bg-neutral-200/70 dark:bg-white/[0.08] text-neutral-700 dark:text-zinc-300 hover:text-neutral-900 dark:hover:text-white"
                 >
                   Today
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    const tom = new Date(Date.now() + 86400000).toISOString().split('T')[0];
-                    setDueDate(tom);
-                  }}
+                  onClick={() => setDueDate(getTomorrowDateStr())}
                   className="text-[10px] font-semibold px-2 py-0.5 rounded bg-neutral-200/70 dark:bg-white/[0.08] text-neutral-700 dark:text-zinc-300 hover:text-neutral-900 dark:hover:text-white"
                 >
                   Tomorrow
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    const nextW = new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0];
-                    setDueDate(nextW);
-                  }}
+                  onClick={() => setDueDate(getDaysFromNowStr(7))}
                   className="text-[10px] font-semibold px-2 py-0.5 rounded bg-neutral-200/70 dark:bg-white/[0.08] text-neutral-700 dark:text-zinc-300 hover:text-neutral-900 dark:hover:text-white"
                 >
                   Next Week

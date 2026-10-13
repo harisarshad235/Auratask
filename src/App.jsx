@@ -24,6 +24,7 @@ import ListTaskCard from './components/ListTaskCard';
 import PrivacyPolicy from './components/legal/PrivacyPolicy';
 import TermsOfService from './components/legal/TermsOfService';
 import { sanitizeString, clientRateLimiter } from './utils/security';
+import { formatLocalDate, getTodayDateStr, getTomorrowDateStr, getDaysFromNowStr } from './utils/dateUtils';
 
 // --- BRAND LOGO ---
 export const AuraLogo = TaktLogo;
@@ -44,7 +45,7 @@ const GUEST_DEMO_TASKS = [
     description: 'This is a sample task in guest mode. Changes here are saved in your local guest sandbox only.',
     section: 'todo',
     priority: 'P1',
-    due_date: new Date().toISOString().split('T')[0],
+    due_date: getTodayDateStr(),
     due_time: '11:00',
     duration: '15m',
     estimated_minutes: 15,
@@ -63,7 +64,7 @@ const GUEST_DEMO_TASKS = [
     description: 'Click the Play button on this card or in the modal to launch focus timer.',
     section: 'in_progress',
     priority: 'P2',
-    due_date: new Date().toISOString().split('T')[0],
+    due_date: getTodayDateStr(),
     due_time: '14:30',
     duration: '25m',
     estimated_minutes: 25,
@@ -79,7 +80,7 @@ const GUEST_DEMO_TASKS = [
     description: 'Switch view mode in top header to Calendar to plan days visually.',
     section: 'in_review',
     priority: 'P3',
-    due_date: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+    due_date: getTomorrowDateStr(),
     due_time: '16:00',
     duration: '45m',
     estimated_minutes: 45,
@@ -396,7 +397,7 @@ const loadScopedWorkspaceData = (userId = null) => {
 };
 
 export default function App() {
-  const todayDateStr = new Date().toISOString().split('T')[0];
+  const todayDateStr = getTodayDateStr();
 
   // --- AUTH STATE ---
   const [session, setSession] = useState(null);
@@ -555,7 +556,7 @@ export default function App() {
   const [newTitle, setNewTitle] = useState('');
   const [newDesc, setNewDesc] = useState('');
   const [newPriority, setNewPriority] = useState('P2');
-  const [newDueDate, setNewDueDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [newDueDate, setNewDueDate] = useState(() => getTodayDateStr());
   const [newDueTime, setNewDueTime] = useState('');
   const [newTag, setNewTag] = useState('#Work');
   const [newDuration, setNewDuration] = useState('30m');
@@ -730,7 +731,7 @@ export default function App() {
           description: cleanContent,
           section: 'meeting_notes',
           priority: 'P2',
-          due_date: new Date().toISOString().split('T')[0],
+          due_date: getTodayDateStr(),
           due_time: '',
           subtasks: [],
           created_at: safeNote.updated_at || new Date().toISOString(),
@@ -953,7 +954,7 @@ export default function App() {
       localStorage.setItem(legacyKey, dataStr);
 
       // Scoped Day-wise snapshot rolling backup
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = getTodayDateStr();
       const backupKey = uId ? `takt_backup_${uId}_${todayStr}` : `takt_guest_backup_${todayStr}`;
       localStorage.setItem(backupKey, JSON.stringify({
         date: todayStr,
@@ -1583,7 +1584,7 @@ export default function App() {
       description: cleanDesc,
       section: normalizeSectionKey(composerSection || 'todo'),
       priority: newPriority || 'P2',
-      due_date: newDueDate || new Date().toISOString().split('T')[0],
+      due_date: newDueDate || getTodayDateStr(),
       due_time: newDueTime || '',
       duration: chosenDuration,
       estimated_minutes: parseDurationMinutes(chosenDuration) || 30,
@@ -1740,9 +1741,7 @@ export default function App() {
   // Postpone / Reschedule Task to Tomorrow with 1 click
   const handlePostponeToTomorrow = (taskId, e) => {
     if (e && e.stopPropagation) e.stopPropagation();
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+    const tomorrowStr = getTomorrowDateStr();
     handleUpdateTask(taskId, { due_date: tomorrowStr });
     recordActivity(`Rescheduled task to Tomorrow (${tomorrowStr})`, 'calendar');
     showToast('Task moved to Tomorrow ⏩');
@@ -2069,7 +2068,7 @@ export default function App() {
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement('a');
       link.setAttribute('href', encodedUri);
-      link.setAttribute('download', `takt_export_${new Date().toISOString().split('T')[0]}.csv`);
+      link.setAttribute('download', `takt_export_${getTodayDateStr()}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -2108,7 +2107,7 @@ export default function App() {
               description: cols[2] || '',
               section: cols[3] || 'todo',
               priority: cols[4] || 'P2',
-              due_date: cols[5] || new Date().toISOString().split('T')[0],
+              due_date: cols[5] || getTodayDateStr(),
               due_time: cols[6] || '',
               tags: cols[7] ? cols[7].split(';') : ['#Imported'],
               is_focus: false,
@@ -2364,7 +2363,7 @@ export default function App() {
     for (let i = 0; i < 7; i++) {
       const d = new Date();
       d.setDate(d.getDate() + i);
-      const dateStr = d.toISOString().split('T')[0];
+      const dateStr = formatLocalDate(d);
       const weekday = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : d.toLocaleDateString('en-US', { weekday: 'short' });
       const dayMonth = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
       days.push({
