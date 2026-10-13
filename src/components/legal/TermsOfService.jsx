@@ -4,11 +4,11 @@ import { TaktLogo } from '../brand/TaktLogo';
 
 export default function TermsOfService({ onBack }) {
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#09090b] text-slate-800 dark:text-[#ededed] py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto bg-white dark:bg-[#121214] border border-slate-200 dark:border-[#222225] rounded-3xl p-6 sm:p-12 shadow-xl">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#090b11] text-slate-800 dark:text-zinc-100 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto bg-white dark:bg-[#0e121b] border border-slate-200 dark:border-white/[0.1] rounded-3xl p-6 sm:p-12 shadow-xl">
         {/* Navigation & Header */}
-        <div className="flex items-center justify-between border-b border-slate-100 dark:border-[#222225] pb-6 mb-8">
-          <a href="/" onClick={(e) => { if (onBack) { e.preventDefault(); onBack(); } }} className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-[#a1a1aa] hover:text-slate-900 dark:hover:text-white transition-colors">
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/[0.08] pb-6 mb-8">
+          <a href="/" onClick={(e) => { if (onBack) { e.preventDefault(); onBack(); } }} className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white transition-colors">
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Takt</span>
           </a>

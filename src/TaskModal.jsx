@@ -409,23 +409,23 @@ export default function TaskModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-150">
       <div
-        className="w-full max-w-4xl max-h-[92vh] flex flex-col bg-white dark:bg-[#09090b] border border-neutral-200 dark:border-[#222225] rounded-2xl shadow-2xl overflow-hidden"
+        className="w-full max-w-4xl max-h-[92vh] flex flex-col bg-white dark:bg-[#0e121b] border border-neutral-200 dark:border-white/[0.12] rounded-2xl shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* --- MODAL HEADER (Matching Screenshot 2) --- */}
-        <div className="px-5 py-3 border-b border-neutral-100 dark:border-[#222225] flex items-center justify-between shrink-0 bg-white/50 dark:bg-[#09090b]/50">
+        <div className="px-5 py-3 border-b border-neutral-100 dark:border-white/[0.08] flex items-center justify-between shrink-0 bg-white/50 dark:bg-[#121622]">
           {/* Breadcrumb / Project Selector & ETA Indicator */}
           <div className="flex items-center gap-2">
-            <span className="p-1 rounded bg-neutral-100 dark:bg-[#121214] text-neutral-500 dark:text-[#a1a1aa]">
+            <span className="p-1 rounded bg-neutral-100 dark:bg-white/[0.08] text-neutral-500 dark:text-zinc-300">
               <Inbox className="w-3.5 h-3.5" />
             </span>
             <select
               value={section}
               onChange={(e) => setSection(e.target.value)}
-              className="text-xs font-semibold bg-transparent text-neutral-800 dark:text-[#ededed] focus:outline-none cursor-pointer"
+              className="text-xs font-semibold bg-transparent text-neutral-800 dark:text-white focus:outline-none cursor-pointer"
             >
               {sections.map(s => (
-                <option key={s.key} value={s.key} className="dark:bg-[#09090b]">
+                <option key={s.key} value={s.key} className="dark:bg-[#0e121b] dark:text-white">
                   {s.label}
                 </option>
               ))}
@@ -433,8 +433,8 @@ export default function TaskModal({
 
             {/* Header ETA / Duration Pill */}
             {(duration || estimatedMinutes) && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-indigo-50 dark:bg-[#1a1f36] border border-indigo-200/80 dark:border-indigo-800/60 text-indigo-600 dark:text-indigo-400">
-                <Hourglass className="w-3 h-3 text-indigo-500" />
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200/80 dark:border-indigo-700/50 text-indigo-600 dark:text-indigo-300">
+                <Hourglass className="w-3 h-3 text-indigo-500 dark:text-indigo-400" />
                 <span>ETA: {duration || formatDuration(estimatedMinutes)}</span>
               </span>
             )}
@@ -448,7 +448,7 @@ export default function TaskModal({
                   type="button"
                   onClick={handlePrevTask}
                   disabled={!hasPrev}
-                  className="p-1.5 text-neutral-400 hover:text-neutral-700 dark:text-[#a1a1aa] dark:hover:text-[#ededed] disabled:opacity-25 rounded-md hover:bg-neutral-100 dark:hover:bg-[#121214] transition-colors"
+                  className="p-1.5 text-neutral-400 hover:text-neutral-700 dark:text-zinc-400 dark:hover:text-white disabled:opacity-25 rounded-md hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors"
                   title="Previous Task"
                 >
                   <ChevronUp className="w-4 h-4" />
@@ -457,7 +457,7 @@ export default function TaskModal({
                   type="button"
                   onClick={handleNextTask}
                   disabled={!hasNext}
-                  className="p-1.5 text-neutral-400 hover:text-neutral-700 dark:text-[#a1a1aa] dark:hover:text-[#ededed] disabled:opacity-25 rounded-md hover:bg-neutral-100 dark:hover:bg-[#121214] transition-colors"
+                  className="p-1.5 text-neutral-400 hover:text-neutral-700 dark:text-zinc-400 dark:hover:text-white disabled:opacity-25 rounded-md hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors"
                   title="Next Task"
                 >
                   <ChevronDown className="w-4 h-4" />
@@ -469,14 +469,14 @@ export default function TaskModal({
               <button
                 type="button"
                 onClick={() => setShowMoreMenu(!showMoreMenu)}
-                className="p-1.5 text-neutral-400 hover:text-neutral-700 dark:text-[#a1a1aa] dark:hover:text-[#ededed] rounded-md hover:bg-neutral-100 dark:hover:bg-[#121214] transition-colors"
+                className="p-1.5 text-neutral-400 hover:text-neutral-700 dark:text-zinc-400 dark:hover:text-white rounded-md hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors"
                 title="Options"
               >
                 <MoreHorizontal className="w-4 h-4" />
               </button>
 
               {showMoreMenu && (
-                <div className="absolute right-0 top-8 z-30 w-44 bg-white dark:bg-[#121214] border border-neutral-200 dark:border-[#222225] rounded-xl shadow-xl py-1 text-xs">
+                <div className="absolute right-0 top-8 z-30 w-44 bg-white dark:bg-[#161c2b] border border-neutral-200 dark:border-white/[0.12] rounded-xl shadow-xl py-1 text-xs">
                   {isEditing && (
                     <button
                       type="button"
@@ -484,7 +484,7 @@ export default function TaskModal({
                         onDeleteTask(task.id);
                         onClose();
                       }}
-                      className="w-full px-3 py-2 text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-[#2a1215] flex items-center gap-2"
+                      className="w-full px-3 py-2 text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 flex items-center gap-2"
                     >
                       <Trash2 className="w-3.5 h-3.5" /> Delete Task
                     </button>
@@ -495,7 +495,7 @@ export default function TaskModal({
                       setTitle(prev => `Copy of ${prev}`);
                       setShowMoreMenu(false);
                     }}
-                    className="w-full px-3 py-2 text-left text-neutral-700 dark:text-[#a1a1aa] hover:bg-neutral-100 dark:hover:bg-[#1c1c20] flex items-center gap-2"
+                    className="w-full px-3 py-2 text-left text-neutral-700 dark:text-zinc-300 hover:bg-neutral-100 dark:hover:bg-white/[0.08] flex items-center gap-2"
                   >
                     Duplicate Task
                   </button>
@@ -506,7 +506,7 @@ export default function TaskModal({
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 text-neutral-400 hover:text-neutral-700 dark:text-[#a1a1aa] dark:hover:text-[#ededed] rounded-md hover:bg-neutral-100 dark:hover:bg-[#121214] transition-colors"
+              className="p-1.5 text-neutral-400 hover:text-neutral-700 dark:text-zinc-400 dark:hover:text-white rounded-md hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
@@ -514,7 +514,7 @@ export default function TaskModal({
         </div>
 
         {/* --- MAIN 2-COLUMN MODAL BODY --- */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-neutral-100 dark:divide-[#222225]">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-neutral-100 dark:divide-white/[0.08]">
           {/* LEFT CONTENT COLUMN (~65%) */}
           <div className="flex-1 p-6 space-y-6 overflow-y-auto">
             {/* Task Title Row with Checkbox */}
@@ -522,10 +522,10 @@ export default function TaskModal({
               <button
                 type="button"
                 onClick={() => setIsCompleted(!isCompleted)}
-                className="mt-1 text-neutral-300 dark:text-[#52525b] hover:text-emerald-500 transition-colors shrink-0"
+                className="mt-1 text-neutral-300 dark:text-zinc-500 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors shrink-0"
               >
                 {isCompleted ? (
-                  <CheckCircle2 className="w-5 h-5 text-emerald-500 fill-emerald-50 dark:fill-[#0d261a]" />
+                  <CheckCircle2 className="w-5 h-5 text-emerald-500 fill-emerald-50 dark:fill-emerald-950/60" />
                 ) : (
                   <Circle className="w-5 h-5 hover:stroke-emerald-500" />
                 )}
@@ -538,8 +538,8 @@ export default function TaskModal({
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   autoFocus
-                  className={`w-full text-base sm:text-lg font-bold bg-transparent border-0 focus:outline-none placeholder:text-neutral-400 dark:placeholder:text-[#52525b] ${
-                    isCompleted ? 'line-through text-neutral-400 dark:text-[#52525b]' : 'text-neutral-900 dark:text-[#ededed]'
+                  className={`w-full text-base sm:text-lg font-bold bg-transparent border-0 focus:outline-none placeholder:text-neutral-400 dark:placeholder:text-zinc-500 ${
+                    isCompleted ? 'line-through text-neutral-400 dark:text-zinc-500' : 'text-neutral-900 dark:text-white'
                   }`}
                 />
               </div>
@@ -547,7 +547,7 @@ export default function TaskModal({
 
             {/* Description Row (≡ Description) */}
             <div className="space-y-1.5 pl-8">
-              <div className="flex items-center gap-2 text-xs font-semibold text-neutral-400 dark:text-[#a1a1aa]">
+              <div className="flex items-center gap-2 text-xs font-semibold text-neutral-400 dark:text-zinc-400">
                 <FileText className="w-3.5 h-3.5" />
                 <span>Description</span>
               </div>
@@ -556,14 +556,14 @@ export default function TaskModal({
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
-                className="w-full text-xs sm:text-sm bg-neutral-50/60 dark:bg-[#121214] border border-neutral-200/80 dark:border-[#222225] rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-red-500/30 text-neutral-800 dark:text-[#ededed] placeholder:text-neutral-400 dark:placeholder:text-[#52525b] leading-relaxed resize-y"
+                className="w-full text-xs sm:text-sm bg-neutral-50/60 dark:bg-[#161c2b] border border-neutral-200/80 dark:border-white/[0.1] rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-red-500/30 text-neutral-800 dark:text-zinc-200 placeholder:text-neutral-400 dark:placeholder:text-zinc-500 leading-relaxed resize-y"
               />
             </div>
 
             {/* Subtasks Section (+ Add sub-task) */}
             <div className="space-y-3 pl-8">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-neutral-700 dark:text-[#a1a1aa]">
+                <span className="text-xs font-bold text-neutral-700 dark:text-zinc-300">
                   Sub-tasks {subtasks.length > 0 && `(${subtasks.filter(s => s.completed).length}/${subtasks.length})`}
                 </span>
                 {!showSubtaskInput && (
@@ -583,7 +583,7 @@ export default function TaskModal({
                   {subtasks.map((st) => (
                     <div
                       key={st.id}
-                      className="group flex items-center justify-between p-2 rounded-lg bg-neutral-50 dark:bg-[#121214] border border-neutral-200/60 dark:border-[#222225]"
+                      className="group flex items-center justify-between p-2 rounded-lg bg-neutral-50 dark:bg-[#161c2b] border border-neutral-200/60 dark:border-white/[0.08]"
                     >
                       <label className="flex items-center gap-2.5 flex-1 cursor-pointer min-w-0">
                         <input
@@ -592,7 +592,7 @@ export default function TaskModal({
                           onChange={() => toggleSubtask(st.id)}
                           className="w-3.5 h-3.5 accent-red-600 rounded cursor-pointer"
                         />
-                        <span className={`text-xs ${st.completed ? 'line-through text-neutral-400 dark:text-[#52525b]' : 'text-neutral-800 dark:text-[#ededed]'}`}>
+                        <span className={`text-xs ${st.completed ? 'line-through text-neutral-400 dark:text-zinc-500' : 'text-neutral-800 dark:text-zinc-200'}`}>
                           {st.text}
                         </span>
                       </label>
@@ -625,7 +625,7 @@ export default function TaskModal({
                       }
                     }}
                     autoFocus
-                    className="flex-1 text-xs bg-neutral-50 dark:bg-[#121214] border border-neutral-200 dark:border-[#222225] rounded-lg px-2.5 py-1.5 text-neutral-900 dark:text-[#ededed] focus:outline-none focus:ring-1 focus:ring-red-500/30"
+                    className="flex-1 text-xs bg-neutral-50 dark:bg-[#161c2b] border border-neutral-200 dark:border-white/[0.1] rounded-lg px-2.5 py-1.5 text-neutral-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-red-500/30 placeholder:text-zinc-500"
                   />
                   <button
                     type="button"
@@ -637,7 +637,7 @@ export default function TaskModal({
                   <button
                     type="button"
                     onClick={() => setShowSubtaskInput(false)}
-                    className="text-xs text-neutral-400 hover:text-neutral-600 dark:text-[#a1a1aa]"
+                    className="text-xs text-neutral-400 hover:text-neutral-600 dark:text-zinc-400"
                   >
                     Cancel
                   </button>
@@ -646,8 +646,8 @@ export default function TaskModal({
             </div>
 
             {/* Comments & Activity Section (From Screenshot 2) */}
-            <div className="pt-4 border-t border-neutral-100 dark:border-[#222225] pl-8 space-y-3">
-              <div className="flex items-center justify-between text-xs font-bold text-neutral-700 dark:text-[#a1a1aa]">
+            <div className="pt-4 border-t border-neutral-100 dark:border-white/[0.08] pl-8 space-y-3">
+              <div className="flex items-center justify-between text-xs font-bold text-neutral-700 dark:text-zinc-300">
                 <div className="flex items-center gap-2">
                   <MessageSquare className="w-3.5 h-3.5" />
                   <span>Comments & Activity</span>
@@ -669,14 +669,14 @@ export default function TaskModal({
                     const canDelete = !comm.user_id || comm.user_id === currentUserId;
                     return (
                       <div key={comm.id} className="group flex items-start gap-2.5 text-xs">
-                        <div className="w-6 h-6 rounded-full bg-red-100 dark:bg-[#2a1215] text-red-600 dark:text-red-400 font-bold flex items-center justify-center text-[10px] shrink-0">
+                        <div className="w-6 h-6 rounded-full bg-red-100 dark:bg-rose-950/60 text-red-600 dark:text-rose-300 font-bold flex items-center justify-center text-[10px] shrink-0 border border-transparent dark:border-rose-500/30">
                           {initial}
                         </div>
-                        <div className="flex-1 bg-neutral-50 dark:bg-[#121214] border border-neutral-200/60 dark:border-[#222225] rounded-xl p-2.5 relative">
+                        <div className="flex-1 bg-neutral-50 dark:bg-[#161c2b] border border-neutral-200/60 dark:border-white/[0.08] rounded-xl p-2.5 relative">
                           <div className="flex items-center justify-between mb-1">
-                            <span className="font-semibold text-neutral-800 dark:text-[#ededed]">{authorName}</span>
+                            <span className="font-semibold text-neutral-800 dark:text-white">{authorName}</span>
                             <div className="flex items-center gap-1.5">
-                              <span className="text-[10px] text-neutral-400 dark:text-[#52525b]">{comm.timestamp}</span>
+                              <span className="text-[10px] text-neutral-400 dark:text-zinc-400">{comm.timestamp}</span>
                               {canDelete && (
                                 <button
                                   type="button"
@@ -689,7 +689,7 @@ export default function TaskModal({
                               )}
                             </div>
                           </div>
-                          <p className="text-neutral-600 dark:text-[#a1a1aa] leading-relaxed whitespace-pre-wrap">{comm.text || comm.content}</p>
+                          <p className="text-neutral-600 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">{comm.text || comm.content}</p>
                         </div>
                       </div>
                     );
@@ -697,16 +697,16 @@ export default function TaskModal({
                 </div>
               ) : (
                 !loadingComments && (
-                  <p className="text-[11px] text-neutral-400 dark:text-[#52525b] italic">No comments yet. Leave a note or update below.</p>
+                  <p className="text-[11px] text-neutral-400 dark:text-zinc-400 italic">No comments yet. Leave a note or update below.</p>
                 )
               )}
 
               {/* Pill-shaped Comment Input (Screenshot 2 exact style) */}
               <div className="flex items-center gap-2 pt-1">
-                <div className="w-7 h-7 rounded-full bg-red-100 dark:bg-[#2a1215] text-red-600 dark:text-red-400 flex items-center justify-center text-xs font-bold shrink-0">
+                <div className="w-7 h-7 rounded-full bg-red-100 dark:bg-rose-950/60 text-red-600 dark:text-rose-300 flex items-center justify-center text-xs font-bold shrink-0 border border-transparent dark:border-rose-500/30">
                   {session?.user?.email ? session.user.email[0].toUpperCase() : 'U'}
                 </div>
-                <div className="flex-1 flex items-center bg-neutral-50 dark:bg-[#121214] border border-neutral-200 dark:border-[#222225] rounded-full px-3 py-1.5 focus-within:border-red-500/50">
+                <div className="flex-1 flex items-center bg-neutral-50 dark:bg-[#161c2b] border border-neutral-200 dark:border-white/[0.1] rounded-full px-3 py-1.5 focus-within:border-red-500/50">
                   <input
                     type="text"
                     placeholder="Leave a comment or task update..."
@@ -718,12 +718,12 @@ export default function TaskModal({
                         handleAddComment();
                       }
                     }}
-                    className="flex-1 text-xs bg-transparent border-0 focus:outline-none text-neutral-800 dark:text-[#ededed] placeholder:text-neutral-400 dark:placeholder:text-[#52525b]"
+                    className="flex-1 text-xs bg-transparent border-0 focus:outline-none text-neutral-800 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-zinc-500"
                   />
-                  <div className="flex items-center gap-1.5 ml-2 text-neutral-400 dark:text-[#a1a1aa]">
+                  <div className="flex items-center gap-1.5 ml-2 text-neutral-400 dark:text-zinc-400">
                     <button
                       type="button"
-                      className="p-1 hover:text-neutral-600 dark:hover:text-[#ededed]"
+                      className="p-1 hover:text-neutral-600 dark:hover:text-white"
                       title="Attach note or reference"
                     >
                       <Paperclip className="w-3.5 h-3.5" />
@@ -743,19 +743,19 @@ export default function TaskModal({
           </div>
 
           {/* RIGHT METADATA SIDEBAR (~35%) (Matching Screenshot 2) */}
-          <div className="w-full md:w-72 p-5 bg-neutral-50/50 dark:bg-[#09090b] space-y-4 shrink-0 text-xs">
+          <div className="w-full md:w-72 p-5 bg-neutral-50/50 dark:bg-[#0c0f17] space-y-4 shrink-0 text-xs">
             {/* Project / Stage */}
             <div className="space-y-1">
-              <span className="text-[11px] font-bold text-neutral-400 dark:text-[#71717a]">Section</span>
-              <div className="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-[#121214] border border-neutral-200 dark:border-[#222225]">
-                <Inbox className="w-4 h-4 text-neutral-500 dark:text-[#a1a1aa]" />
+              <span className="text-[11px] font-bold text-neutral-400 dark:text-zinc-400">Section</span>
+              <div className="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-[#161c2b] border border-neutral-200 dark:border-white/[0.1]">
+                <Inbox className="w-4 h-4 text-neutral-500 dark:text-zinc-300" />
                 <select
                   value={section}
                   onChange={(e) => setSection(e.target.value)}
-                  className="bg-transparent font-medium text-neutral-800 dark:text-[#ededed] focus:outline-none w-full cursor-pointer"
+                  className="bg-transparent font-medium text-neutral-800 dark:text-white focus:outline-none w-full cursor-pointer"
                 >
                   {sections.map(s => (
-                    <option key={s.key} value={s.key} className="dark:bg-[#09090b]">
+                    <option key={s.key} value={s.key} className="dark:bg-[#161c2b] dark:text-white">
                       {s.label}
                     </option>
                   ))}
@@ -765,21 +765,21 @@ export default function TaskModal({
 
             {/* Date */}
             <div className="space-y-1">
-              <span className="text-[11px] font-bold text-neutral-400 dark:text-[#71717a]">Scheduled Date</span>
-              <div className="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-[#121214] border border-neutral-200 dark:border-[#222225]">
-                <Calendar className="w-4 h-4 text-neutral-400 dark:text-[#a1a1aa]" />
+              <span className="text-[11px] font-bold text-neutral-400 dark:text-zinc-400">Scheduled Date</span>
+              <div className="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-[#161c2b] border border-neutral-200 dark:border-white/[0.1]">
+                <Calendar className="w-4 h-4 text-neutral-400 dark:text-zinc-400" />
                 <input
                   type="date"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
-                  className="bg-transparent font-medium text-neutral-800 dark:text-[#ededed] focus:outline-none w-full text-xs"
+                  className="bg-transparent font-medium text-neutral-800 dark:text-white focus:outline-none w-full text-xs"
                 />
               </div>
               <div className="flex gap-1.5 pt-1">
                 <button
                   type="button"
                   onClick={() => setDueDate(new Date().toISOString().split('T')[0])}
-                  className="text-[10px] font-semibold px-2 py-0.5 rounded bg-neutral-200/70 dark:bg-[#1c1c20] text-neutral-700 dark:text-[#a1a1aa] hover:text-neutral-900 dark:hover:text-[#ededed]"
+                  className="text-[10px] font-semibold px-2 py-0.5 rounded bg-neutral-200/70 dark:bg-white/[0.08] text-neutral-700 dark:text-zinc-300 hover:text-neutral-900 dark:hover:text-white"
                 >
                   Today
                 </button>
@@ -789,7 +789,7 @@ export default function TaskModal({
                     const tom = new Date(Date.now() + 86400000).toISOString().split('T')[0];
                     setDueDate(tom);
                   }}
-                  className="text-[10px] font-semibold px-2 py-0.5 rounded bg-neutral-200/70 dark:bg-[#1c1c20] text-neutral-700 dark:text-[#a1a1aa] hover:text-neutral-900 dark:hover:text-[#ededed]"
+                  className="text-[10px] font-semibold px-2 py-0.5 rounded bg-neutral-200/70 dark:bg-white/[0.08] text-neutral-700 dark:text-zinc-300 hover:text-neutral-900 dark:hover:text-white"
                 >
                   Tomorrow
                 </button>
@@ -799,7 +799,7 @@ export default function TaskModal({
                     const nextW = new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0];
                     setDueDate(nextW);
                   }}
-                  className="text-[10px] font-semibold px-2 py-0.5 rounded bg-neutral-200/70 dark:bg-[#1c1c20] text-neutral-700 dark:text-[#a1a1aa] hover:text-neutral-900 dark:hover:text-[#ededed]"
+                  className="text-[10px] font-semibold px-2 py-0.5 rounded bg-neutral-200/70 dark:bg-white/[0.08] text-neutral-700 dark:text-zinc-300 hover:text-neutral-900 dark:hover:text-white"
                 >
                   Next Week
                 </button>
@@ -808,27 +808,27 @@ export default function TaskModal({
 
             {/* Strict Deadline */}
             <div className="space-y-1">
-              <span className="text-[11px] font-bold text-neutral-400 dark:text-[#71717a]">Target Deadline Time</span>
-              <div className="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-[#121214] border border-neutral-200 dark:border-[#222225]">
+              <span className="text-[11px] font-bold text-neutral-400 dark:text-zinc-400">Target Deadline Time</span>
+              <div className="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-[#161c2b] border border-neutral-200 dark:border-white/[0.1]">
                 <Clock className="w-4 h-4 text-amber-500" />
                 <input
                   type="time"
                   value={deadlineTime}
                   onChange={(e) => setDeadlineTime(e.target.value)}
-                  className="bg-transparent font-medium text-neutral-800 dark:text-[#ededed] focus:outline-none w-full text-xs"
+                  className="bg-transparent font-medium text-neutral-800 dark:text-white focus:outline-none w-full text-xs"
                 />
               </div>
             </div>
 
             {/* Priority */}
             <div className="space-y-1">
-              <span className="text-[11px] font-bold text-neutral-400 dark:text-[#71717a]">Priority</span>
+              <span className="text-[11px] font-bold text-neutral-400 dark:text-zinc-400">Priority</span>
               <div className="grid grid-cols-4 gap-1.5">
                 {[
-                  { key: 'P1', label: 'P1', color: 'text-red-500 dark:text-red-400', active: 'bg-red-50 dark:bg-[#2a1215] border-red-500/50' },
-                  { key: 'P2', label: 'P2', color: 'text-amber-500 dark:text-amber-400', active: 'bg-amber-50 dark:bg-[#281a0b] border-amber-500/50' },
-                  { key: 'P3', label: 'P3', color: 'text-blue-500 dark:text-blue-400', active: 'bg-blue-50 dark:bg-[#121214] border-blue-500/50' },
-                  { key: 'P4', label: 'P4', color: 'text-neutral-400 dark:text-[#a1a1aa]', active: 'bg-neutral-100 dark:bg-[#121214] border-neutral-400' }
+                  { key: 'P1', label: 'P1', color: 'text-red-500 dark:text-red-400', active: 'bg-red-50 dark:bg-red-950/60 border-red-500/50' },
+                  { key: 'P2', label: 'P2', color: 'text-amber-500 dark:text-amber-400', active: 'bg-amber-50 dark:bg-amber-950/60 border-amber-500/50' },
+                  { key: 'P3', label: 'P3', color: 'text-blue-500 dark:text-blue-400', active: 'bg-blue-50 dark:bg-blue-950/60 border-blue-500/50' },
+                  { key: 'P4', label: 'P4', color: 'text-neutral-400 dark:text-zinc-300', active: 'bg-neutral-100 dark:bg-white/[0.1] border-neutral-400 dark:border-white/[0.2]' }
                 ].map(p => (
                   <button
                     key={p.key}
@@ -837,7 +837,7 @@ export default function TaskModal({
                     className={`py-1.5 px-2 rounded-lg border text-center font-bold flex items-center justify-center gap-1 transition-all ${
                       priority === p.key
                         ? `${p.active} ring-1 ring-red-500/30`
-                        : 'border-neutral-200 dark:border-[#222225] bg-white dark:bg-[#121214]/50 hover:bg-neutral-100 dark:hover:bg-[#1c1c20]'
+                        : 'border-neutral-200 dark:border-white/[0.08] bg-white dark:bg-[#161c2b] hover:bg-neutral-100 dark:hover:bg-white/[0.08]'
                     }`}
                   >
                     <Flag className={`w-3 h-3 ${p.color}`} />
@@ -849,21 +849,21 @@ export default function TaskModal({
 
             {/* Today's Big 3 Spotlight Pin */}
             <div className="space-y-1.5 pt-1">
-              <span className="text-[11px] font-bold text-neutral-400 dark:text-[#71717a]">Today's Priority Spotlight</span>
+              <span className="text-[11px] font-bold text-neutral-400 dark:text-zinc-400">Today's Priority Spotlight</span>
               <button
                 type="button"
                 onClick={() => setIsFocus(!isFocus)}
                 className={`w-full py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-between gap-2 transition-all ${
                   isFocus
-                    ? 'bg-amber-50 dark:bg-[#281a0b]/60 border-amber-300 dark:border-amber-700/60 text-amber-700 dark:text-amber-300 shadow-xs'
-                    : 'bg-white dark:bg-[#121214] border-neutral-200 dark:border-[#222225] text-neutral-600 dark:text-[#a1a1aa] hover:border-neutral-300'
+                    ? 'bg-amber-50 dark:bg-amber-950/60 border-amber-300 dark:border-amber-500/40 text-amber-700 dark:text-amber-300 shadow-xs'
+                    : 'bg-white dark:bg-[#161c2b] border-neutral-200 dark:border-white/[0.1] text-neutral-600 dark:text-zinc-300 hover:border-neutral-300 dark:hover:border-white/[0.2]'
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <Star className={`w-3.5 h-3.5 ${isFocus ? 'text-amber-500 fill-amber-500' : 'text-neutral-400'}`} />
+                  <Star className={`w-3.5 h-3.5 ${isFocus ? 'text-amber-500 fill-amber-500' : 'text-neutral-400 dark:text-zinc-400'}`} />
                   <span>{isFocus ? "Pinned to Today's Big 3" : "Pin to Today's Big 3 Spotlight"}</span>
                 </div>
-                <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${isFocus ? 'bg-amber-200/60 dark:bg-amber-900/40 text-amber-900 dark:text-amber-200' : 'bg-neutral-100 dark:bg-[#1c1c20] text-neutral-400'}`}>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${isFocus ? 'bg-amber-200/60 dark:bg-amber-500/30 text-amber-900 dark:text-amber-200' : 'bg-neutral-100 dark:bg-white/[0.08] text-neutral-400 dark:text-zinc-400'}`}>
                   {isFocus ? 'PINNED' : 'OFF'}
                 </span>
               </button>
@@ -872,11 +872,11 @@ export default function TaskModal({
             {/* Labels / Tags */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-neutral-400 dark:text-[#71717a]">Labels & Tags</span>
+                <span className="text-[11px] font-bold text-neutral-400 dark:text-zinc-400">Labels & Tags</span>
                 <button
                   type="button"
                   onClick={() => setShowTagInput(!showTagInput)}
-                  className="text-xs text-neutral-500 hover:text-neutral-800 dark:text-[#a1a1aa] dark:hover:text-[#ededed]"
+                  className="text-xs text-neutral-500 hover:text-neutral-800 dark:text-zinc-400 dark:hover:text-white"
                 >
                   + Add
                 </button>
@@ -887,7 +887,7 @@ export default function TaskModal({
                 {tags.map(t => (
                   <span
                     key={t}
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md bg-neutral-200/80 dark:bg-[#1c1c20] text-neutral-700 dark:text-[#a1a1aa] border border-transparent dark:border-[#222225]"
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md bg-neutral-200/80 dark:bg-white/[0.08] text-neutral-700 dark:text-zinc-200 border border-transparent dark:border-white/[0.08]"
                   >
                     {t}
                     <button type="button" onClick={() => removeTag(t)} className="hover:text-red-500">
@@ -912,12 +912,12 @@ export default function TaskModal({
                           handleAddTag(newTagInput);
                         }
                       }}
-                      className="flex-1 text-xs px-2 py-1 bg-white dark:bg-[#121214] border border-neutral-200 dark:border-[#222225] rounded-md text-neutral-800 dark:text-[#ededed] focus:outline-none"
+                      className="flex-1 text-xs px-2 py-1 bg-white dark:bg-[#161c2b] border border-neutral-200 dark:border-white/[0.1] rounded-md text-neutral-800 dark:text-white focus:outline-none"
                     />
                     <button
                       type="button"
                       onClick={() => handleAddTag(newTagInput)}
-                      className="px-2 py-1 bg-neutral-800 dark:bg-[#ededed] text-white dark:text-[#000000] font-semibold text-[10px] rounded-md"
+                      className="px-2 py-1 bg-neutral-800 dark:bg-white text-white dark:text-black font-semibold text-[10px] rounded-md"
                     >
                       Add
                     </button>
@@ -929,7 +929,7 @@ export default function TaskModal({
                         key={st}
                         type="button"
                         onClick={() => handleAddTag(st)}
-                        className="text-[10px] text-neutral-400 hover:text-neutral-700 dark:text-[#a1a1aa] underline"
+                        className="text-[10px] text-neutral-400 hover:text-neutral-700 dark:text-zinc-400 underline"
                       >
                         {st}
                       </button>
@@ -941,31 +941,31 @@ export default function TaskModal({
 
             {/* Reminders */}
             <div className="space-y-1">
-              <span className="text-[11px] font-bold text-neutral-400 dark:text-[#71717a]">Reminders</span>
-              <div className="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-[#121214] border border-neutral-200 dark:border-[#222225]">
-                <Clock className="w-4 h-4 text-neutral-400 dark:text-[#a1a1aa]" />
+              <span className="text-[11px] font-bold text-neutral-400 dark:text-zinc-400">Reminders</span>
+              <div className="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-[#161c2b] border border-neutral-200 dark:border-white/[0.1]">
+                <Clock className="w-4 h-4 text-neutral-400 dark:text-zinc-400" />
                 <select
                   value={reminder}
                   onChange={(e) => setReminder(e.target.value)}
-                  className="bg-transparent font-medium text-neutral-800 dark:text-[#ededed] focus:outline-none w-full text-xs cursor-pointer"
+                  className="bg-transparent font-medium text-neutral-800 dark:text-white focus:outline-none w-full text-xs cursor-pointer"
                 >
-                  <option value="none" className="dark:bg-[#09090b]">No reminder</option>
-                  <option value="at_time" className="dark:bg-[#09090b]">At time of due date</option>
-                  <option value="15m" className="dark:bg-[#09090b]">15 minutes before</option>
-                  <option value="1h" className="dark:bg-[#09090b]">1 hour before</option>
-                  <option value="1d" className="dark:bg-[#09090b]">1 day before</option>
+                  <option value="none" className="dark:bg-[#161c2b]">No reminder</option>
+                  <option value="at_time" className="dark:bg-[#161c2b]">At time of due date</option>
+                  <option value="15m" className="dark:bg-[#161c2b]">15 minutes before</option>
+                  <option value="1h" className="dark:bg-[#161c2b]">1 hour before</option>
+                  <option value="1d" className="dark:bg-[#161c2b]">1 day before</option>
                 </select>
               </div>
             </div>
 
             {/* ETA / Effort Duration Widget */}
-            <div className="p-3 rounded-xl bg-indigo-50/60 dark:bg-[#121624] border border-indigo-200/70 dark:border-indigo-900/40 space-y-2.5">
-              <div className="flex items-center justify-between text-[11px] font-bold text-neutral-800 dark:text-[#ededed]">
+            <div className="p-3 rounded-xl bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-200/70 dark:border-indigo-800/50 space-y-2.5">
+              <div className="flex items-center justify-between text-[11px] font-bold text-neutral-800 dark:text-white">
                 <span className="flex items-center gap-1.5 text-indigo-700 dark:text-indigo-400">
                   <Hourglass className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                   <span>ETA / Effort Duration</span>
                 </span>
-                <span className="px-2 py-0.5 rounded-md font-mono text-[11px] font-bold bg-white dark:bg-[#1a1f36] border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-300 shadow-2xs">
+                <span className="px-2 py-0.5 rounded-md font-mono text-[11px] font-bold bg-white dark:bg-indigo-950/80 border border-indigo-200 dark:border-indigo-700/60 text-indigo-600 dark:text-indigo-300 shadow-2xs">
                   {duration || formatDuration(estimatedMinutes)}
                 </span>
               </div>
@@ -995,7 +995,7 @@ export default function TaskModal({
                       className={`text-[10px] font-bold px-2 py-1 rounded-lg transition-all ${
                         isSelected
                           ? 'bg-indigo-600 text-white shadow-xs scale-105'
-                          : 'bg-white dark:bg-[#182035] text-slate-700 dark:text-slate-300 hover:bg-indigo-100 dark:hover:bg-[#222d4a] border border-slate-200/60 dark:border-[#22304e]'
+                          : 'bg-white dark:bg-white/[0.08] text-slate-700 dark:text-zinc-300 hover:bg-indigo-100 dark:hover:bg-white/[0.12] border border-slate-200/60 dark:border-white/[0.08]'
                       }`}
                     >
                       {preset.label}
@@ -1011,7 +1011,7 @@ export default function TaskModal({
                   placeholder="Custom e.g. 1h 45m"
                   value={duration}
                   onChange={(e) => setDuration(e.target.value)}
-                  className="w-full text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-white dark:bg-[#0d121f] border border-indigo-200/80 dark:border-[#22304e] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="w-full text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-white dark:bg-[#161c2b] border border-indigo-200/80 dark:border-white/[0.1] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 />
               </div>
 
@@ -1030,7 +1030,7 @@ export default function TaskModal({
                   }}
                   className="w-full accent-indigo-600 cursor-pointer"
                 />
-                <div className="flex justify-between text-[9px] text-slate-400 dark:text-slate-500 font-mono">
+                <div className="flex justify-between text-[9px] text-slate-400 dark:text-zinc-400 font-mono">
                   <span>15m</span>
                   <span>1h</span>
                   <span>2h</span>
@@ -1038,7 +1038,7 @@ export default function TaskModal({
                 </div>
               </div>
 
-              <span className="text-[10px] text-slate-500 dark:text-slate-400 block leading-tight">
+              <span className="text-[10px] text-slate-500 dark:text-zinc-400 block leading-tight">
                 Allocates expected effort on card and board horizon
               </span>
             </div>
@@ -1046,7 +1046,7 @@ export default function TaskModal({
         </form>
 
         {/* --- MODAL FOOTER --- */}
-        <div className="px-5 py-3 border-t border-neutral-100 dark:border-[#222225] flex items-center justify-between shrink-0 bg-neutral-50/80 dark:bg-[#09090b]">
+        <div className="px-5 py-3 border-t border-neutral-100 dark:border-white/[0.08] flex items-center justify-between shrink-0 bg-neutral-50/80 dark:bg-[#121622]">
           <div className="flex items-center gap-2">
             {isEditing && (
               <button
@@ -1055,7 +1055,7 @@ export default function TaskModal({
                   onDeleteTask(task.id);
                   onClose();
                 }}
-                className="text-xs font-semibold text-neutral-400 hover:text-red-600 dark:text-[#a1a1aa] dark:hover:text-red-400 flex items-center gap-1.5 py-1.5 px-2 rounded-lg hover:bg-red-50 dark:hover:bg-[#2a1215] transition-colors"
+                className="text-xs font-semibold text-neutral-400 hover:text-red-600 dark:text-zinc-400 dark:hover:text-red-400 flex items-center gap-1.5 py-1.5 px-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Delete</span>
@@ -1067,7 +1067,7 @@ export default function TaskModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-3.5 py-1.5 text-xs font-semibold rounded-xl text-neutral-600 dark:text-[#a1a1aa] hover:bg-neutral-200/60 dark:hover:bg-[#121214] transition-colors"
+              className="px-3.5 py-1.5 text-xs font-semibold rounded-xl text-neutral-600 dark:text-zinc-300 hover:bg-neutral-200/60 dark:hover:bg-white/[0.08] transition-colors"
             >
               Cancel
             </button>

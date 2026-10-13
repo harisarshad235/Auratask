@@ -54,14 +54,14 @@ export function CollapsibleWidget({
               <Icon
                 className={`${
                   isSubSection ? 'w-3.5 h-3.5' : 'w-4 h-4'
-                } text-slate-400 dark:text-[#71717a] group-hover:text-slate-700 dark:group-hover:text-[#e4e4e7] transition-colors shrink-0`}
+                } text-slate-400 dark:text-zinc-400 group-hover:text-slate-700 dark:group-hover:text-white transition-colors shrink-0`}
               />
             )}
             <span
               className={`font-bold tracking-wider uppercase truncate transition-colors ${
                 isSubSection
-                  ? 'text-[10px] text-slate-400 dark:text-[#71717a] group-hover:text-slate-700 dark:group-hover:text-[#ededed]'
-                  : 'text-[11px] text-slate-500 dark:text-[#a1a1aa] group-hover:text-slate-900 dark:group-hover:text-white'
+                  ? 'text-[10px] text-slate-500 dark:text-zinc-400 group-hover:text-slate-800 dark:group-hover:text-zinc-200'
+                  : 'text-[11px] text-slate-600 dark:text-zinc-300 group-hover:text-slate-900 dark:group-hover:text-white'
               }`}
             >
               {title}
@@ -77,7 +77,7 @@ export function CollapsibleWidget({
           <motion.span
             animate={{ rotate: isOpen ? 0 : -180 }}
             transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-            className="text-slate-400 dark:text-[#71717a] group-hover:text-slate-700 dark:group-hover:text-[#ededed] shrink-0 ml-1.5 p-0.5 rounded flex items-center justify-center"
+            className="text-slate-400 dark:text-zinc-400 group-hover:text-slate-700 dark:group-hover:text-white shrink-0 ml-1.5 p-0.5 rounded flex items-center justify-center"
             aria-hidden="true"
           >
             <ChevronDown className={isSubSection ? 'w-3 h-3' : 'w-3.5 h-3.5'} />

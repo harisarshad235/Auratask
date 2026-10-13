@@ -2176,12 +2176,12 @@ export default function App() {
   // =========================================================================
   if (isAuthResolving) {
     return (
-      <div className={`min-h-screen flex flex-col items-center justify-center p-6 ${darkMode ? 'dark bg-[#151821] text-[#e3e6ee]' : 'bg-[#fffdfa] text-slate-900'}`}>
+      <div className={`min-h-screen flex flex-col items-center justify-center p-6 ${darkMode ? 'dark bg-[#090b11] text-zinc-100' : 'bg-[#fffdfa] text-slate-900'}`}>
         <div className="flex flex-col items-center gap-4 animate-in fade-in duration-200">
           <Logo href="" />
-          <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white dark:bg-[#121a2b] border border-slate-200 dark:border-[#22304e] shadow-xl">
+          <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white dark:bg-[#161c2b] border border-slate-200 dark:border-white/[0.12] shadow-xl">
             <RefreshCw className="w-4 h-4 text-rose-500 animate-spin" />
-            <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+            <span className="text-xs font-semibold text-slate-700 dark:text-zinc-200">
               Verifying session... Redirecting to workspace
             </span>
           </div>
@@ -2195,7 +2195,7 @@ export default function App() {
   // =========================================================================
   if (!isAuthResolving && ((!session && !isGuest) || showLandingPage)) {
     return (
-      <div className={`min-h-screen ${darkMode ? 'dark bg-[#151821] text-[#e3e6ee]' : 'bg-[#fffdfa] text-slate-900'}`}>
+      <div className={`min-h-screen ${darkMode ? 'dark bg-[#090b11] text-zinc-100' : 'bg-[#fffdfa] text-slate-900'}`}>
         <LandingPage
           onStartForFree={() => { setAuthMode('register'); setShowAuthModal(true); }}
           onTryDemo={handleGuestLogin}
@@ -2222,28 +2222,28 @@ export default function App() {
                 <X className="w-5 h-5" />
               </button>
 
-              <div className="bg-white dark:bg-[#121214] border border-slate-200/80 dark:border-[#222225] rounded-3xl p-6 sm:p-8 shadow-2xl">
+              <div className="bg-white dark:bg-[#121622] border border-slate-200/80 dark:border-white/[0.12] rounded-3xl p-6 sm:p-8 shadow-2xl">
                 {/* Brand Header */}
                 <div className="flex flex-col items-center mb-6 text-center">
                   <Logo className="h-8 w-auto mb-2" href="" />
-                  <p className="text-xs text-slate-500 dark:text-[#a1a1aa]">
+                  <p className="text-xs text-slate-500 dark:text-zinc-300">
                     Precision task command center & cadence workspace
                   </p>
                 </div>
 
                 {/* Mode Selector Tabs */}
-                <div className="flex p-1 bg-slate-100 dark:bg-[#09090b] border border-slate-200 dark:border-[#222225] rounded-xl mb-6">
+                <div className="flex p-1 bg-slate-100 dark:bg-[#0c0f17] border border-slate-200 dark:border-white/[0.1] rounded-xl mb-6">
                   <button
                     type="button"
                     onClick={() => { setAuthMode('register'); setAuthError(null); }}
-                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${authMode === 'register' ? 'bg-white dark:bg-[#1c1c20] text-slate-900 dark:text-[#ededed] shadow-xs' : 'text-slate-500 dark:text-[#a1a1aa] hover:text-slate-800 dark:hover:text-[#ededed]'}`}
+                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${authMode === 'register' ? 'bg-white dark:bg-[#161c2b] text-slate-900 dark:text-white shadow-xs' : 'text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-white'}`}
                   >
                     Create Account
                   </button>
                   <button
                     type="button"
                     onClick={() => { setAuthMode('login'); setAuthError(null); }}
-                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${authMode === 'login' ? 'bg-white dark:bg-[#1c1c20] text-slate-900 dark:text-[#ededed] shadow-xs' : 'text-slate-500 dark:text-[#a1a1aa] hover:text-slate-800 dark:hover:text-[#ededed]'}`}
+                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${authMode === 'login' ? 'bg-white dark:bg-[#161c2b] text-slate-900 dark:text-white shadow-xs' : 'text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-white'}`}
                   >
                     Sign In
                   </button>
@@ -2253,7 +2253,7 @@ export default function App() {
                 <button
                   onClick={handleGoogleSignIn}
                   disabled={authLoading}
-                  className="w-full py-2.5 px-4 rounded-xl border border-slate-300 dark:border-[#222225] bg-white dark:bg-[#09090b] hover:bg-slate-50 dark:hover:bg-[#1c1c20] text-slate-800 dark:text-[#ededed] font-semibold text-sm flex items-center justify-center gap-3 shadow-2xs hover:shadow-xs transition-all active:scale-[0.99]"
+                  className="w-full py-2.5 px-4 rounded-xl border border-slate-300 dark:border-white/[0.12] bg-white dark:bg-[#161c2b] hover:bg-slate-50 dark:hover:bg-[#1e2638] text-slate-800 dark:text-white font-semibold text-sm flex items-center justify-center gap-3 shadow-2xs hover:shadow-xs transition-all active:scale-[0.99]"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -2266,8 +2266,8 @@ export default function App() {
 
                 {/* Divider */}
                 <div className="relative my-5 flex items-center justify-center">
-                  <div className="border-t border-slate-200 dark:border-[#222225] w-full"></div>
-                  <span className="bg-white dark:bg-[#121214] px-3 text-[11px] font-medium text-slate-400 dark:text-[#a1a1aa] absolute">
+                  <div className="border-t border-slate-200 dark:border-white/[0.1] w-full"></div>
+                  <span className="bg-white dark:bg-[#121622] px-3 text-[11px] font-medium text-slate-400 dark:text-zinc-400 absolute">
                     or continue with email
                   </span>
                 </div>
@@ -2403,7 +2403,7 @@ export default function App() {
   // 2. MAIN APPLICATION WORKSPACE (TAKT MIDNIGHT NAVY / SLATE PALETTE)
   // =========================================================================
   return (
-    <div className={`h-screen w-full flex overflow-hidden selection:bg-rose-500 selection:text-white ${darkMode ? 'dark bg-[#151821] text-[#e3e6ee]' : 'bg-[#f8fafc] text-slate-900'}`}>
+    <div className={`h-screen w-full flex overflow-hidden selection:bg-rose-500 selection:text-white ${darkMode ? 'dark bg-[#090b11] text-zinc-100' : 'bg-[#f8fafc] text-slate-900'}`}>
 
       {/* Hidden File Input for CSV Import */}
       <input
@@ -2416,7 +2416,7 @@ export default function App() {
 
       {/* TOAST NOTIFICATION */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white dark:bg-[#151d30] dark:text-[#f1f5f9] dark:border dark:border-[#22304e] px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 text-xs font-semibold animate-in fade-in slide-in-from-bottom-2">
+        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white dark:bg-[#161c2b] dark:text-white dark:border dark:border-white/[0.12] px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 text-xs font-semibold animate-in fade-in slide-in-from-bottom-2">
           <Sparkles className="w-4 h-4 text-amber-400" />
           <span>{toastMessage}</span>
         </div>
@@ -2431,7 +2431,7 @@ export default function App() {
       )}
 
       {/* --- SIDEBAR NAVIGATION (PERMANENTLY PINNED, NEVER MOVES WITH SCROLL) --- */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-72 h-screen bg-white dark:bg-[#0f172a] border-r border-slate-200/80 dark:border-[#1e293b] flex flex-col p-4 transition-transform duration-300 lg:static lg:translate-x-0 shrink-0 overflow-y-auto ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 w-72 h-screen bg-white dark:bg-[#0e121b] border-r border-slate-200/80 dark:border-white/[0.08] flex flex-col p-4 transition-transform duration-300 lg:static lg:translate-x-0 shrink-0 overflow-y-auto ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         {/* Top-Left: Reserved Strictly for [Takt Logo] + [Active Workspace / Project Title] */}
         <div className="flex items-center justify-between pb-3.5 mb-3 border-b border-slate-100 dark:border-white/[0.08]">
           <div className="flex items-center gap-2.5 min-w-0">
@@ -2443,10 +2443,10 @@ export default function App() {
               }}
             />
             <div className="flex flex-col min-w-0">
-              <span className="text-xs font-semibold text-slate-900 dark:text-zinc-100 truncate tracking-tight">
+              <span className="text-xs font-bold text-slate-900 dark:text-white truncate tracking-tight">
                 Takt Workspace
               </span>
-              <span className="text-[10px] text-slate-400 dark:text-zinc-500 font-medium truncate">
+              <span className="text-[10px] text-slate-400 dark:text-zinc-400 font-medium truncate">
                 Command Center
               </span>
             </div>
@@ -2454,17 +2454,17 @@ export default function App() {
 
           <button
             onClick={() => setDarkMode(!darkMode)}
-            className="p-1.5 text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-zinc-100 rounded-lg hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors"
+            className="p-1.5 text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-white/[0.08] transition-colors"
             title={darkMode ? "Switch to Eye-Comfort Light Mode (☀️)" : "Switch to Dark Mode (🌙)"}
           >
-            {darkMode ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-slate-600" />}
+            {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
           </button>
         </div>
 
         {/* Global Quick Add Action */}
         <button
           onClick={() => handleOpenTaskModal(null, activeTab === 'inbox' ? 'todo' : 'todo')}
-          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-rose-600 dark:hover:bg-rose-500 text-white font-bold text-xs shadow-xs dark:shadow-sm dark:shadow-rose-600/20 mb-4 transition-all active:scale-[0.98]"
+          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-rose-600 dark:hover:bg-rose-500 text-white font-bold text-xs shadow-xs dark:shadow-md dark:shadow-rose-600/30 mb-4 transition-all active:scale-[0.98]"
         >
           <Plus className="w-4 h-4 stroke-[3]" />
           <span>Add task</span>
@@ -2476,17 +2476,17 @@ export default function App() {
           <button
             onClick={() => { setActiveTab('inbox'); setSelectedTag(null); setMobileMenuOpen(false); }}
             className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group ${activeTab === 'inbox' && !selectedTag
-                ? 'bg-slate-900 text-white dark:bg-[#1a243a] dark:text-white font-bold shadow-2xs'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-white'
+                ? 'bg-slate-900 text-white dark:bg-white/[0.1] dark:text-white font-bold shadow-2xs'
+                : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-white'
               }`}
           >
             <div className="flex items-center gap-2.5">
-              <Inbox className={`w-4 h-4 transition-colors ${activeTab === 'inbox' && !selectedTag ? 'text-rose-500 dark:text-rose-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`} />
+              <Inbox className={`w-4 h-4 transition-colors ${activeTab === 'inbox' && !selectedTag ? 'text-rose-500 dark:text-rose-400' : 'text-slate-400 dark:text-zinc-400 group-hover:text-slate-600 dark:group-hover:text-zinc-200'}`} />
               <span>Inbox</span>
             </div>
             <span className={`text-[11px] font-mono px-1.5 py-0.5 rounded ${activeTab === 'inbox' && !selectedTag
-                ? 'bg-slate-800 text-slate-300 dark:bg-white/10 dark:text-slate-300'
-                : 'text-slate-400 dark:text-slate-500'
+                ? 'bg-slate-800 text-slate-300 dark:bg-white/[0.12] dark:text-zinc-200'
+                : 'text-slate-400 dark:text-zinc-400'
               }`}>
               {tasks.filter(t => t.section !== 'completed').length}
             </span>
@@ -2495,17 +2495,17 @@ export default function App() {
           <button
             onClick={() => { setActiveTab('today'); setSelectedTag(null); setMobileMenuOpen(false); }}
             className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group ${activeTab === 'today' && !selectedTag
-                ? 'bg-slate-900 text-white dark:bg-[#1a243a] dark:text-white font-bold shadow-2xs'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-white'
+                ? 'bg-slate-900 text-white dark:bg-white/[0.1] dark:text-white font-bold shadow-2xs'
+                : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-white'
               }`}
           >
             <div className="flex items-center gap-2.5">
-              <Calendar className={`w-4 h-4 transition-colors ${activeTab === 'today' && !selectedTag ? 'text-rose-500 dark:text-rose-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`} />
+              <Calendar className={`w-4 h-4 transition-colors ${activeTab === 'today' && !selectedTag ? 'text-rose-500 dark:text-rose-400' : 'text-slate-400 dark:text-zinc-400 group-hover:text-slate-600 dark:group-hover:text-zinc-200'}`} />
               <span>Today</span>
             </div>
             <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded-full font-mono ${activeTab === 'today' && !selectedTag
                 ? 'bg-rose-500 text-white'
-                : todayDueCount > 0 ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400' : 'text-slate-400 dark:text-slate-500'
+                : todayDueCount > 0 ? 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300 dark:border dark:border-rose-500/30' : 'text-slate-400 dark:text-zinc-400'
               }`}>
               {todayDueCount}
             </span>
@@ -2514,17 +2514,17 @@ export default function App() {
           <button
             onClick={() => { setActiveTab('upcoming'); setSelectedTag(null); setMobileMenuOpen(false); }}
             className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group ${activeTab === 'upcoming' && !selectedTag
-                ? 'bg-slate-900 text-white dark:bg-[#1a243a] dark:text-white font-bold shadow-2xs'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-white'
+                ? 'bg-slate-900 text-white dark:bg-white/[0.1] dark:text-white font-bold shadow-2xs'
+                : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-white'
               }`}
           >
             <div className="flex items-center gap-2.5">
-              <Clock className={`w-4 h-4 transition-colors ${activeTab === 'upcoming' && !selectedTag ? 'text-rose-500 dark:text-rose-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`} />
+              <Clock className={`w-4 h-4 transition-colors ${activeTab === 'upcoming' && !selectedTag ? 'text-rose-500 dark:text-rose-400' : 'text-slate-400 dark:text-zinc-400 group-hover:text-slate-600 dark:group-hover:text-zinc-200'}`} />
               <span>Upcoming</span>
             </div>
             <span className={`text-[11px] font-mono px-1.5 py-0.5 rounded ${activeTab === 'upcoming' && !selectedTag
-                ? 'bg-slate-800 text-slate-300 dark:bg-white/10 dark:text-slate-300'
-                : 'text-slate-400 dark:text-slate-500'
+                ? 'bg-slate-800 text-slate-300 dark:bg-white/[0.12] dark:text-zinc-200'
+                : 'text-slate-400 dark:text-zinc-400'
               }`}>
               {tasks.filter(t => t.due_date > todayDateStr && t.section !== 'completed').length}
             </span>
@@ -2533,17 +2533,17 @@ export default function App() {
           <button
             onClick={() => { setActiveTab('completed'); setSelectedTag(null); setMobileMenuOpen(false); }}
             className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group ${activeTab === 'completed' && !selectedTag
-                ? 'bg-slate-900 text-white dark:bg-[#1a243a] dark:text-white font-bold shadow-2xs'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-white'
+                ? 'bg-slate-900 text-white dark:bg-white/[0.1] dark:text-white font-bold shadow-2xs'
+                : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-white'
               }`}
           >
             <div className="flex items-center gap-2.5">
-              <CheckCircle2 className={`w-4 h-4 transition-colors ${activeTab === 'completed' && !selectedTag ? 'text-rose-500 dark:text-rose-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`} />
+              <CheckCircle2 className={`w-4 h-4 transition-colors ${activeTab === 'completed' && !selectedTag ? 'text-rose-500 dark:text-rose-400' : 'text-slate-400 dark:text-zinc-400 group-hover:text-slate-600 dark:group-hover:text-zinc-200'}`} />
               <span>Completed</span>
             </div>
             <span className={`text-[11px] font-mono px-1.5 py-0.5 rounded ${activeTab === 'completed' && !selectedTag
-                ? 'bg-slate-800 text-slate-300 dark:bg-white/10 dark:text-slate-300'
-                : 'text-slate-400 dark:text-slate-500'
+                ? 'bg-slate-800 text-slate-300 dark:bg-white/[0.12] dark:text-zinc-200'
+                : 'text-slate-400 dark:text-zinc-400'
               }`}>
               {completedCount}
             </span>
@@ -2553,7 +2553,7 @@ export default function App() {
         {/* =========================================================================
             COLLAPSIBLE SIDEBAR WIDGETS (ui-ux-pro-max & Framer Motion Accordion)
            ========================================================================= */}
-        <div className="mt-5 pt-4 border-t border-slate-100 dark:border-[#222225] space-y-2">
+        <div className="mt-5 pt-4 border-t border-slate-100 dark:border-white/[0.08] space-y-2">
           {/* 1. Productivity & Tools Collapsible Section */}
           <CollapsibleWidget
             id="productivity"
@@ -2562,7 +2562,7 @@ export default function App() {
             isOpen={!sidebarCollapsed['productivity']}
             onToggle={() => toggleSidebarWidget('productivity')}
             badge={
-              <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-amber-100 dark:bg-[#281a0b] text-amber-700 dark:text-amber-400 border border-transparent dark:border-amber-500/30">
+              <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-transparent dark:border-amber-500/40">
                 4d 🔥
               </span>
             }
@@ -2571,13 +2571,13 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setShowKarmaModal(true)}
-                className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-[#a1a1aa] hover:bg-slate-100 dark:hover:bg-[#121214] dark:hover:text-[#ededed] transition-colors"
+                className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-white transition-colors"
               >
                 <div className="flex items-center gap-2.5">
                   <Flame className="w-4 h-4 text-amber-500" />
                   <span>Karma & Streaks</span>
                 </div>
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 dark:bg-[#281a0b] text-amber-700 dark:text-amber-400 border border-transparent dark:border-amber-500/30">
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-transparent dark:border-amber-500/40">
                   Level 3
                 </span>
               </button>
@@ -2585,25 +2585,25 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setShowActivityModal(true)}
-                className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-[#a1a1aa] hover:bg-slate-100 dark:hover:bg-[#121214] dark:hover:text-[#ededed] transition-colors"
+                className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-white transition-colors"
               >
                 <div className="flex items-center gap-2.5">
                   <BarChart3 className="w-4 h-4 text-blue-500" />
                   <span>Activity History</span>
                 </div>
-                <span className="text-[10px] font-mono text-slate-400">{activityLogs.length}</span>
+                <span className="text-[10px] font-mono text-slate-400 dark:text-zinc-400">{activityLogs.length}</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setShowScratchpad(!showScratchpad)}
-                className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-[#a1a1aa] hover:bg-slate-100 dark:hover:bg-[#121214] dark:hover:text-[#ededed] transition-colors"
+                className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-white transition-colors"
               >
                 <div className="flex items-center gap-2.5">
                   <BookOpen className="w-4 h-4 text-indigo-500" />
                   <span>Meeting Scratchpad</span>
                 </div>
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 border border-transparent dark:border-indigo-500/20 font-mono">
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-transparent dark:border-indigo-500/30 font-mono">
                   {meetingNotes.length}
                 </span>
               </button>
@@ -2611,17 +2611,17 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setShowLandingPage(true)}
-                className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-[#a1a1aa] hover:bg-slate-100 dark:hover:bg-[#121214] dark:hover:text-[#ededed] transition-colors"
+                className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-white transition-colors"
               >
                 <div className="flex items-center gap-2.5">
                   <Sparkles className="w-4 h-4 text-rose-500" />
                   <span>Feature Tour</span>
                 </div>
-                <span className="text-[10px] text-slate-400">View</span>
+                <span className="text-[10px] text-slate-400 dark:text-zinc-400">View</span>
               </button>
 
               {/* Nested Sub-Section: Daily Rituals & Focus Habits */}
-              <div className="pt-1.5 mt-1 border-t border-slate-100/70 dark:border-[#222225]/70">
+              <div className="pt-1.5 mt-1 border-t border-slate-100/70 dark:border-white/[0.06]">
                 <CollapsibleWidget
                   id="productivity-rituals"
                   title="Rituals & Habits"
@@ -2633,7 +2633,7 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => setShowShutdownModal(true)}
-                      className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50/70 dark:bg-[#0d261a]/70 hover:bg-emerald-100/70 dark:hover:bg-[#0d261a] border border-emerald-200/50 dark:border-emerald-600/30 transition-colors"
+                      className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50/70 dark:bg-emerald-950/40 hover:bg-emerald-100/70 dark:hover:bg-emerald-950/70 border border-emerald-200/50 dark:border-emerald-600/40 transition-colors"
                     >
                       <div className="flex items-center gap-2">
                         <Shield className="w-3.5 h-3.5" />
@@ -2654,7 +2654,7 @@ export default function App() {
             isOpen={!sidebarCollapsed['projects']}
             onToggle={() => toggleSidebarWidget('projects')}
             badge={
-              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 dark:bg-[#151d30] text-slate-500 dark:text-slate-400 border border-slate-200/60 dark:border-[#22304e]">
+              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 dark:bg-white/[0.08] text-slate-500 dark:text-zinc-300 border border-slate-200/60 dark:border-white/[0.08]">
                 {customSections.length}
               </span>
             }
@@ -2672,13 +2672,13 @@ export default function App() {
                       setBoardGrouping('stage');
                       setMobileMenuOpen(false);
                     }}
-                    className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-[#a1a1aa] hover:bg-slate-100 dark:hover:bg-[#121214] hover:text-slate-900 dark:hover:text-[#ededed] transition-colors"
+                    className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-white transition-colors"
                   >
                     <div className="flex items-center gap-2.5">
                       <span className="w-2 h-2 rounded-full shrink-0 shadow-xs" style={{ backgroundColor: secColor }} />
                       <span className="capitalize">{sec.label}</span>
                     </div>
-                    <span className="text-[10px] font-mono text-slate-400 dark:text-[#52525b]">
+                    <span className="text-[10px] font-mono text-slate-400 dark:text-zinc-400">
                       {count}
                     </span>
                   </button>
@@ -2686,7 +2686,7 @@ export default function App() {
               })}
 
               {/* Nested Sub-Section: View / Grouping Options */}
-              <div className="pt-1.5 mt-1 border-t border-slate-100/70 dark:border-[#222225]/70">
+              <div className="pt-1.5 mt-1 border-t border-slate-100/70 dark:border-white/[0.06]">
                 <CollapsibleWidget
                   id="projects-sub"
                   title="Board Grouping"
@@ -2699,8 +2699,8 @@ export default function App() {
                       type="button"
                       onClick={() => setBoardGrouping('stage')}
                       className={`px-2 py-1 text-[11px] font-semibold rounded-lg transition-all ${boardGrouping === 'stage'
-                          ? 'bg-slate-900 text-white dark:bg-white/10 dark:text-white'
-                          : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-white/[0.05]'
+                          ? 'bg-slate-900 text-white dark:bg-white/[0.12] dark:text-white font-bold'
+                          : 'text-slate-500 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-white/[0.06] dark:hover:text-white'
                         }`}
                     >
                       Workflow Stage
@@ -2709,8 +2709,8 @@ export default function App() {
                       type="button"
                       onClick={() => setBoardGrouping('priority')}
                       className={`px-2 py-1 text-[11px] font-semibold rounded-lg transition-all ${boardGrouping === 'priority'
-                          ? 'bg-slate-900 text-white dark:bg-white/10 dark:text-white'
-                          : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-white/[0.05]'
+                          ? 'bg-slate-900 text-white dark:bg-white/[0.12] dark:text-white font-bold'
+                          : 'text-slate-500 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-white/[0.06] dark:hover:text-white'
                         }`}
                     >
                       Priority (P1-P4)
@@ -2730,11 +2730,11 @@ export default function App() {
             onToggle={() => toggleSidebarWidget('tags')}
             badge={
               selectedTag ? (
-                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-rose-100 dark:bg-[#2a1215] text-rose-600 dark:text-rose-400 border border-rose-200/40 dark:border-rose-500/30">
+                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-300 border border-rose-200/40 dark:border-rose-500/40">
                   {selectedTag}
                 </span>
               ) : (
-                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 dark:bg-[#151d30] text-slate-500 dark:text-slate-400">
+                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 dark:bg-white/[0.08] text-slate-500 dark:text-zinc-300">
                   {allAvailableTags.length}
                 </span>
               )
@@ -2744,7 +2744,7 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => setSelectedTag(null)}
-                  className="text-[10px] font-semibold text-rose-500 hover:text-rose-600 dark:hover:text-rose-400 hover:underline px-1 py-0.5"
+                  className="text-[10px] font-semibold text-rose-500 hover:text-rose-600 dark:text-rose-400 hover:underline px-1 py-0.5"
                 >
                   Clear
                 </button>
@@ -2761,15 +2761,15 @@ export default function App() {
                     type="button"
                     onClick={() => setSelectedTag(isSelected ? null : tag)}
                     className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${isSelected
-                        ? 'bg-rose-50 dark:bg-[#2a1215] text-rose-600 dark:text-rose-400 font-bold border border-rose-200/40 dark:border-rose-500/30'
-                        : 'text-slate-500 dark:text-[#a1a1aa] hover:text-slate-800 dark:hover:text-[#ededed] hover:bg-slate-100 dark:hover:bg-[#121214]'
+                        ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-300 font-bold border border-rose-200/40 dark:border-rose-500/40'
+                        : 'text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06]'
                       }`}
                   >
                     <div className="flex items-center gap-2">
                       <Tag className="w-3.5 h-3.5 opacity-60" />
                       <span>{tag}</span>
                     </div>
-                    <span className="text-[10px] font-mono text-slate-400 dark:text-[#52525b]">
+                    <span className="text-[10px] font-mono text-slate-400 dark:text-zinc-400">
                       {count}
                     </span>
                   </button>
@@ -2782,12 +2782,12 @@ export default function App() {
         {/* Focus Flow Session Mini Player */}
         {activeTimerTask && (
           <div className="mt-auto pt-3">
-            <div className="p-3 bg-red-50 dark:bg-[#121214] border border-red-200 dark:border-[#222225] rounded-2xl shadow-sm">
+            <div className="p-3 bg-red-50 dark:bg-[#161c2b] border border-red-200 dark:border-white/[0.12] rounded-2xl shadow-sm">
               <div className="flex items-center justify-between text-xs font-bold text-red-600 dark:text-red-400 mb-1">
                 <span className="flex items-center gap-1.5"><Flame className="w-3.5 h-3.5" /> Flow Session</span>
                 <button onClick={() => setActiveTimerTask(null)}><X className="w-3.5 h-3.5" /></button>
               </div>
-              <p className="text-xs font-semibold text-slate-800 dark:text-[#ededed] truncate mb-2">{activeTimerTask.title}</p>
+              <p className="text-xs font-semibold text-slate-800 dark:text-white truncate mb-2">{activeTimerTask.title}</p>
               <div className="flex items-center justify-between">
                 <span className="text-xl font-bold font-mono tracking-tight text-red-600 dark:text-red-400">
                   {Math.floor(timerSeconds / 60)}:{(timerSeconds % 60).toString().padStart(2, '0')}
@@ -2801,7 +2801,7 @@ export default function App() {
                   </button>
                   <button
                     onClick={() => { setIsTimerRunning(false); setTimerSeconds(25 * 60); }}
-                    className="p-1.5 bg-slate-200 dark:bg-[#1c1c20] border border-transparent dark:border-[#222225] text-slate-700 dark:text-[#a1a1aa] rounded-lg"
+                    className="p-1.5 bg-slate-200 dark:bg-white/[0.08] border border-transparent dark:border-white/[0.08] text-slate-700 dark:text-zinc-300 rounded-lg"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
                   </button>
@@ -2834,25 +2834,25 @@ export default function App() {
                           {displayName.charAt(0)}
                         </div>
                       )}
-                      <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#0f172a]" title="Online & Synced" />
+                      <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#0e121b]" title="Online & Synced" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-semibold text-slate-900 dark:text-zinc-100 truncate group-hover:text-rose-500 dark:group-hover:text-rose-400 transition-colors">
+                      <p className="text-xs font-semibold text-slate-900 dark:text-white truncate group-hover:text-rose-500 dark:group-hover:text-rose-400 transition-colors">
                         {displayName}
                       </p>
-                      <p className="text-[10px] text-slate-400 dark:text-zinc-500 truncate font-mono">
+                      <p className="text-[10px] text-slate-400 dark:text-zinc-400 truncate font-mono">
                         {userEmail}
                       </p>
                     </div>
                   </div>
-                  <MoreHorizontal className="w-4 h-4 text-slate-400 dark:text-zinc-500 group-hover:text-slate-700 dark:group-hover:text-zinc-300 shrink-0" />
+                  <MoreHorizontal className="w-4 h-4 text-slate-400 dark:text-zinc-400 group-hover:text-slate-700 dark:group-hover:text-white shrink-0" />
                 </button>
 
                 {/* Popover Menu above footer */}
                 {isSidebarUserMenuOpen && (
-                  <div className="absolute bottom-full left-0 mb-2 w-full bg-white dark:bg-[#121216] border border-slate-200 dark:border-white/[0.08] rounded-2xl shadow-2xl p-1.5 z-50 animate-in fade-in zoom-in-95 duration-100 text-xs">
+                  <div className="absolute bottom-full left-0 mb-2 w-full bg-white dark:bg-[#161c2b] border border-slate-200 dark:border-white/[0.12] rounded-2xl shadow-2xl p-1.5 z-50 animate-in fade-in zoom-in-95 duration-100 text-xs">
                     <div className="px-3 py-2 border-b border-slate-100 dark:border-white/[0.08]">
-                      <p className="font-semibold text-slate-900 dark:text-zinc-100 truncate">{displayName}</p>
+                      <p className="font-semibold text-slate-900 dark:text-white truncate">{displayName}</p>
                       <p className="text-[10px] text-slate-500 dark:text-zinc-400 truncate font-mono">{userEmail}</p>
                     </div>
 
@@ -2869,7 +2869,7 @@ export default function App() {
                         }
                         showToast('Cloud sync complete!');
                       }}
-                      className="w-full px-3 py-2 text-left rounded-lg text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-white/[0.06] flex items-center gap-2 transition-colors font-medium"
+                      className="w-full px-3 py-2 text-left rounded-lg text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-white/[0.08] flex items-center gap-2 transition-colors font-medium"
                     >
                       <RefreshCw className="w-3.5 h-3.5 text-emerald-500" />
                       <span>Sync Cloud Database</span>
@@ -2883,7 +2883,7 @@ export default function App() {
                         setIsSidebarUserMenuOpen(false);
                         handleSignOut();
                       }}
-                      className="w-full px-3 py-2 text-left rounded-lg text-slate-700 dark:text-zinc-300 hover:bg-red-500/10 hover:text-red-400 flex items-center gap-2 transition-colors font-medium"
+                      className="w-full px-3 py-2 text-left rounded-lg text-slate-700 dark:text-zinc-200 hover:bg-red-500/10 hover:text-red-400 flex items-center gap-2 transition-colors font-medium"
                     >
                       <LogOut className="w-3.5 h-3.5" />
                       <span>Sign out</span>
@@ -2913,7 +2913,7 @@ export default function App() {
           </div>
 
           {/* Sync & Legal Links */}
-          <div className="pt-2 flex flex-col gap-1 text-[11px] text-slate-400 dark:text-[#52525b]">
+          <div className="pt-2 flex flex-col gap-1 text-[11px] text-slate-400 dark:text-zinc-400">
             <div className="flex items-center justify-between text-[10px]">
               <span className="flex items-center gap-1" title="Continuously backed up day-wise in local storage & cloud">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -2921,11 +2921,11 @@ export default function App() {
               </span>
               <span className="font-mono text-[10px]">v2.4</span>
             </div>
-            <div className="flex items-center gap-2 text-[10px] text-slate-400 dark:text-slate-500">
+            <div className="flex items-center gap-2 text-[10px] text-slate-400 dark:text-zinc-400">
               <button
                 type="button"
                 onClick={() => { setLegalRoute('privacy'); window.history.pushState({}, '', '/privacy'); }}
-                className="hover:underline hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
+                className="hover:underline hover:text-slate-700 dark:hover:text-white transition-colors"
               >
                 Privacy Policy
               </button>
@@ -2933,7 +2933,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => { setLegalRoute('terms'); window.history.pushState({}, '', '/terms'); }}
-                className="hover:underline hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
+                className="hover:underline hover:text-slate-700 dark:hover:text-white transition-colors"
               >
                 Terms of Service
               </button>
@@ -2945,18 +2945,18 @@ export default function App() {
       {/* --- MAIN CONTENT CANVAS (FIXED HEADER, SCROLLABLE TASK VIEW) --- */}
       <main className="flex-1 h-screen flex flex-col min-w-0 overflow-hidden">
         {/* TOP HEADER: PERMANENTLY FIXED AT TOP, NEVER MOVES WITH SCROLL */}
-        <header className="h-16 border-b border-slate-200/80 dark:border-[#1e293b] bg-white/95 dark:bg-[#090d16]/95 backdrop-blur-md px-4 sm:px-8 flex items-center justify-between shrink-0 z-20">
+        <header className="h-16 border-b border-slate-200/80 dark:border-white/[0.08] bg-white/95 dark:bg-[#0e121b]/95 backdrop-blur-md px-4 sm:px-8 flex items-center justify-between shrink-0 z-20">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="p-2 -ml-2 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white lg:hidden rounded-lg"
+              className="p-2 -ml-2 text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-white lg:hidden rounded-lg"
             >
               <Menu className="w-5 h-5" />
             </button>
             <div>
               <h2 className="text-base sm:text-lg font-bold capitalize text-slate-900 dark:text-white flex items-center gap-2">
                 <span>{selectedTag ? `Tag: ${selectedTag}` : activeTab}</span>
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-[#151d30] border border-slate-200 dark:border-[#22304e] text-slate-500 dark:text-slate-400 font-mono">
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/[0.08] border border-slate-200 dark:border-white/[0.1] text-slate-600 dark:text-zinc-200 font-mono">
                   {filteredTasks.length}
                 </span>
               </h2>
@@ -2966,21 +2966,21 @@ export default function App() {
           <div className="flex items-center gap-2.5 sm:gap-3">
             {/* Quick Search */}
             <div className="relative hidden sm:block w-48 md:w-56">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-3 text-slate-400 dark:text-slate-500" />
+              <Search className="w-3.5 h-3.5 absolute left-3 top-3 text-slate-400 dark:text-zinc-400" />
               <input
                 type="text"
                 placeholder="Search tasks (⌘K)..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-100/90 dark:bg-[#121a2b] text-xs pl-8 pr-3 py-2 rounded-xl border border-slate-200/60 dark:border-[#22304e] focus:border-slate-400 dark:focus:border-slate-500 focus:bg-white dark:focus:bg-[#151f33] focus:outline-none text-slate-900 dark:text-white transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                className="w-full bg-slate-100/90 dark:bg-[#151b27] text-xs pl-8 pr-3 py-2 rounded-xl border border-slate-200/60 dark:border-white/[0.1] focus:border-slate-400 dark:focus:border-white/[0.3] focus:bg-white dark:focus:bg-[#1a2232] focus:outline-none text-slate-900 dark:text-white transition-all placeholder:text-slate-400 dark:placeholder:text-zinc-400"
               />
             </div>
 
             {/* View Mode Switcher: Board, List, Calendar */}
-            <div className="flex items-center bg-slate-100 dark:bg-[#121a2b] p-0.5 rounded-xl border border-slate-200/80 dark:border-[#22304e]">
+            <div className="flex items-center bg-slate-100 dark:bg-[#151b27] p-0.5 rounded-xl border border-slate-200/80 dark:border-white/[0.1]">
               <button
                 onClick={() => setViewMode('list')}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-[#1e293b] text-slate-900 dark:text-white shadow-2xs font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-white/[0.14] text-slate-900 dark:text-white shadow-2xs font-bold' : 'text-slate-500 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white'}`}
                 title="List View"
               >
                 <ListFilter className="w-3.5 h-3.5" />
@@ -2988,7 +2988,7 @@ export default function App() {
               </button>
               <button
                 onClick={() => setViewMode('board')}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${viewMode === 'board' ? 'bg-white dark:bg-[#1e293b] text-slate-900 dark:text-white shadow-2xs font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${viewMode === 'board' ? 'bg-white dark:bg-white/[0.14] text-slate-900 dark:text-white shadow-2xs font-bold' : 'text-slate-500 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white'}`}
                 title="Board View"
               >
                 <Kanban className="w-3.5 h-3.5" />
@@ -2996,7 +2996,7 @@ export default function App() {
               </button>
               <button
                 onClick={() => setViewMode('calendar')}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${viewMode === 'calendar' ? 'bg-white dark:bg-[#1e293b] text-slate-900 dark:text-white shadow-2xs font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${viewMode === 'calendar' ? 'bg-white dark:bg-white/[0.14] text-slate-900 dark:text-white shadow-2xs font-bold' : 'text-slate-500 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white'}`}
                 title="Day-wise Calendar Horizon"
               >
                 <CalendarDays className="w-3.5 h-3.5" />
@@ -3007,7 +3007,7 @@ export default function App() {
             {/* Display / Group By Switcher */}
             <button
               onClick={() => setBoardGrouping(boardGrouping === 'stage' ? 'priority' : 'stage')}
-              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl bg-slate-100 dark:bg-[#121214] border border-slate-200 dark:border-[#222225] text-slate-700 dark:text-[#ededed] hover:bg-slate-200/70 dark:hover:bg-[#1c1c20] transition-colors"
+              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl bg-slate-100 dark:bg-[#151b27] border border-slate-200 dark:border-white/[0.1] text-slate-700 dark:text-zinc-200 hover:bg-slate-200/70 dark:hover:bg-[#1d2637] transition-colors"
               title="Toggle Grouping"
             >
               <SlidersHorizontal className="w-3.5 h-3.5" />
@@ -3018,7 +3018,7 @@ export default function App() {
             <div className="relative" ref={headerMenuRef}>
               <button
                 onClick={() => setIsHeaderMenuOpen(!isHeaderMenuOpen)}
-                className={`p-2 rounded-xl border transition-all ${isHeaderMenuOpen ? 'bg-slate-200 dark:bg-[#1c1c20] border-slate-300 dark:border-[#222225] text-slate-900 dark:text-white' : 'bg-slate-100 dark:bg-[#121214] border-slate-200 dark:border-[#222225] text-slate-600 dark:text-[#a1a1aa] hover:text-slate-900 dark:hover:text-white'}`}
+                className={`p-2 rounded-xl border transition-all ${isHeaderMenuOpen ? 'bg-slate-200 dark:bg-[#1d2637] border-slate-300 dark:border-white/[0.2] text-slate-900 dark:text-white' : 'bg-slate-100 dark:bg-[#151b27] border-slate-200 dark:border-white/[0.1] text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white'}`}
                 title="More Options"
               >
                 <MoreHorizontal className="w-4 h-4" />
@@ -3026,74 +3026,74 @@ export default function App() {
 
               {/* Exact Screenshot 1 Dropdown Menu */}
               {isHeaderMenuOpen && (
-                <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-[#121214] border border-slate-200 dark:border-[#222225] rounded-2xl shadow-2xl py-1.5 z-50 animate-in fade-in zoom-in-95 duration-100 text-xs">
+                <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-[#161c2b] border border-slate-200 dark:border-white/[0.12] rounded-2xl shadow-2xl py-1.5 z-50 animate-in fade-in zoom-in-95 duration-100 text-xs">
                   {/* + Add section */}
                   <button
                     onClick={() => { setIsHeaderMenuOpen(false); setShowAddSectionModal(true); }}
-                    className="w-full px-3.5 py-2.5 text-left text-slate-800 dark:text-[#ededed] hover:bg-slate-100 dark:hover:bg-[#1c1c20] flex items-center gap-2.5 font-medium transition-colors"
+                    className="w-full px-3.5 py-2.5 text-left text-slate-800 dark:text-zinc-100 hover:bg-slate-100 dark:hover:bg-white/[0.08] flex items-center gap-2.5 font-medium transition-colors"
                   >
-                    <Plus className="w-4 h-4 text-slate-500 dark:text-[#a1a1aa]" />
+                    <Plus className="w-4 h-4 text-slate-500 dark:text-zinc-400" />
                     <span>Add section</span>
                   </button>
 
                   {/* Copy link to Inbox */}
                   <button
                     onClick={handleCopyLink}
-                    className="w-full px-3.5 py-2.5 text-left text-slate-800 dark:text-[#ededed] hover:bg-slate-100 dark:hover:bg-[#1c1c20] flex items-center justify-between font-medium transition-colors"
+                    className="w-full px-3.5 py-2.5 text-left text-slate-800 dark:text-zinc-100 hover:bg-slate-100 dark:hover:bg-white/[0.08] flex items-center justify-between font-medium transition-colors"
                   >
                     <div className="flex items-center gap-2.5">
-                      <Share2 className="w-4 h-4 text-slate-500 dark:text-[#a1a1aa]" />
+                      <Share2 className="w-4 h-4 text-slate-500 dark:text-zinc-400" />
                       <span>Copy link to {activeTab === 'inbox' ? 'Inbox' : activeTab}</span>
                     </div>
-                    <span className="text-[10px] font-mono text-slate-400 dark:text-[#52525b]">Ctrl C</span>
+                    <span className="text-[10px] font-mono text-slate-400 dark:text-zinc-400">Ctrl C</span>
                   </button>
 
                   {/* View activity */}
                   <button
                     onClick={() => { setIsHeaderMenuOpen(false); setShowActivityModal(true); }}
-                    className="w-full px-3.5 py-2.5 text-left text-slate-800 dark:text-[#ededed] hover:bg-slate-100 dark:hover:bg-[#1c1c20] flex items-center gap-2.5 font-medium transition-colors"
+                    className="w-full px-3.5 py-2.5 text-left text-slate-800 dark:text-zinc-100 hover:bg-slate-100 dark:hover:bg-white/[0.08] flex items-center gap-2.5 font-medium transition-colors"
                   >
-                    <BarChart3 className="w-4 h-4 text-slate-500 dark:text-[#a1a1aa]" />
+                    <BarChart3 className="w-4 h-4 text-slate-500 dark:text-zinc-400" />
                     <span>View activity</span>
                   </button>
 
-                  <div className="my-1.5 border-t border-slate-100 dark:border-[#222225]"></div>
+                  <div className="my-1.5 border-t border-slate-100 dark:border-white/[0.08]"></div>
 
                   {/* Import from CSV */}
                   <button
                     onClick={() => csvFileInputRef.current?.click()}
-                    className="w-full px-3.5 py-2.5 text-left text-slate-800 dark:text-[#ededed] hover:bg-slate-100 dark:hover:bg-[#1c1c20] flex items-center gap-2.5 font-medium transition-colors"
+                    className="w-full px-3.5 py-2.5 text-left text-slate-800 dark:text-zinc-100 hover:bg-slate-100 dark:hover:bg-white/[0.08] flex items-center gap-2.5 font-medium transition-colors"
                   >
-                    <Upload className="w-4 h-4 text-slate-500 dark:text-[#a1a1aa]" />
+                    <Upload className="w-4 h-4 text-slate-500 dark:text-zinc-400" />
                     <span>Import from CSV</span>
                   </button>
 
                   {/* Export to CSV */}
                   <button
                     onClick={handleExportCSV}
-                    className="w-full px-3.5 py-2.5 text-left text-slate-800 dark:text-[#ededed] hover:bg-slate-100 dark:hover:bg-[#1c1c20] flex items-center gap-2.5 font-medium transition-colors"
+                    className="w-full px-3.5 py-2.5 text-left text-slate-800 dark:text-zinc-100 hover:bg-slate-100 dark:hover:bg-white/[0.08] flex items-center gap-2.5 font-medium transition-colors"
                   >
-                    <Download className="w-4 h-4 text-slate-500 dark:text-[#a1a1aa]" />
+                    <Download className="w-4 h-4 text-slate-500 dark:text-zinc-400" />
                     <span>Export to CSV</span>
                   </button>
 
-                  <div className="my-1.5 border-t border-slate-100 dark:border-[#222225]"></div>
+                  <div className="my-1.5 border-t border-slate-100 dark:border-white/[0.08]"></div>
 
                   {/* Email tasks to Inbox */}
                   <button
                     onClick={() => { setIsHeaderMenuOpen(false); setShowEmailInboxModal(true); }}
-                    className="w-full px-3.5 py-2.5 text-left text-slate-800 dark:text-[#ededed] hover:bg-slate-100 dark:hover:bg-[#1c1c20] flex items-center gap-2.5 font-medium transition-colors"
+                    className="w-full px-3.5 py-2.5 text-left text-slate-800 dark:text-zinc-100 hover:bg-slate-100 dark:hover:bg-white/[0.08] flex items-center gap-2.5 font-medium transition-colors"
                   >
-                    <Mail className="w-4 h-4 text-slate-500 dark:text-[#a1a1aa]" />
+                    <Mail className="w-4 h-4 text-slate-500 dark:text-zinc-400" />
                     <span>Email tasks to Inbox</span>
                   </button>
 
                   {/* Inbox calendar feed */}
                   <button
                     onClick={() => { setIsHeaderMenuOpen(false); setShowCalendarFeedModal(true); }}
-                    className="w-full px-3.5 py-2.5 text-left text-slate-800 dark:text-[#ededed] hover:bg-slate-100 dark:hover:bg-[#1c1c20] flex items-center gap-2.5 font-medium transition-colors"
+                    className="w-full px-3.5 py-2.5 text-left text-slate-800 dark:text-zinc-100 hover:bg-slate-100 dark:hover:bg-white/[0.08] flex items-center gap-2.5 font-medium transition-colors"
                   >
-                    <CalendarDays className="w-4 h-4 text-slate-500 dark:text-[#a1a1aa]" />
+                    <CalendarDays className="w-4 h-4 text-slate-500 dark:text-zinc-400" />
                     <span>Inbox calendar feed</span>
                   </button>
                 </div>
@@ -3107,7 +3107,7 @@ export default function App() {
                   <button
                     type="button"
                     onClick={() => setIsTopbarUserMenuOpen(!isTopbarUserMenuOpen)}
-                    className="flex items-center gap-2 pl-1.5 pr-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200/80 dark:bg-white/[0.06] dark:hover:bg-white/[0.1] border border-slate-200/80 dark:border-white/[0.08] transition-all text-xs group cursor-pointer shadow-2xs"
+                    className="flex items-center gap-2 pl-1.5 pr-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200/80 dark:bg-white/[0.08] dark:hover:bg-white/[0.12] border border-slate-200/80 dark:border-white/[0.1] transition-all text-xs group cursor-pointer shadow-2xs"
                     title={`Account: ${displayName} (${userEmail})`}
                   >
                     <div className="relative shrink-0">
@@ -3122,17 +3122,17 @@ export default function App() {
                           {displayName.charAt(0)}
                         </div>
                       )}
-                      <span className="absolute -bottom-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-1 ring-white dark:ring-[#0f172a]" />
+                      <span className="absolute -bottom-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-1 ring-white dark:ring-[#0e121b]" />
                     </div>
                     <span className="hidden sm:inline font-semibold text-slate-800 dark:text-zinc-200 max-w-[120px] truncate">
                       {displayName}
                     </span>
-                    <ChevronDown className={`w-3.5 h-3.5 text-slate-400 dark:text-zinc-500 group-hover:text-slate-700 dark:group-hover:text-zinc-300 transition-transform ${isTopbarUserMenuOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`w-3.5 h-3.5 text-slate-400 dark:text-zinc-400 group-hover:text-slate-700 dark:group-hover:text-white transition-transform ${isTopbarUserMenuOpen ? 'rotate-180' : ''}`} />
                   </button>
 
                   {/* Top-Right Dropdown Menu */}
                   {isTopbarUserMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-[#121216] border border-slate-200 dark:border-white/[0.08] rounded-2xl shadow-2xl p-1.5 z-50 animate-in fade-in zoom-in-95 duration-100 text-xs">
+                    <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-[#161c2b] border border-slate-200 dark:border-white/[0.12] rounded-2xl shadow-2xl p-1.5 z-50 animate-in fade-in zoom-in-95 duration-100 text-xs">
                       {/* Identity Header */}
                       <div className="px-3 py-2.5 border-b border-slate-100 dark:border-white/[0.08]">
                         <div className="flex items-center gap-2 mb-1">
@@ -3141,7 +3141,7 @@ export default function App() {
                             Signed in
                           </span>
                         </div>
-                        <p className="font-semibold text-slate-900 dark:text-zinc-100 truncate" title={displayName}>
+                        <p className="font-semibold text-slate-900 dark:text-white truncate" title={displayName}>
                           {displayName}
                         </p>
                         <p className="text-[10px] text-slate-500 dark:text-zinc-400 truncate font-mono" title={userEmail}>
@@ -3163,7 +3163,7 @@ export default function App() {
                           }
                           showToast('Cloud sync complete!');
                         }}
-                        className="w-full px-3 py-2 text-left rounded-lg text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-white/[0.06] flex items-center justify-between transition-colors font-medium mt-1"
+                        className="w-full px-3 py-2 text-left rounded-lg text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-white/[0.08] flex items-center justify-between transition-colors font-medium mt-1"
                       >
                         <div className="flex items-center gap-2">
                           <RefreshCw className="w-3.5 h-3.5 text-emerald-500" />
@@ -3181,7 +3181,7 @@ export default function App() {
                           setIsTopbarUserMenuOpen(false);
                           handleSignOut();
                         }}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-600 dark:text-zinc-300 hover:bg-red-500/10 hover:text-red-400 transition-colors font-medium"
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-600 dark:text-zinc-200 hover:bg-red-500/10 hover:text-red-400 transition-colors font-medium"
                       >
                         <LogOut className="w-3.5 h-3.5" />
                         <span>Sign out</span>
@@ -3221,7 +3221,7 @@ export default function App() {
 
           {/* TODAY'S BIG 3 SPOTLIGHT STRIP */}
           {activeTab === 'today' && (
-            <div className="mb-6 bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-rose-500/10 dark:from-[#281a0b]/50 dark:via-[#1c1d22]/40 dark:to-[#1a1020]/50 border border-amber-300/80 dark:border-amber-800/40 rounded-2xl p-4 shadow-xs">
+            <div className="mb-6 bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-rose-500/10 dark:from-[#181309] dark:via-[#0e1320] dark:to-[#170f1a] border border-amber-300/80 dark:border-amber-500/35 rounded-2xl p-4 shadow-xs dark:shadow-md">
               {/* Header */}
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2.5">
@@ -3231,11 +3231,11 @@ export default function App() {
                   <div>
                     <h3 className="text-xs font-extrabold uppercase tracking-wider text-amber-900 dark:text-amber-300 flex items-center gap-2">
                       <span>Today's Big 3 Priority Spotlight</span>
-                      <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-amber-200/60 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300">
+                      <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-amber-200/60 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 dark:border dark:border-amber-500/30">
                         {big3Tasks.length}/3 Assigned
                       </span>
                     </h3>
-                    <p className="text-[11px] text-amber-700/80 dark:text-amber-400/80 hidden sm:block">
+                    <p className="text-[11px] text-amber-800 dark:text-zinc-200 hidden sm:block font-medium">
                       Your top 3 non-negotiables for today. Commit to finishing these before anything else.
                     </p>
                   </div>
@@ -3246,7 +3246,7 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => handleOpenBig3Picker(big3Tasks.length)}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-800 dark:text-amber-200 text-xs font-bold transition-colors"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-800 dark:text-amber-300 text-xs font-bold transition-colors"
                       title="Pick a task for your Big 3"
                     >
                       <Plus className="w-3.5 h-3.5" />
@@ -3266,7 +3266,7 @@ export default function App() {
                   <button
                     type="button"
                     onClick={() => setIsBig3Collapsed(!isBig3Collapsed)}
-                    className="p-1 rounded-lg text-amber-700 hover:bg-amber-100 dark:text-amber-400 dark:hover:bg-amber-900/30 transition-colors"
+                    className="p-1 rounded-lg text-amber-700 hover:bg-amber-100 dark:text-amber-400 dark:hover:bg-amber-500/20 transition-colors"
                     title={isBig3Collapsed ? "Expand Spotlight" : "Collapse Spotlight"}
                   >
                     <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isBig3Collapsed ? '-rotate-90' : ''}`} />
@@ -3285,11 +3285,11 @@ export default function App() {
                       return (
                         <div
                           key={task.id}
-                          className="bg-white dark:bg-[#1a1d26] border border-amber-200 dark:border-[#2d3448] p-3 rounded-xl shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between gap-2.5 relative group"
+                          className="bg-white dark:bg-[#161c2b] border border-amber-200 dark:border-white/[0.12] p-3 rounded-xl shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between gap-2.5 relative group"
                         >
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex items-center gap-1.5 min-w-0">
-                              <span className="w-5 h-5 rounded-md bg-amber-500 text-white font-extrabold text-[10px] flex items-center justify-center shrink-0 shadow-xs">
+                              <span className="w-5 h-5 rounded-md bg-amber-500 text-black font-extrabold text-[10px] flex items-center justify-center shrink-0 shadow-xs">
                                 {slotIdx + 1}
                               </span>
                               <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 truncate">
@@ -3301,7 +3301,7 @@ export default function App() {
                               <button
                                 type="button"
                                 onClick={() => handleUpdateTask(task.id, { is_focus: false })}
-                                className="p-1 rounded text-slate-300 dark:text-[#647087] hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+                                className="p-1 rounded text-slate-300 dark:text-zinc-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
                                 title="Remove from Today's Big 3"
                               >
                                 <X className="w-3.5 h-3.5" />
@@ -3315,31 +3315,31 @@ export default function App() {
                             onClick={() => handleOpenTaskModal(task)}
                             title="Click to edit task details"
                           >
-                            <p className="text-xs font-bold text-slate-900 dark:text-[#e3e6ee] line-clamp-2 hover:text-rose-600 dark:hover:text-rose-400 transition-colors">
+                            <p className="text-xs font-bold text-slate-900 dark:text-white line-clamp-2 hover:text-rose-600 dark:hover:text-rose-400 transition-colors">
                               {task.title}
                             </p>
                             {task.description && (
-                              <p className="text-[11px] text-slate-500 dark:text-[#919bb0] line-clamp-1 mt-0.5">
+                              <p className="text-[11px] text-slate-500 dark:text-zinc-300 line-clamp-1 mt-0.5 font-normal">
                                 {task.description}
                               </p>
                             )}
                           </div>
 
                           {/* Footer: Priority & ETA Badges & Actions */}
-                          <div className="flex items-center justify-between pt-1.5 border-t border-slate-100 dark:border-[#262c3d]">
+                          <div className="flex items-center justify-between pt-1.5 border-t border-slate-100 dark:border-white/[0.08]">
                             <div className="flex items-center gap-1.5 flex-wrap">
                               <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded ${task.priority === 'P1'
-                                  ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
+                                  ? 'bg-rose-500/10 text-rose-600 dark:text-rose-300 dark:bg-rose-950/60 border border-rose-500/20 dark:border-rose-500/40'
                                   : task.priority === 'P2'
-                                    ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
-                                    : 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20'
+                                    ? 'bg-amber-500/10 text-amber-600 dark:text-amber-300 dark:bg-amber-950/60 border border-amber-500/20 dark:border-amber-500/40'
+                                    : 'bg-slate-500/10 text-slate-600 dark:text-zinc-200 dark:bg-white/[0.08] border border-slate-500/20 dark:border-white/[0.12]'
                                 }`}>
                                 {task.priority}
                               </span>
 
                               {(task.duration || task.estimated_minutes) && (
-                                <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/40 flex items-center gap-1">
-                                  <Hourglass className="w-2.5 h-2.5 text-indigo-500" />
+                                <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-700/50 flex items-center gap-1">
+                                  <Hourglass className="w-2.5 h-2.5 text-indigo-500 dark:text-indigo-400" />
                                   <span>{formatDuration(task.duration || task.estimated_minutes)}</span>
                                 </span>
                               )}
@@ -3349,7 +3349,7 @@ export default function App() {
                               <button
                                 type="button"
                                 onClick={(e) => handlePostponeToTomorrow(task.id, e)}
-                                className="p-1 rounded text-slate-400 hover:text-amber-500 hover:bg-slate-100 dark:hover:bg-[#232836] transition-colors"
+                                className="p-1 rounded text-slate-400 dark:text-zinc-300 hover:text-amber-500 hover:bg-slate-100 dark:hover:bg-white/[0.08] transition-colors"
                                 title="Postpone to Tomorrow"
                               >
                                 <Clock className="w-3.5 h-3.5" />
@@ -3357,7 +3357,7 @@ export default function App() {
                               <button
                                 type="button"
                                 onClick={() => toggleTaskCompleted(task)}
-                                className="p-1 rounded text-slate-300 dark:text-[#647087] hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-colors"
+                                className="p-1 rounded text-slate-300 dark:text-zinc-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors"
                                 title="Mark complete"
                               >
                                 <Circle className="w-4 h-4" />
@@ -3373,16 +3373,16 @@ export default function App() {
                       <div
                         key={`empty-slot-${slotIdx}`}
                         onClick={() => handleOpenBig3Picker(slotIdx)}
-                        className="border-2 border-dashed border-amber-300/80 dark:border-amber-900/50 hover:border-amber-500 dark:hover:border-amber-500 bg-white/60 dark:bg-[#1a1d26]/40 hover:bg-amber-50/40 dark:hover:bg-amber-950/20 p-4 rounded-xl transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-1.5 min-h-[110px] group select-none"
+                        className="border-2 border-dashed border-amber-300/80 dark:border-amber-500/30 hover:border-amber-500 dark:hover:border-amber-400 bg-white/60 dark:bg-white/[0.03] hover:bg-amber-50/40 dark:hover:bg-amber-950/20 p-4 rounded-xl transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-1.5 min-h-[110px] group select-none"
                         title={`Click to pick a task for ${slotLabel}`}
                       >
-                        <span className="w-6 h-6 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 font-extrabold text-xs flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <span className="w-6 h-6 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 font-extrabold text-xs flex items-center justify-center group-hover:scale-110 transition-transform">
                           {slotIdx + 1}
                         </span>
-                        <p className="text-xs font-bold text-slate-700 dark:text-slate-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                        <p className="text-xs font-bold text-slate-700 dark:text-zinc-200 group-hover:text-amber-600 dark:group-hover:text-amber-300 transition-colors">
                           + Pick {slotLabel}
                         </p>
-                        <span className="text-[10px] text-slate-400 dark:text-[#919bb0]">
+                        <span className="text-[10px] text-slate-400 dark:text-zinc-400">
                           Click to assign non-negotiable task
                         </span>
                       </div>
@@ -3395,7 +3395,7 @@ export default function App() {
 
           {/* INLINE EXPANDABLE ADD COMPOSER */}
           {showAddComposer && (
-            <div className="mb-6 bg-white dark:bg-[#121214] border border-red-300 dark:border-[#222225] rounded-2xl p-4 shadow-lg shadow-red-500/5 transition-all">
+            <div className="mb-6 bg-white dark:bg-[#161c2b] border border-red-300 dark:border-white/[0.12] rounded-2xl p-4 shadow-lg shadow-red-500/5 transition-all">
               <form onSubmit={handleCreateTask}>
                 <input
                   type="text"
@@ -3404,26 +3404,26 @@ export default function App() {
                   placeholder="Task name, e.g. 'Deploy Redis caching cluster'..."
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
-                  className="w-full bg-transparent text-sm font-bold text-slate-900 dark:text-[#ededed] placeholder:text-slate-400 dark:placeholder:text-[#52525b] focus:outline-none mb-2"
+                  className="w-full bg-transparent text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none mb-2"
                 />
                 <textarea
                   rows={2}
                   placeholder="Description, markdown notes, or checklist specs..."
                   value={newDesc}
                   onChange={(e) => setNewDesc(e.target.value)}
-                  className="w-full bg-transparent text-xs text-slate-600 dark:text-[#a1a1aa] placeholder:text-slate-400 dark:placeholder:text-[#52525b] focus:outline-none resize-none mb-3"
+                  className="w-full bg-transparent text-xs text-slate-600 dark:text-zinc-300 placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none resize-none mb-3"
                 />
 
-                <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-100 dark:border-[#222225]">
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-100 dark:border-white/[0.08]">
                   <div className="flex flex-wrap items-center gap-2">
                     {/* Due Date */}
-                    <div className="flex items-center gap-1 bg-slate-100 dark:bg-[#09090b] border border-transparent dark:border-[#222225] px-2 py-1 rounded-lg text-xs">
+                    <div className="flex items-center gap-1 bg-slate-100 dark:bg-[#0f1420] border border-transparent dark:border-white/[0.1] px-2 py-1 rounded-lg text-xs">
                       <Calendar className="w-3.5 h-3.5 text-emerald-500" />
                       <input
                         type="date"
                         value={newDueDate}
                         onChange={(e) => setNewDueDate(e.target.value)}
-                        className="bg-transparent text-xs font-semibold focus:outline-none text-slate-800 dark:text-[#ededed]"
+                        className="bg-transparent text-xs font-semibold focus:outline-none text-slate-800 dark:text-white"
                       />
                     </div>
 
@@ -3431,7 +3431,7 @@ export default function App() {
                     <select
                       value={newPriority}
                       onChange={(e) => setNewPriority(e.target.value)}
-                      className="bg-slate-100 dark:bg-[#09090b] border border-transparent dark:border-[#222225] text-xs font-bold px-2.5 py-1 rounded-lg focus:outline-none text-slate-800 dark:text-[#ededed]"
+                      className="bg-slate-100 dark:bg-[#0f1420] border border-transparent dark:border-white/[0.1] text-xs font-bold px-2.5 py-1 rounded-lg focus:outline-none text-slate-800 dark:text-white"
                     >
                       <option value="P1">🚩 P1 (Urgent)</option>
                       <option value="P2">🔶 P2 (High)</option>
@@ -3443,7 +3443,7 @@ export default function App() {
                     <select
                       value={composerSection}
                       onChange={(e) => setComposerSection(e.target.value)}
-                      className="bg-slate-100 dark:bg-[#09090b] border border-transparent dark:border-[#222225] text-xs font-bold px-2.5 py-1 rounded-lg focus:outline-none text-slate-800 dark:text-[#ededed]"
+                      className="bg-slate-100 dark:bg-[#0f1420] border border-transparent dark:border-white/[0.1] text-xs font-bold px-2.5 py-1 rounded-lg focus:outline-none text-slate-800 dark:text-white"
                     >
                       {customSections.map(sec => (
                         <option key={sec.key} value={sec.key}>{sec.label}</option>
@@ -3454,7 +3454,7 @@ export default function App() {
                     <select
                       value={newTag}
                       onChange={(e) => setNewTag(e.target.value)}
-                      className="bg-slate-100 dark:bg-[#09090b] border border-transparent dark:border-[#222225] text-xs font-bold px-2 py-1 rounded-lg focus:outline-none text-slate-800 dark:text-[#ededed]"
+                      className="bg-slate-100 dark:bg-[#0f1420] border border-transparent dark:border-white/[0.1] text-xs font-bold px-2 py-1 rounded-lg focus:outline-none text-slate-800 dark:text-white"
                     >
                       <option value="#Engineering">#Engineering</option>
                       <option value="#Design">#Design</option>
@@ -3465,12 +3465,12 @@ export default function App() {
                     </select>
 
                     {/* ETA / Duration Selector */}
-                    <div className="flex items-center gap-1 bg-slate-100 dark:bg-[#09090b] border border-transparent dark:border-[#222225] px-2 py-1 rounded-lg text-xs" title="Estimated effort duration">
+                    <div className="flex items-center gap-1 bg-slate-100 dark:bg-[#0f1420] border border-transparent dark:border-white/[0.1] px-2 py-1 rounded-lg text-xs" title="Estimated effort duration">
                       <Hourglass className="w-3.5 h-3.5 text-indigo-500" />
                       <select
                         value={newDuration}
                         onChange={(e) => setNewDuration(e.target.value)}
-                        className="bg-transparent text-xs font-bold focus:outline-none text-slate-800 dark:text-[#ededed] cursor-pointer"
+                        className="bg-transparent text-xs font-bold focus:outline-none text-slate-800 dark:text-white cursor-pointer"
                       >
                         <option value="15m">ETA: 15m</option>
                         <option value="30m">ETA: 30m</option>
@@ -3488,7 +3488,7 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => setShowAddComposer(false)}
-                      className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-500 dark:text-[#a1a1aa] hover:bg-slate-100 dark:hover:bg-[#1c1c20] dark:hover:text-[#ededed]"
+                      className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-500 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-white/[0.08] dark:hover:text-white"
                     >
                       Cancel
                     </button>
@@ -3661,12 +3661,12 @@ export default function App() {
             <div className="space-y-3">
               {/* Board Header Toolbar: Stage controls & helper */}
               {boardGrouping === 'stage' && (
-                <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 px-1">
+                <div className="flex items-center justify-between text-xs text-slate-500 dark:text-zinc-300 px-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-slate-700 dark:text-slate-300">
+                    <span className="font-semibold text-slate-700 dark:text-white">
                       Swimlanes ({customSections.length})
                     </span>
-                    <span className="text-slate-400 dark:text-slate-500">
+                    <span className="text-slate-400 dark:text-zinc-400">
                       • Click any lane title or edit icon to rename
                     </span>
                   </div>
@@ -3683,7 +3683,7 @@ export default function App() {
                     <button
                       type="button"
                       onClick={handleResetSections}
-                      className="px-2 py-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#151d30] transition-colors"
+                      className="px-2 py-1 rounded-lg text-slate-400 hover:text-slate-600 dark:text-zinc-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.08] transition-colors"
                       title="Reset to default 4 workflow lanes"
                     >
                       Reset defaults
@@ -3729,9 +3729,9 @@ export default function App() {
                         if (taskId) handleDropTask(taskId, column.key);
                         handleCardDragEnd();
                       }}
-                      className={`w-80 shrink-0 flex flex-col bg-slate-100/70 dark:bg-[#0c101c]/70 backdrop-blur-md border rounded-2xl p-3.5 max-h-full transition-all duration-200 ${isOver
-                          ? 'ring-2 ring-rose-500/50 border-rose-400 dark:border-rose-500/60 bg-rose-50/40 dark:bg-[#1a1020]/50 shadow-lg'
-                          : 'border-slate-200/80 dark:border-[#1e2638] shadow-2xs'
+                      className={`w-80 shrink-0 flex flex-col bg-slate-100/70 dark:bg-[#0f1420] backdrop-blur-md border rounded-2xl p-3.5 max-h-full transition-all duration-200 ${isOver
+                          ? 'ring-2 ring-rose-500/50 border-rose-400 dark:border-rose-500/60 bg-rose-50/40 dark:bg-rose-950/20 shadow-lg'
+                          : 'border-slate-200/80 dark:border-white/[0.08] shadow-2xs'
                         }`}
                     >
                       {/* Column Header: Editable Lane Name & Actions */}
@@ -3753,7 +3753,7 @@ export default function App() {
                               }}
                               autoFocus
                               placeholder="Lane Name"
-                              className="w-full text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-lg bg-white dark:bg-[#121829] border border-rose-500/70 focus:outline-none focus:ring-2 focus:ring-rose-500/30 text-slate-900 dark:text-white"
+                              className="w-full text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-lg bg-white dark:bg-[#161c2b] border border-rose-500/70 focus:outline-none focus:ring-2 focus:ring-rose-500/30 text-slate-900 dark:text-white"
                             />
                             <button
                               type="submit"
@@ -3765,7 +3765,7 @@ export default function App() {
                             <button
                               type="button"
                               onClick={handleCancelRenameSection}
-                              className="p-1 rounded bg-slate-200/60 text-slate-500 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 shrink-0"
+                              className="p-1 rounded bg-slate-200/60 text-slate-500 hover:bg-slate-200 dark:bg-white/[0.08] dark:text-zinc-300 shrink-0"
                               title="Cancel"
                             >
                               <X className="w-3.5 h-3.5" />
@@ -3784,14 +3784,14 @@ export default function App() {
                               }}
                               title={boardGrouping === 'stage' ? 'Click to rename this swimlane' : column.label}
                             >
-                              <span className="font-extrabold text-xs uppercase tracking-wider text-slate-800 dark:text-[#ededed] group-hover/title:text-rose-600 dark:group-hover/title:text-rose-400 transition-colors truncate">
+                              <span className="font-extrabold text-xs uppercase tracking-wider text-slate-800 dark:text-white group-hover/title:text-rose-600 dark:group-hover/title:text-rose-400 transition-colors truncate">
                                 {column.label}
                               </span>
                               {boardGrouping === 'stage' && (
-                                <Edit3 className="w-3 h-3 text-slate-400 dark:text-slate-500 opacity-0 group-hover/title:opacity-100 transition-opacity shrink-0 hover:text-rose-500" />
+                                <Edit3 className="w-3 h-3 text-slate-400 dark:text-zinc-400 opacity-0 group-hover/title:opacity-100 transition-opacity shrink-0 hover:text-rose-500" />
                               )}
                             </div>
-                            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-white/90 dark:bg-[#151d30] border border-slate-200/80 dark:border-[#22304e] text-slate-600 dark:text-[#a1a1aa] shadow-2xs shrink-0">
+                            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-white/90 dark:bg-white/[0.1] border border-slate-200/80 dark:border-white/[0.1] text-slate-600 dark:text-zinc-200 shadow-2xs shrink-0 font-mono">
                               {columnTasks.length}
                             </span>
                           </div>
@@ -3802,7 +3802,7 @@ export default function App() {
                             <button
                               type="button"
                               onClick={() => handleDeleteSection(column.key)}
-                              className="p-1 text-slate-300 dark:text-[#52525b] hover:text-rose-600 dark:hover:text-rose-400 rounded-lg hover:bg-white dark:hover:bg-[#151d30] transition-colors"
+                              className="p-1 text-slate-300 dark:text-zinc-500 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg hover:bg-white dark:hover:bg-white/[0.08] transition-colors"
                               title={`Delete ${column.label} swimlane`}
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -3814,7 +3814,7 @@ export default function App() {
                               if (boardGrouping === 'stage') setComposerSection(column.key);
                               else setNewPriority(column.key);
                             }}
-                            className="p-1 hover:bg-white dark:hover:bg-[#151d30] rounded-lg text-slate-400 dark:text-[#a1a1aa] hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
+                            className="p-1 hover:bg-white dark:hover:bg-white/[0.08] rounded-lg text-slate-400 dark:text-zinc-400 hover:text-rose-600 dark:hover:text-white transition-colors"
                             title={`Add task to ${column.label}`}
                           >
                             <Plus className="w-4 h-4" />
@@ -3825,7 +3825,7 @@ export default function App() {
                       {/* Column Task Cards with 2D Drag-and-Drop & Framer Motion Layouts */}
                       <div className="flex-1 overflow-y-auto space-y-3 min-h-[120px]">
                         {isOver && draggingTaskId && (
-                          <div className="border-2 border-dashed border-rose-400 dark:border-rose-500/80 rounded-xl p-3.5 text-center text-xs font-bold text-rose-500 dark:text-rose-400 bg-rose-50/60 dark:bg-[#20121d]/40 animate-pulse flex items-center justify-center gap-2">
+                          <div className="border-2 border-dashed border-rose-400 dark:border-rose-500/80 rounded-xl p-3.5 text-center text-xs font-bold text-rose-500 dark:text-rose-400 bg-rose-50/60 dark:bg-rose-950/30 animate-pulse flex items-center justify-center gap-2">
                             <Sparkles className="w-3.5 h-3.5" />
                             <span>Drop task into {column.label}</span>
                           </div>
@@ -3853,7 +3853,7 @@ export default function App() {
                         </div>
 
                         {columnTasks.length === 0 && !isOver && (
-                          <div className="border border-dashed border-slate-200 dark:border-[#1e2638] rounded-xl p-6 text-center text-xs text-slate-400 dark:text-[#52525b] bg-slate-50/40 dark:bg-[#0e1424]/40">
+                          <div className="border border-dashed border-slate-200 dark:border-white/[0.08] rounded-xl p-6 text-center text-xs text-slate-400 dark:text-zinc-400 bg-slate-50/40 dark:bg-white/[0.02]">
                             <span>No tasks in {column.label}</span>
                           </div>
                         )}
@@ -3861,7 +3861,7 @@ export default function App() {
                         <button
                           type="button"
                           onClick={() => handleOpenTaskModal(null, column.key)}
-                          className="w-full mt-2 py-2 text-xs font-semibold text-slate-500 dark:text-[#a1a1aa] hover:text-rose-600 dark:hover:text-rose-400 flex items-center justify-center gap-1.5 hover:bg-slate-200/50 dark:hover:bg-[#151d30] rounded-xl transition-colors"
+                          className="w-full mt-2 py-2 text-xs font-semibold text-slate-500 dark:text-zinc-300 hover:text-rose-600 dark:hover:text-white flex items-center justify-center gap-1.5 hover:bg-slate-200/50 dark:hover:bg-white/[0.08] rounded-xl transition-colors border border-transparent dark:border-dashed dark:border-white/[0.08]"
                         >
                           <Plus className="w-3.5 h-3.5" />
                           <span>Add task</span>
@@ -3876,10 +3876,10 @@ export default function App() {
                   <button
                     type="button"
                     onClick={handleAddNewSection}
-                    className="w-72 shrink-0 h-40 flex flex-col items-center justify-center gap-2.5 border-2 border-dashed border-slate-300 dark:border-[#1e2638] rounded-2xl text-slate-400 dark:text-[#a1a1aa] hover:text-rose-600 dark:hover:text-rose-400 hover:border-rose-400 dark:hover:border-rose-500/60 hover:bg-rose-50/30 dark:hover:bg-[#1a1020]/30 transition-all font-bold text-xs uppercase tracking-wider group select-none"
+                    className="w-72 shrink-0 h-40 flex flex-col items-center justify-center gap-2.5 border-2 border-dashed border-slate-300 dark:border-white/[0.12] rounded-2xl text-slate-400 dark:text-zinc-300 hover:text-rose-600 dark:hover:text-rose-300 hover:border-rose-400 dark:hover:border-rose-500/60 hover:bg-rose-50/30 dark:hover:bg-rose-950/20 transition-all font-bold text-xs uppercase tracking-wider group select-none"
                     title="Add a new custom swimlane"
                   >
-                    <div className="p-2.5 rounded-full bg-slate-100 dark:bg-[#151d30] group-hover:bg-rose-500/10 group-hover:text-rose-600 transition-colors">
+                    <div className="p-2.5 rounded-full bg-slate-100 dark:bg-white/[0.08] group-hover:bg-rose-500/10 group-hover:text-rose-600 transition-colors">
                       <Plus className="w-5 h-5" />
                     </div>
                     <span>Add New Lane</span>
@@ -3923,21 +3923,21 @@ export default function App() {
                         }
                       }}
                       className={`flex flex-col rounded-2xl p-3 border transition-all ${day.isToday
-                          ? 'bg-red-50/30 dark:bg-[#121214] border-red-300 dark:border-red-900/60 ring-1 ring-red-500/20'
-                          : 'bg-white dark:bg-[#09090b] border-slate-200/80 dark:border-[#222225]'
+                          ? 'bg-red-50/30 dark:bg-[#161c2b] border-red-300 dark:border-red-500/40 ring-1 ring-red-500/20'
+                          : 'bg-white dark:bg-[#0f1420] border-slate-200/80 dark:border-white/[0.08]'
                         }`}
                     >
                       {/* Day Header */}
-                      <div className="pb-3 border-b border-slate-100 dark:border-[#222225] flex items-center justify-between">
+                      <div className="pb-3 border-b border-slate-100 dark:border-white/[0.08] flex items-center justify-between">
                         <div>
-                          <span className={`text-xs font-black block ${day.isToday ? 'text-red-600 dark:text-red-400' : 'text-slate-800 dark:text-[#ededed]'}`}>
+                          <span className={`text-xs font-black block ${day.isToday ? 'text-red-600 dark:text-red-400' : 'text-slate-800 dark:text-white'}`}>
                             {day.weekday}
                           </span>
-                          <span className="text-[10px] text-slate-400 dark:text-[#52525b] font-mono">
+                          <span className="text-[10px] text-slate-400 dark:text-zinc-400 font-mono">
                             {day.dayMonth}
                           </span>
                         </div>
-                        <span className="text-[11px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-[#1c1c20] text-slate-600 dark:text-[#a1a1aa]">
+                        <span className="text-[11px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-white/[0.1] text-slate-600 dark:text-zinc-200">
                           {dayTasks.length}
                         </span>
                       </div>
@@ -3953,10 +3953,10 @@ export default function App() {
                               setDraggingTaskId(task.id);
                             }}
                             onClick={() => handleOpenTaskModal(task)}
-                            className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#121214] border border-slate-200 dark:border-[#222225] hover:border-slate-300 dark:hover:border-[#38383e] shadow-2xs hover:shadow-xs transition-all cursor-pointer group"
+                            className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#161c2b] border border-slate-200 dark:border-white/[0.12] hover:border-slate-300 dark:hover:border-white/[0.22] shadow-2xs hover:shadow-xs transition-all cursor-pointer group"
                           >
-                            <p className="text-xs font-bold text-slate-800 dark:text-[#ededed] truncate">{task.title}</p>
-                            <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100 dark:border-[#222225]/60 text-[10px]">
+                            <p className="text-xs font-bold text-slate-800 dark:text-white truncate">{task.title}</p>
+                            <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100 dark:border-white/[0.08] text-[10px]">
                               <div className="flex items-center gap-1.5">
                                 <span className="font-semibold text-amber-600 dark:text-amber-400">{task.priority}</span>
                                 {(task.duration || task.estimated_minutes || task.focused_minutes) && (
@@ -3978,7 +3978,7 @@ export default function App() {
                         ))}
 
                         {dayTasks.length === 0 && (
-                          <div className="h-full flex items-center justify-center p-3 text-center text-[11px] text-slate-300 dark:text-[#52525b]">
+                          <div className="h-full flex items-center justify-center p-3 text-center text-[11px] text-slate-300 dark:text-zinc-500">
                             No tasks
                           </div>
                         )}
@@ -3990,7 +3990,7 @@ export default function App() {
                           setNewDueDate(day.dateStr);
                           handleOpenTaskModal(null, 'todo');
                         }}
-                        className="mt-2 w-full py-1.5 text-[11px] font-semibold text-slate-500 dark:text-[#a1a1aa] hover:text-red-600 dark:hover:text-red-400 rounded-lg hover:bg-slate-100 dark:hover:bg-[#1c1c20] flex items-center justify-center gap-1"
+                        className="mt-2 w-full py-1.5 text-[11px] font-semibold text-slate-500 dark:text-zinc-400 hover:text-red-600 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-white/[0.08] flex items-center justify-center gap-1"
                       >
                         <Plus className="w-3 h-3" />
                         <span>Add</span>
@@ -4020,26 +4020,26 @@ export default function App() {
       {/* --- ACTIVITY HISTORY MODAL (SCREENSHOT 1 ACTION) --- */}
       {showActivityModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in">
-          <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-[#222225] rounded-3xl max-w-lg w-full p-6 shadow-2xl">
+          <div className="bg-white dark:bg-[#121622] border border-slate-200 dark:border-white/[0.12] rounded-3xl max-w-lg w-full p-6 shadow-2xl">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2">
                 <BarChart3 className="w-5 h-5 text-blue-500" />
-                <h3 className="font-extrabold text-base text-slate-900 dark:text-[#ededed]">Activity History & Audit Log</h3>
+                <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Activity History & Audit Log</h3>
               </div>
-              <button onClick={() => setShowActivityModal(false)}><X className="w-4 h-4 text-slate-400 dark:text-[#a1a1aa]" /></button>
+              <button onClick={() => setShowActivityModal(false)}><X className="w-4 h-4 text-slate-400 dark:text-zinc-400 hover:text-slate-700 dark:hover:text-white transition-colors" /></button>
             </div>
-            <p className="text-xs text-slate-400 dark:text-[#a1a1aa] mb-4">
+            <p className="text-xs text-slate-400 dark:text-zinc-400 mb-4">
               Full timeline of completed tasks, Pomodoro sessions, and modifications.
             </p>
 
             <div className="space-y-2.5 max-h-80 overflow-y-auto pr-1">
               {activityLogs.map(log => (
-                <div key={log.id} className="p-3 rounded-xl bg-slate-50 dark:bg-[#09090b] border border-slate-100 dark:border-[#222225] flex items-center justify-between text-xs">
+                <div key={log.id} className="p-3 rounded-xl bg-slate-50 dark:bg-[#161c2b] border border-slate-100 dark:border-white/[0.08] flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2.5">
                     <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span className="font-medium text-slate-800 dark:text-[#ededed]">{log.text}</span>
+                    <span className="font-medium text-slate-800 dark:text-white">{log.text}</span>
                   </div>
-                  <span className="text-[10px] text-slate-400 font-mono shrink-0 ml-2">{log.time}</span>
+                  <span className="text-[10px] text-slate-400 dark:text-zinc-400 font-mono shrink-0 ml-2">{log.time}</span>
                 </div>
               ))}
             </div>
@@ -4057,14 +4057,14 @@ export default function App() {
       {/* --- ADD CUSTOM SECTION MODAL (SCREENSHOT 1 ACTION) --- */}
       {showAddSectionModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in">
-          <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-[#222225] rounded-3xl max-w-sm w-full p-6 shadow-2xl">
+          <div className="bg-white dark:bg-[#121622] border border-slate-200 dark:border-white/[0.12] rounded-3xl max-w-sm w-full p-6 shadow-2xl">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="font-extrabold text-base text-slate-900 dark:text-[#ededed]">Add New Section</h3>
-              <button onClick={() => setShowAddSectionModal(false)}><X className="w-4 h-4 text-slate-400" /></button>
+              <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Add New Section</h3>
+              <button onClick={() => setShowAddSectionModal(false)}><X className="w-4 h-4 text-slate-400 dark:text-zinc-400 hover:text-slate-700 dark:hover:text-white transition-colors" /></button>
             </div>
             <form onSubmit={handleAddSectionSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-[#a1a1aa] mb-1">Section Name</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1">Section Name</label>
                 <input
                   type="text"
                   autoFocus
@@ -4072,14 +4072,14 @@ export default function App() {
                   placeholder="e.g. Backlog, Client Review, t 4..."
                   value={newSectionTitle}
                   onChange={(e) => setNewSectionTitle(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-[#09090b] border border-slate-200 dark:border-[#222225] text-xs font-semibold text-slate-900 dark:text-[#ededed] focus:outline-none focus:ring-2 focus:ring-red-500/20"
+                  className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-[#161c2b] border border-slate-200 dark:border-white/[0.12] text-xs font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-500/20"
                 />
               </div>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setShowAddSectionModal(false)}
-                  className="flex-1 py-2 text-xs font-bold text-slate-500 dark:text-[#a1a1aa] rounded-xl hover:bg-slate-100 dark:hover:bg-[#1c1c20]"
+                  className="flex-1 py-2 text-xs font-bold text-slate-500 dark:text-zinc-400 rounded-xl hover:bg-slate-100 dark:hover:bg-white/[0.08] dark:hover:text-white transition-colors"
                 >
                   Cancel
                 </button>
@@ -4098,18 +4098,18 @@ export default function App() {
       {/* --- EMAIL TASKS TO INBOX MODAL (SCREENSHOT 1 ACTION) --- */}
       {showEmailInboxModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in">
-          <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-[#222225] rounded-3xl max-w-md w-full p-6 shadow-2xl">
+          <div className="bg-white dark:bg-[#121622] border border-slate-200 dark:border-white/[0.12] rounded-3xl max-w-md w-full p-6 shadow-2xl">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2">
                 <Mail className="w-5 h-5 text-red-500" />
-                <h3 className="font-extrabold text-base text-slate-900 dark:text-[#ededed]">Email tasks to Inbox</h3>
+                <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Email tasks to Inbox</h3>
               </div>
-              <button onClick={() => setShowEmailInboxModal(false)}><X className="w-4 h-4 text-slate-400" /></button>
+              <button onClick={() => setShowEmailInboxModal(false)}><X className="w-4 h-4 text-slate-400 dark:text-zinc-400 hover:text-slate-700 dark:hover:text-white transition-colors" /></button>
             </div>
-            <p className="text-xs text-slate-500 dark:text-[#a1a1aa] mb-4 leading-relaxed">
+            <p className="text-xs text-slate-500 dark:text-zinc-300 mb-4 leading-relaxed">
               Forward any email to your private Takt address. The subject will become the task title and the email body will be saved as description.
             </p>
-            <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#09090b] border border-slate-200 dark:border-[#222225] flex items-center justify-between gap-2 mb-4">
+            <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#161c2b] border border-slate-200 dark:border-white/[0.1] flex items-center justify-between gap-2 mb-4">
               <code className="text-xs font-mono text-red-600 dark:text-red-400 truncate">
                 inbox+{session?.user?.id?.slice(0, 8) || 'guest'}@takt.harisarshad.site
               </code>
@@ -4118,7 +4118,7 @@ export default function App() {
                   navigator.clipboard.writeText(`inbox+${session?.user?.id?.slice(0, 8) || 'guest'}@takt.harisarshad.site`);
                   showToast('Copied email address!');
                 }}
-                className="px-2 py-1 rounded bg-slate-200 dark:bg-[#1c1c20] text-[10px] font-bold text-slate-700 dark:text-[#ededed] shrink-0"
+                className="px-2 py-1 rounded bg-slate-200 dark:bg-white/[0.1] text-[10px] font-bold text-slate-700 dark:text-white shrink-0 hover:bg-slate-300 dark:hover:bg-white/[0.16] transition-colors"
               >
                 Copy
               </button>
@@ -4136,18 +4136,18 @@ export default function App() {
       {/* --- INBOX CALENDAR FEED MODAL (SCREENSHOT 1 ACTION) --- */}
       {showCalendarFeedModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in">
-          <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-[#222225] rounded-3xl max-w-md w-full p-6 shadow-2xl">
+          <div className="bg-white dark:bg-[#121622] border border-slate-200 dark:border-white/[0.12] rounded-3xl max-w-md w-full p-6 shadow-2xl">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2">
                 <CalendarDays className="w-5 h-5 text-emerald-500" />
-                <h3 className="font-extrabold text-base text-slate-900 dark:text-[#ededed]">Inbox Calendar Feed (iCal)</h3>
+                <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Inbox Calendar Feed (iCal)</h3>
               </div>
-              <button onClick={() => setShowCalendarFeedModal(false)}><X className="w-4 h-4 text-slate-400" /></button>
+              <button onClick={() => setShowCalendarFeedModal(false)}><X className="w-4 h-4 text-slate-400 dark:text-zinc-400 hover:text-slate-700 dark:hover:text-white transition-colors" /></button>
             </div>
-            <p className="text-xs text-slate-500 dark:text-[#a1a1aa] mb-4 leading-relaxed">
+            <p className="text-xs text-slate-500 dark:text-zinc-300 mb-4 leading-relaxed">
               Subscribe to your Takt tasks in Apple Calendar, Google Calendar, or Outlook to view scheduled tasks day-by-day.
             </p>
-            <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#09090b] border border-slate-200 dark:border-[#222225] flex items-center justify-between gap-2 mb-4">
+            <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#161c2b] border border-slate-200 dark:border-white/[0.1] flex items-center justify-between gap-2 mb-4">
               <code className="text-xs font-mono text-emerald-600 dark:text-emerald-400 truncate">
                 webcal://takt.harisarshad.site/feed.ics
               </code>
@@ -4156,7 +4156,7 @@ export default function App() {
                   navigator.clipboard.writeText('webcal://takt.harisarshad.site/feed.ics');
                   showToast('Copied feed URL!');
                 }}
-                className="px-2 py-1 rounded bg-slate-200 dark:bg-[#1c1c20] text-[10px] font-bold text-slate-700 dark:text-[#ededed] shrink-0"
+                className="px-2 py-1 rounded bg-slate-200 dark:bg-white/[0.1] text-[10px] font-bold text-slate-700 dark:text-white shrink-0 hover:bg-slate-300 dark:hover:bg-white/[0.16] transition-colors"
               >
                 Copy
               </button>
@@ -4174,17 +4174,17 @@ export default function App() {
       {/* --- KARMA & PRODUCTIVITY MODAL --- */}
       {showKarmaModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in">
-          <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-[#222225] rounded-3xl max-w-md w-full p-6 shadow-2xl">
+          <div className="bg-white dark:bg-[#121622] border border-slate-200 dark:border-white/[0.12] rounded-3xl max-w-md w-full p-6 shadow-2xl">
             <div className="flex justify-between items-center mb-5">
               <div className="flex items-center gap-2">
                 <Flame className="w-5 h-5 text-amber-500" />
-                <h3 className="font-extrabold text-base text-slate-900 dark:text-[#ededed]">Productivity & Karma</h3>
+                <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Productivity & Karma</h3>
               </div>
-              <button onClick={() => setShowKarmaModal(false)}><X className="w-4 h-4 text-slate-400 dark:text-[#a1a1aa]" /></button>
+              <button onClick={() => setShowKarmaModal(false)}><X className="w-4 h-4 text-slate-400 dark:text-zinc-400 hover:text-slate-700 dark:hover:text-white transition-colors" /></button>
             </div>
 
             <div className="space-y-4">
-              <div className="p-4 rounded-2xl bg-amber-50 dark:bg-[#281a0b]/50 border border-amber-200/80 dark:border-amber-900/40 flex items-center justify-between">
+              <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-500/30 flex items-center justify-between">
                 <div>
                   <span className="text-[10px] uppercase font-bold tracking-wider text-amber-700 dark:text-amber-400">Karma Score</span>
                   <p className="text-2xl font-black text-amber-800 dark:text-amber-300">1,840 pts</p>
@@ -4193,18 +4193,18 @@ export default function App() {
                 <Award className="w-10 h-10 text-amber-500" />
               </div>
 
-              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#09090b] border border-slate-200/80 dark:border-[#222225] space-y-2">
-                <div className="flex justify-between text-xs font-bold text-slate-800 dark:text-[#ededed]">
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#161c2b] border border-slate-200/80 dark:border-white/[0.1] space-y-2">
+                <div className="flex justify-between text-xs font-bold text-slate-800 dark:text-white">
                   <span>Daily Goal Progress</span>
                   <span>{completedCount} / 5 tasks</span>
                 </div>
-                <div className="w-full bg-slate-200 dark:bg-[#1c1c20] h-2 rounded-full overflow-hidden">
+                <div className="w-full bg-slate-200 dark:bg-white/[0.1] h-2 rounded-full overflow-hidden">
                   <div
                     className="bg-emerald-500 h-full rounded-full transition-all"
                     style={{ width: `${Math.min(100, (completedCount / 5) * 100)}%` }}
                   ></div>
                 </div>
-                <p className="text-[11px] text-slate-400 dark:text-[#a1a1aa]">Complete 5 tasks daily to maintain your 4-day streak.</p>
+                <p className="text-[11px] text-slate-400 dark:text-zinc-400">Complete 5 tasks daily to maintain your 4-day streak.</p>
               </div>
             </div>
 
@@ -4221,12 +4221,12 @@ export default function App() {
       {/* --- DAILY SHUTDOWN RITUAL MODAL --- */}
       {showShutdownModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in">
-          <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-[#222225] rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl text-center">
-            <div className="w-12 h-12 bg-emerald-100 dark:bg-[#0d261a] text-emerald-600 dark:text-emerald-400 border border-transparent dark:border-emerald-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <div className="bg-white dark:bg-[#121622] border border-slate-200 dark:border-white/[0.12] rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl text-center">
+            <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-transparent dark:border-emerald-500/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Shield className="w-6 h-6" />
             </div>
-            <h3 className="font-extrabold text-lg text-slate-900 dark:text-[#ededed] mb-1">Daily Shutdown Ritual</h3>
-            <p className="text-xs text-slate-500 dark:text-[#a1a1aa] mb-5 leading-relaxed">
+            <h3 className="font-extrabold text-lg text-slate-900 dark:text-white mb-1">Daily Shutdown Ritual</h3>
+            <p className="text-xs text-slate-500 dark:text-zinc-300 mb-5 leading-relaxed">
               You crushed <span className="font-bold text-emerald-600 dark:text-emerald-400">{completedCount} tasks</span> today. Disconnect cleanly, recharge, and return tomorrow with clarity.
             </p>
 
@@ -4266,30 +4266,30 @@ export default function App() {
           onClick={() => setShowBig3Picker(false)}
         >
           <div
-            className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-[#26262a] rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] flex flex-col"
+            className="bg-white dark:bg-[#121622] border border-slate-200 dark:border-white/[0.12] rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-[#222225]">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/[0.08]">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-500 flex items-center justify-center shadow-xs">
                   <Star className="w-5 h-5 fill-amber-500 text-amber-500" />
                 </div>
                 <div>
-                  <h3 className="text-base font-extrabold text-slate-900 dark:text-[#ededed] flex items-center gap-2">
+                  <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
                     <span>Spotlight Priority #{big3PickerSlot + 1}</span>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400">
                       Slot {big3PickerSlot + 1} of 3
                     </span>
                   </h3>
-                  <p className="text-xs text-slate-400 dark:text-[#a1a1aa]">
+                  <p className="text-xs text-slate-400 dark:text-zinc-400">
                     Pick any task from your workspace or quickly add a new high-leverage goal.
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setShowBig3Picker(false)}
-                className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#1c1c20] transition-colors"
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:text-zinc-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.08] transition-colors"
                 title="Close"
               >
                 <X className="w-5 h-5" />
@@ -4298,7 +4298,7 @@ export default function App() {
 
             {/* Quick Add Form */}
             <form onSubmit={handleCreateAndPinBig3} className="space-y-1.5">
-              <label className="text-[11px] font-extrabold text-slate-500 dark:text-[#a1a1aa] uppercase tracking-wider block">
+              <label className="text-[11px] font-extrabold text-slate-500 dark:text-zinc-300 uppercase tracking-wider block">
                 Quick-Create New Priority Task
               </label>
               <div className="flex gap-2">
@@ -4307,7 +4307,7 @@ export default function App() {
                   placeholder="e.g. Finalize Q4 pitch deck presentation..."
                   value={quickBig3Title}
                   onChange={(e) => setQuickBig3Title(e.target.value)}
-                  className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-[#2e2e33] bg-slate-50 dark:bg-[#18181b] text-slate-900 dark:text-white text-xs placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                  className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/[0.12] bg-slate-50 dark:bg-[#161c2b] text-slate-900 dark:text-white text-xs placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
                   autoFocus
                 />
                 <button
@@ -4322,22 +4322,22 @@ export default function App() {
             </form>
 
             <div className="relative flex items-center my-1">
-              <div className="flex-grow border-t border-slate-100 dark:border-[#222225]"></div>
-              <span className="flex-shrink mx-3 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-[#71717a]">
+              <div className="flex-grow border-t border-slate-100 dark:border-white/[0.08]"></div>
+              <span className="flex-shrink mx-3 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-400">
                 Or pick an existing task
               </span>
-              <div className="flex-grow border-t border-slate-100 dark:border-[#222225]"></div>
+              <div className="flex-grow border-t border-slate-100 dark:border-white/[0.08]"></div>
             </div>
 
             {/* Task Search Bar */}
             <div className="relative">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Search className="w-4 h-4 text-slate-400 dark:text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
                 placeholder="Search backlog tasks to assign..."
                 value={big3SearchQuery}
                 onChange={(e) => setBig3SearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3.5 py-2 rounded-xl border border-slate-200 dark:border-[#2e2e33] bg-slate-50/70 dark:bg-[#18181b] text-slate-900 dark:text-white text-xs placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                className="w-full pl-9 pr-3.5 py-2 rounded-xl border border-slate-200 dark:border-white/[0.12] bg-slate-50/70 dark:bg-[#161c2b] text-slate-900 dark:text-white text-xs placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
               />
             </div>
 
@@ -4358,7 +4358,7 @@ export default function App() {
                 if (availableTasks.length === 0) {
                   return (
                     <div className="py-10 text-center">
-                      <p className="text-xs font-semibold text-slate-400 dark:text-[#71717a]">
+                      <p className="text-xs font-semibold text-slate-400 dark:text-zinc-400">
                         {big3SearchQuery.trim()
                           ? `No tasks matching "${big3SearchQuery}"`
                           : 'All available tasks are either completed or already in Big 3!'}
@@ -4371,7 +4371,7 @@ export default function App() {
                   <div
                     key={t.id}
                     onClick={() => handleSelectTaskForBig3(t)}
-                    className="p-3 rounded-2xl border border-slate-200/80 dark:border-[#222225] bg-white dark:bg-[#18181b] hover:border-amber-400 dark:hover:border-amber-500/60 hover:bg-amber-50/30 dark:hover:bg-amber-950/20 transition-all cursor-pointer group flex items-center justify-between gap-3 shadow-2xs"
+                    className="p-3 rounded-2xl border border-slate-200/80 dark:border-white/[0.08] bg-white dark:bg-[#161c2b] hover:border-amber-400 dark:hover:border-amber-500/60 hover:bg-amber-50/30 dark:hover:bg-amber-950/20 transition-all cursor-pointer group flex items-center justify-between gap-3 shadow-2xs"
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 mb-1">
@@ -4383,11 +4383,11 @@ export default function App() {
                           }`}>
                           {t.priority || 'P2'}
                         </span>
-                        <span className="text-xs font-bold text-slate-800 dark:text-[#ededed] group-hover:text-amber-600 dark:group-hover:text-amber-400 truncate">
+                        <span className="text-xs font-bold text-slate-800 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 truncate">
                           {t.title}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 text-[10px] text-slate-400 dark:text-[#71717a]">
+                      <div className="flex items-center gap-2 text-[10px] text-slate-400 dark:text-zinc-400">
                         {(t.duration || t.estimated_minutes) && (
                           <span className="flex items-center gap-1 font-semibold text-indigo-500">
                             <Hourglass className="w-2.5 h-2.5" />
@@ -4403,7 +4403,7 @@ export default function App() {
 
                     <button
                       type="button"
-                      className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-[#222225] group-hover:bg-amber-500 group-hover:text-black text-slate-600 dark:text-[#a1a1aa] font-bold text-xs transition-colors shrink-0 flex items-center gap-1"
+                      className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-white/[0.1] group-hover:bg-amber-500 group-hover:text-black text-slate-600 dark:text-zinc-200 font-bold text-xs transition-colors shrink-0 flex items-center gap-1"
                     >
                       <Star className="w-3.5 h-3.5" />
                       <span>Select</span>
@@ -4414,10 +4414,10 @@ export default function App() {
             </div>
 
             {/* Modal Footer */}
-            <div className="pt-3 border-t border-slate-100 dark:border-[#222225] flex justify-end">
+            <div className="pt-3 border-t border-slate-100 dark:border-white/[0.08] flex justify-end">
               <button
                 onClick={() => setShowBig3Picker(false)}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-[#a1a1aa] hover:bg-slate-100 dark:hover:bg-[#1c1c20] transition-colors"
+                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-white/[0.08] dark:hover:text-white transition-colors"
               >
                 Cancel
               </button>

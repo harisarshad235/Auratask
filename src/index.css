@@ -3,18 +3,18 @@
 @variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-obsidian-canvas: #151821;
-  --color-obsidian-surface-low: #1c202c;
-  --color-obsidian-surface-med: #222736;
-  --color-obsidian-surface-high: #2a3042;
-  --color-obsidian-border: #31384c;
-  --color-obsidian-text: #e3e6ee;
-  --color-obsidian-secondary: #919bb0;
-  --color-obsidian-muted: #647087;
+  --color-obsidian-canvas: #090b11;
+  --color-obsidian-surface-low: #0e131f;
+  --color-obsidian-surface-med: #131926;
+  --color-obsidian-surface-high: #192132;
+  --color-obsidian-border: rgba(255, 255, 255, 0.1);
+  --color-obsidian-text: #ffffff;
+  --color-obsidian-secondary: #cbd5e1;
+  --color-obsidian-muted: #94a3b8;
 
-  --color-tint-p1-bg: #2a1215;
-  --color-tint-p2-bg: #281a0b;
-  --color-tint-success-bg: #0d261a;
+  --color-tint-p1-bg: rgba(244, 63, 94, 0.15);
+  --color-tint-p2-bg: rgba(245, 158, 11, 0.15);
+  --color-tint-success-bg: rgba(16, 185, 129, 0.15);
 }
 
 :root {
@@ -27,22 +27,22 @@
   --surface-high: #f1f5f9;
   --border-subtle: #e2e8f0;
   --text-main: #0f172a;
-  --text-sub: #64748b;
+  --text-sub: #475569;
   --text-placeholder: #94a3b8;
 }
 
 .dark {
   color-scheme: dark;
 
-  /* Ergonomic Eye-Comfort Slate / Zinc Theme (Zero Eye Strain, No Pitch Black) */
-  --canvas-bg: #151821;
-  --surface-low: #1c202c;
-  --surface-med: #222736;
-  --surface-high: #2a3042;
-  --border-subtle: #31384c;
-  --text-main: #e3e6ee;
-  --text-sub: #919bb0;
-  --text-placeholder: #647087;
+  /* High-Contrast Obsidian Pro Theme (Crystal-Clear Contrast, WCAG AAA Readability) */
+  --canvas-bg: #090b11;
+  --surface-low: #0e131f;
+  --surface-med: #131926;
+  --surface-high: #192132;
+  --border-subtle: rgba(255, 255, 255, 0.1);
+  --text-main: #ffffff;
+  --text-sub: #cbd5e1;
+  --text-placeholder: #94a3b8;
 }
 
 body {
@@ -72,11 +72,11 @@ body {
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: #31384c;
+  background: rgba(255, 255, 255, 0.18);
   border-radius: 9999px;
 }
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: rgba(255, 255, 255, 0.32);
 }
 
 /* Signature takt Ribbon Gradient Utilities */
