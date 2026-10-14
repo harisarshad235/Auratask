@@ -2,10 +2,12 @@ import React from 'react';
 import { ArrowLeft, FileText, CheckCircle2, Shield } from 'lucide-react';
 import { TaktLogo } from '../brand/TaktLogo';
 
-export default function TermsOfService({ onBack }) {
+export default function TermsOfService({ onBack, onNavigate, isLoggedIn = false }) {
   const handleHomeClick = (e) => {
-    if (onBack) {
+    if (e && e.preventDefault) {
       e.preventDefault();
+    }
+    if (onBack) {
       onBack();
     } else {
       window.location.href = '/';
@@ -23,9 +25,9 @@ export default function TermsOfService({ onBack }) {
             className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Back to Takt Homepage</span>
+            <span>{isLoggedIn ? 'Back to Workspace' : 'Back to Takt Homepage'}</span>
           </a>
-          <TaktLogo className="h-7 w-auto" href="/" />
+          <TaktLogo className="h-7 w-auto" href="/" onClick={handleHomeClick} />
         </div>
 
         <div className="flex items-center gap-3 mb-2">
@@ -121,8 +123,25 @@ export default function TermsOfService({ onBack }) {
         <div className="mt-12 pt-6 border-t border-slate-100 dark:border-[#222225] flex items-center justify-between text-xs text-slate-400">
           <div>&copy; {new Date().getFullYear()} Takt by Haris Arshad. All rights reserved.</div>
           <div className="flex gap-4">
-            <a href="/privacy" className="hover:text-slate-600 dark:hover:text-white transition-colors">Privacy Policy</a>
-            <a href="https://takt.harisarshad.site/" onClick={handleHomeClick} className="hover:text-slate-600 dark:hover:text-white transition-colors">Home</a>
+            <a
+              href="/privacy"
+              onClick={(e) => {
+                if (onNavigate) {
+                  e.preventDefault();
+                  onNavigate('privacy');
+                }
+              }}
+              className="hover:text-slate-600 dark:hover:text-white transition-colors"
+            >
+              Privacy Policy
+            </a>
+            <a
+              href="/"
+              onClick={handleHomeClick}
+              className="hover:text-slate-600 dark:hover:text-white transition-colors"
+            >
+              {isLoggedIn ? 'Workspace' : 'Home'}
+            </a>
           </div>
         </div>
       </div>

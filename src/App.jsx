@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import {
   CheckCircle2, Circle, Clock, Plus, Search, Calendar, Inbox, Check,
   Trash2, Edit3, MoreHorizontal, Sparkles, X, Moon, Sun,
@@ -437,30 +437,6 @@ export default function App() {
   const userEmail = session?.user?.email;
   const displayName = userFullName || (userEmail ? userEmail.split('@')[0] : 'Workspace User');
 
-  // Dedicated routing state for Privacy Policy and Terms of Service (/privacy and /terms)
-  const [legalView, setLegalView] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const path = (window.location.pathname || '').toLowerCase();
-      if (path === '/privacy' || path === '/privacy.html') return 'privacy';
-      if (path === '/terms' || path === '/terms.html') return 'terms';
-    }
-    return null;
-  });
-
-  useEffect(() => {
-    const handlePopState = () => {
-      const path = (window.location.pathname || '').toLowerCase();
-      if (path === '/privacy' || path === '/privacy.html') {
-        setLegalView('privacy');
-      } else if (path === '/terms' || path === '/terms.html') {
-        setLegalView('terms');
-      } else {
-        setLegalView(null);
-      }
-    };
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
 
   // Initialize workspace data based on guest mode or initial session
   const initialData = useMemo(() => {
@@ -865,13 +841,85 @@ export default function App() {
     return null;
   });
 
+  // Track session/guest state across event listeners and callbacks
+  const isLoggedInRef = useRef(Boolean(session || isGuest));
+  useEffect(() => {
+    isLoggedInRef.current = Boolean(session || isGuest);
+  }, [session, isGuest]);
+
+  // Robust check for active authentication or guest sandbox session
+  const isUserLoggedIn = useCallback(() => {
+    if (isLoggedInRef.current) return true;
+    if (Boolean(session || isGuest)) return true;
+    if (typeof window !== 'undefined') {
+      if ((localStorage.getItem('takt_guest_mode') || localStorage.getItem('auratask_guest_mode')) === 'true') {
+        return true;
+      }
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+            const val = localStorage.getItem(key);
+            if (val && JSON.parse(val)?.user) return true;
+          }
+        }
+      } catch { }
+    }
+    return false;
+  }, [session, isGuest]);
+
+  // Unified legal page navigation helper
+  const openLegalView = useCallback((route) => {
+    if (typeof window !== 'undefined' && window.history.pushState) {
+      window.history.pushState({ fromApp: true }, '', `/${route}`);
+    }
+    setLegalRoute(route);
+  }, []);
+
+  // Back-tracking from legal pages (handles in-page Back button & logo click)
+  const handleLegalBack = useCallback(() => {
+    setLegalRoute(null);
+    const loggedIn = isUserLoggedIn();
+    if (loggedIn) {
+      setShowLandingPage(false);
+    } else {
+      setShowLandingPage(true);
+    }
+
+    if (typeof window !== 'undefined') {
+      const isLegalPath = window.location.pathname.includes('/privacy') ||
+                          window.location.pathname.includes('/terms') ||
+                          window.location.hash.includes('privacy') ||
+                          window.location.hash.includes('terms');
+      if (isLegalPath) {
+        if (window.history.state && window.history.state.fromApp && window.history.length > 1) {
+          window.history.back();
+        } else {
+          window.history.pushState({}, '', '/');
+        }
+      }
+    }
+  }, [isUserLoggedIn]);
+
+  // Popstate / Hashchange listener for browser Back/Forward tracking
   useEffect(() => {
     const handleLocationChange = () => {
       const path = (window.location.pathname || '').toLowerCase();
       const hash = (window.location.hash || '').toLowerCase();
-      if (path.includes('privacy') || hash.includes('privacy')) setLegalRoute('privacy');
-      else if (path.includes('terms') || hash.includes('terms')) setLegalRoute('terms');
-      else setLegalRoute(null);
+      if (path.includes('privacy') || hash.includes('privacy')) {
+        setLegalRoute('privacy');
+      } else if (path.includes('terms') || hash.includes('terms')) {
+        setLegalRoute('terms');
+      } else {
+        setLegalRoute(null);
+        // Back-tracked from legal route back to root /
+        const loggedIn = isUserLoggedIn();
+        if (loggedIn) {
+          setShowLandingPage(false);
+        } else {
+          setShowLandingPage(true);
+        }
+      }
     };
     window.addEventListener('popstate', handleLocationChange);
     window.addEventListener('hashchange', handleLocationChange);
@@ -879,7 +927,11 @@ export default function App() {
       window.removeEventListener('popstate', handleLocationChange);
       window.removeEventListener('hashchange', handleLocationChange);
     };
-  }, []);
+  }, [isUserLoggedIn]);
+
+  // Canonical alias so any references to legalView/setLegalView seamlessly update legalRoute
+  const legalView = legalRoute;
+  const setLegalView = setLegalRoute;
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [modalTask, setModalTask] = useState(null);
   const [modalDefaultSection, setModalDefaultSection] = useState('todo');
@@ -2382,10 +2434,22 @@ export default function App() {
   // Must render instantly without any auth loading blocking
   // =========================================================================
   if (legalRoute === 'privacy') {
-    return <PrivacyPolicy onBack={() => { setLegalRoute(null); window.history.pushState({}, '', '/'); }} />;
+    return (
+      <PrivacyPolicy
+        onBack={handleLegalBack}
+        onNavigate={openLegalView}
+        isLoggedIn={isUserLoggedIn()}
+      />
+    );
   }
   if (legalRoute === 'terms') {
-    return <TermsOfService onBack={() => { setLegalRoute(null); window.history.pushState({}, '', '/'); }} />;
+    return (
+      <TermsOfService
+        onBack={handleLegalBack}
+        onNavigate={openLegalView}
+        isLoggedIn={isUserLoggedIn()}
+      />
+    );
   }
 
   // =========================================================================
@@ -2409,35 +2473,6 @@ export default function App() {
   }
 
   // =========================================================================
-  // DEDICATED LEGAL COMPLIANCE VIEWS (/privacy and /terms)
-  // =========================================================================
-  if (legalView === 'privacy') {
-    return (
-      <PrivacyPolicy
-        onBack={() => {
-          if (typeof window !== 'undefined' && window.history.pushState) {
-            window.history.pushState({}, '', '/');
-          }
-          setLegalView(null);
-        }}
-      />
-    );
-  }
-
-  if (legalView === 'terms') {
-    return (
-      <TermsOfService
-        onBack={() => {
-          if (typeof window !== 'undefined' && window.history.pushState) {
-            window.history.pushState({}, '', '/');
-          }
-          setLegalView(null);
-        }}
-      />
-    );
-  }
-
-  // =========================================================================
   // 1. FULLSCREEN LANDING PAGE & PRODUCT SHOWCASE (IF LOGGED OUT)
   // =========================================================================
   if (!isAuthResolving && ((!session && !isGuest) || showLandingPage)) {
@@ -2452,18 +2487,8 @@ export default function App() {
             setViewMode('board');
             setShowLandingPage(false);
           }}
-          onOpenPrivacy={() => {
-            if (typeof window !== 'undefined' && window.history.pushState) {
-              window.history.pushState({}, '', '/privacy');
-            }
-            setLegalView('privacy');
-          }}
-          onOpenTerms={() => {
-            if (typeof window !== 'undefined' && window.history.pushState) {
-              window.history.pushState({}, '', '/terms');
-            }
-            setLegalView('terms');
-          }}
+          onOpenPrivacy={() => openLegalView('privacy')}
+          onOpenTerms={() => openLegalView('terms')}
           hasActiveSession={Boolean(session || isGuest)}
           darkMode={darkMode}
           setDarkMode={setDarkMode}
@@ -3140,10 +3165,7 @@ export default function App() {
                       href="/privacy"
                       onClick={(e) => {
                         e.preventDefault();
-                        if (typeof window !== 'undefined' && window.history.pushState) {
-                          window.history.pushState({}, '', '/privacy');
-                        }
-                        setLegalView('privacy');
+                        openLegalView('privacy');
                         setIsSidebarUserMenuOpen(false);
                       }}
                       className="w-full px-3 py-2 text-left rounded-lg text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-white/[0.08] flex items-center gap-2 transition-colors font-medium text-xs"
@@ -3156,10 +3178,7 @@ export default function App() {
                       href="/terms"
                       onClick={(e) => {
                         e.preventDefault();
-                        if (typeof window !== 'undefined' && window.history.pushState) {
-                          window.history.pushState({}, '', '/terms');
-                        }
-                        setLegalView('terms');
+                        openLegalView('terms');
                         setIsSidebarUserMenuOpen(false);
                       }}
                       className="w-full px-3 py-2 text-left rounded-lg text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-white/[0.08] flex items-center gap-2 transition-colors font-medium text-xs"
@@ -3208,10 +3227,7 @@ export default function App() {
                     href="/privacy"
                     onClick={(e) => {
                       e.preventDefault();
-                      if (typeof window !== 'undefined' && window.history.pushState) {
-                        window.history.pushState({}, '', '/privacy');
-                      }
-                      setLegalView('privacy');
+                      openLegalView('privacy');
                     }}
                     className="hover:underline hover:text-slate-600 dark:hover:text-zinc-300"
                   >
@@ -3222,10 +3238,7 @@ export default function App() {
                     href="/terms"
                     onClick={(e) => {
                       e.preventDefault();
-                      if (typeof window !== 'undefined' && window.history.pushState) {
-                        window.history.pushState({}, '', '/terms');
-                      }
-                      setLegalView('terms');
+                      openLegalView('terms');
                     }}
                     className="hover:underline hover:text-slate-600 dark:hover:text-zinc-300"
                   >
@@ -3248,7 +3261,7 @@ export default function App() {
             <div className="flex items-center gap-2 text-[10px] text-slate-400 dark:text-zinc-400">
               <button
                 type="button"
-                onClick={() => { setLegalRoute('privacy'); window.history.pushState({}, '', '/privacy'); }}
+                onClick={() => openLegalView('privacy')}
                 className="hover:underline hover:text-slate-700 dark:hover:text-white transition-colors"
               >
                 Privacy Policy
@@ -3256,7 +3269,7 @@ export default function App() {
               <span>•</span>
               <button
                 type="button"
-                onClick={() => { setLegalRoute('terms'); window.history.pushState({}, '', '/terms'); }}
+                onClick={() => openLegalView('terms')}
                 className="hover:underline hover:text-slate-700 dark:hover:text-white transition-colors"
               >
                 Terms of Service
@@ -3502,10 +3515,7 @@ export default function App() {
                         href="/privacy"
                         onClick={(e) => {
                           e.preventDefault();
-                          if (typeof window !== 'undefined' && window.history.pushState) {
-                            window.history.pushState({}, '', '/privacy');
-                          }
-                          setLegalView('privacy');
+                          openLegalView('privacy');
                           setIsTopbarUserMenuOpen(false);
                         }}
                         className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-white/[0.08] transition-colors font-medium text-xs"
@@ -3518,10 +3528,7 @@ export default function App() {
                         href="/terms"
                         onClick={(e) => {
                           e.preventDefault();
-                          if (typeof window !== 'undefined' && window.history.pushState) {
-                            window.history.pushState({}, '', '/terms');
-                          }
-                          setLegalView('terms');
+                          openLegalView('terms');
                           setIsTopbarUserMenuOpen(false);
                         }}
                         className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-white/[0.08] transition-colors font-medium text-xs"
