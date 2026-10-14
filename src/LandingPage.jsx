@@ -1013,7 +1013,7 @@ export default function LandingPage({
               Application Purpose &amp; Google Data Transparency
             </h2>
             <p className="text-sm sm:text-base text-neutral-600 dark:text-zinc-400 leading-relaxed">
-              Takt is an open, privacy-first workspace engineered by <strong>Haris Arshad</strong>. We believe in complete transparency regarding what our application does, why we request sign-in, and how your data is protected.
+              Takt (registered in Google Cloud Console as <strong>Auratask</strong> / <strong>Takt Workspace</strong>) is an open, privacy-first workspace engineered by <strong>Haris Arshad</strong>. We believe in complete transparency regarding what our application does, why we request sign-in, and how your data is protected.
             </p>
           </div>
 

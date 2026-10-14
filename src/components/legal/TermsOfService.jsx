@@ -40,16 +40,16 @@ export default function TermsOfService({ onBack, onNavigate, isLoggedIn = false 
         </div>
 
         <div className="flex flex-wrap gap-2 text-[11px] font-semibold text-slate-500 dark:text-[#a1a1aa] mb-8">
-          <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-[#1c1c20] border border-slate-200 dark:border-[#28282e]">Application: Takt</span>
+          <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-[#1c1c20] border border-slate-200 dark:border-[#28282e]">Application: Takt (Auratask)</span>
           <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-[#1c1c20] border border-slate-200 dark:border-[#28282e]">Homepage: https://takt.harisarshad.site/</span>
           <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-[#1c1c20] border border-slate-200 dark:border-[#28282e]">Terms URL: https://takt.harisarshad.site/terms</span>
           <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-[#1c1c20] border border-slate-200 dark:border-[#28282e]">Developer: Haris Arshad</span>
-          <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-[#1c1c20] border border-slate-200 dark:border-[#28282e]">Effective: October 13, 2026</span>
+          <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-[#1c1c20] border border-slate-200 dark:border-[#28282e]">Effective: October 14, 2026</span>
         </div>
 
         <div className="prose prose-slate dark:prose-invert max-w-none text-sm space-y-6 text-slate-600 dark:text-[#a1a1aa] leading-relaxed">
           <p>
-            Please read these Terms of Service (&ldquo;Terms&rdquo;) carefully before using the <strong className="text-slate-900 dark:text-white">Takt</strong> web application hosted at{' '}
+            Please read these Terms of Service (&ldquo;Terms&rdquo;) carefully before using the <strong className="text-slate-900 dark:text-white">Takt</strong> web application (registered in Google Cloud as <strong className="text-slate-900 dark:text-white">Auratask</strong> / <strong className="text-slate-900 dark:text-white">Takt Workspace</strong>) hosted at{' '}
             <a href="https://takt.harisarshad.site/" className="text-rose-600 dark:text-rose-400 underline font-medium">https://takt.harisarshad.site/</a> (&ldquo;Service&rdquo;), developed, owned, and operated by independent software engineer <strong className="text-slate-900 dark:text-white">Haris Arshad</strong> (&ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;our&rdquo;).
           </p>
           <p>
