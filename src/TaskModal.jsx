@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   X, Check, ChevronUp, ChevronDown, MoreHorizontal, Inbox, Calendar,
   Flag, Tag, Clock, Paperclip, Send, Trash2, CheckCircle2, Circle,
@@ -239,8 +239,6 @@ export default function TaskModal({
     };
   }, [isOpen, task?.id, currentUserId]);
 
-  if (!isOpen) return null;
-
   // Previous & Next Task navigation
   const currentIndex = allTasks.findIndex(t => t.id === task?.id);
   const hasPrev = currentIndex > 0;
@@ -408,6 +406,29 @@ export default function TaskModal({
     onSaveTask(taskPayload);
     onClose();
   };
+
+  const handleSubmitRef = useRef(handleSubmit);
+  handleSubmitRef.current = handleSubmit;
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  // Keyboard Shortcuts: ⌘/Ctrl+Enter to save, Escape to close
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleModalKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        e.preventDefault();
+        handleSubmitRef.current?.();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        onCloseRef.current?.();
+      }
+    };
+    window.addEventListener('keydown', handleModalKeyDown);
+    return () => window.removeEventListener('keydown', handleModalKeyDown);
+  }, [isOpen]);
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-150">

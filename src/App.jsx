@@ -1001,6 +1001,15 @@ export default function App() {
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
   const [modalTask, setModalTask] = useState(null);
   const [modalDefaultSection, setModalDefaultSection] = useState('todo');
+  const [hoveredTaskId, setHoveredTaskId] = useState(null);
+  const [selectedTaskId, setSelectedTaskId] = useState(null);
+  const hoveredTaskIdRef = useRef(null);
+  hoveredTaskIdRef.current = hoveredTaskId;
+  const selectedTaskIdRef = useRef(null);
+  selectedTaskIdRef.current = selectedTaskId;
+  const searchInputRef = useRef(null);
+  const awaitingPriorityRef = useRef(false);
+  const priorityTimeoutRef = useRef(null);
   const [collapsedSections, setCollapsedSections] = useState(() => {
     try {
       const saved = localStorage.getItem('takt_collapsed_sections');
@@ -1698,34 +1707,6 @@ export default function App() {
       document.title = 'Takt — Precision Task Command Center';
     };
   }, [isTimerRunning, timerSeconds, activeTimerTask]);
-
-  // Global Keyboard Navigation Shortcuts (? for cheat sheet, N for new task, Space for timer)
-  useEffect(() => {
-    const handleGlobalKeyDown = (e) => {
-      const target = e.target;
-      const isInput = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
-      if (isInput) return;
-
-      if (e.key === '?' || (e.shiftKey && e.key === '/')) {
-        e.preventDefault();
-        setIsShortcutsModalOpen(prev => !prev);
-      } else if ((e.key === 'n' || e.key === 'N') && !e.ctrlKey && !e.metaKey) {
-        if (!isTaskModalOpen && !isShortcutsModalOpen) {
-          e.preventDefault();
-          handleOpenTaskModal(null, 'todo');
-        }
-      } else if (e.key === ' ' || e.code === 'Space') {
-        if (activeTimerTask && !isTaskModalOpen && !isShortcutsModalOpen) {
-          e.preventDefault();
-          setIsTimerRunning(prev => !prev);
-          try { playTactileTick(); } catch {}
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleGlobalKeyDown);
-    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [isTaskModalOpen, isShortcutsModalOpen, activeTimerTask, handleOpenTaskModal]);
 
   // Celebration Effect & Audio Feedback
   const triggerCelebration = () => {
@@ -2557,6 +2538,240 @@ export default function App() {
     }
     return days;
   }, []);
+
+  // Target task resolver for single-key keyboard actions (T, D, P 1-4)
+  const getActiveOrHoveredTask = useCallback(() => {
+    const hId = hoveredTaskIdRef.current || selectedTaskIdRef.current;
+    if (hId) {
+      const found = tasks.find(t => t.id === hId);
+      if (found) return found;
+    }
+    if (activeTimerTask) return activeTimerTask;
+    const focusTask = tasks.find(t => t.is_focus && t.section !== 'completed');
+    if (focusTask) return focusTask;
+    if (filteredTasks.length > 0) return filteredTasks[0];
+    return tasks[0] || null;
+  }, [tasks, activeTimerTask, filteredTasks]);
+
+  // Global Keyboard Navigation Shortcuts (? cheat sheet, N new task, Space timer, 1-3 views, 4 report, M scratchpad, ⌘K search, T reschedule, D done, P 1-4 priority, Esc close)
+  useEffect(() => {
+    const handleGlobalKeyDown = (e) => {
+      // 1. ⌘/Ctrl + K (Focus global search) - triggers from anywhere
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+        return;
+      }
+
+      // 2. Escape - closes any open modal, drawer, or search blur
+      if (e.key === 'Escape') {
+        if (searchInputRef.current && document.activeElement === searchInputRef.current) {
+          searchInputRef.current.blur();
+          return;
+        }
+        if (isShortcutsModalOpen) { setIsShortcutsModalOpen(false); return; }
+        if (isTaskModalOpen) { setIsTaskModalOpen(false); return; }
+        if (showScratchpad) { setShowScratchpad(false); return; }
+        if (showActivityModal) { setShowActivityModal(false); return; }
+        if (showKarmaModal) { setShowKarmaModal(false); return; }
+        if (showShutdownModal) { setShowShutdownModal(false); return; }
+        if (showAddSectionModal) { setShowAddSectionModal(false); return; }
+        if (showBig3Picker) { setShowBig3Picker(false); return; }
+        if (showAddComposer) { setShowAddComposer(false); return; }
+        if (showEmailInboxModal) { setShowEmailInboxModal(false); return; }
+        if (showCalendarFeedModal) { setShowCalendarFeedModal(false); return; }
+        if (searchQuery) { setSearchQuery(''); return; }
+      }
+
+      // If user is currently typing in an input/textarea/editable field, ignore single-key shortcuts
+      const target = e.target;
+      const isInput = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
+      if (isInput) return;
+
+      const isAnyModalOpen = isTaskModalOpen || isShortcutsModalOpen || showScratchpad || showActivityModal || showKarmaModal || showShutdownModal || showAddSectionModal || showBig3Picker || showEmailInboxModal || showCalendarFeedModal;
+
+      // 3. Priority flag chord: if user pressed 'P' within last 2.5s and now presses 1-4
+      if (awaitingPriorityRef.current && ['1', '2', '3', '4'].includes(e.key)) {
+        e.preventDefault();
+        awaitingPriorityRef.current = false;
+        if (priorityTimeoutRef.current) clearTimeout(priorityTimeoutRef.current);
+        const pLevel = 'P' + e.key;
+        const taskTarget = getActiveOrHoveredTask();
+        if (taskTarget) {
+          handleUpdateTask(taskTarget.id, { priority: pLevel });
+          try { playTactileTick(); } catch {}
+          showToast(`Set "${taskTarget.title.slice(0, 24)}" priority to ${pLevel}`);
+        } else {
+          setNewPriority(pLevel);
+          showToast(`Default priority set to ${pLevel}`);
+        }
+        return;
+      }
+
+      // 4. ? / Shift+/ (Toggle Keyboard Shortcuts Modal)
+      if (e.key === '?' || (e.shiftKey && e.key === '/')) {
+        e.preventDefault();
+        setIsShortcutsModalOpen(prev => !prev);
+        return;
+      }
+
+      // 5. N (Quick capture new task modal)
+      if ((e.key === 'n' || e.key === 'N') && !e.ctrlKey && !e.metaKey) {
+        if (!isAnyModalOpen) {
+          e.preventDefault();
+          handleOpenTaskModal(null, 'todo');
+          return;
+        }
+      }
+
+      // 6. Space (Start / Pause active Pomodoro flow timer)
+      if (e.key === ' ' || e.code === 'Space') {
+        if (!isAnyModalOpen) {
+          e.preventDefault();
+          if (isTimerRunning) {
+            setIsTimerRunning(false);
+            try { playTactileTick(); } catch {}
+            showToast('Pomodoro flow timer paused');
+          } else {
+            if (activeTimerTask) {
+              setIsTimerRunning(true);
+              try { playTactileTick(); } catch {}
+              showToast(`Flow timer resumed: ${activeTimerTask.title.slice(0, 24)}`);
+            } else {
+              const taskTarget = getActiveOrHoveredTask();
+              if (taskTarget) {
+                setActiveTimerTask(taskTarget);
+                setTimerSeconds(25 * 60);
+                setIsTimerRunning(true);
+                try { playTactileTick(); } catch {}
+                showToast(`Flow timer started: ${taskTarget.title.slice(0, 24)}`);
+              } else {
+                showToast('Create a task first to start Flow session');
+              }
+            }
+          }
+          return;
+        }
+      }
+
+      // 7. Workspace Views & Cadence: 1 (Kanban), 2 (7-Day Horizon), 3 (List), 4 (Activity Report)
+      if (e.key === '1' && !e.ctrlKey && !e.metaKey) {
+        if (!isAnyModalOpen) {
+          e.preventDefault();
+          setViewMode('board');
+          try { playTactileTick(); } catch {}
+          showToast('Switched to Kanban Swimlanes view');
+          return;
+        }
+      }
+      if (e.key === '2' && !e.ctrlKey && !e.metaKey) {
+        if (!isAnyModalOpen) {
+          e.preventDefault();
+          setViewMode('calendar');
+          try { playTactileTick(); } catch {}
+          showToast('Switched to 7-Day Horizon calendar');
+          return;
+        }
+      }
+      if (e.key === '3' && !e.ctrlKey && !e.metaKey) {
+        if (!isAnyModalOpen) {
+          e.preventDefault();
+          setViewMode('list');
+          try { playTactileTick(); } catch {}
+          showToast('Switched to List / Table view');
+          return;
+        }
+      }
+      if (e.key === '4' && !e.ctrlKey && !e.metaKey) {
+        if (!isAnyModalOpen) {
+          e.preventDefault();
+          setShowActivityModal(prev => !prev);
+          try { playTactileTick(); } catch {}
+          return;
+        }
+      }
+
+      // 8. M (Toggle Meeting Scratchpad)
+      if ((e.key === 'm' || e.key === 'M') && !e.ctrlKey && !e.metaKey) {
+        if (!isAnyModalOpen || showScratchpad) {
+          e.preventDefault();
+          setShowScratchpad(prev => !prev);
+          try { playTactileTick(); } catch {}
+          return;
+        }
+      }
+
+      // 9. P (Enter Priority selection mode: press 1-4)
+      if ((e.key === 'p' || e.key === 'P') && !e.ctrlKey && !e.metaKey) {
+        if (!isAnyModalOpen) {
+          e.preventDefault();
+          awaitingPriorityRef.current = true;
+          if (priorityTimeoutRef.current) clearTimeout(priorityTimeoutRef.current);
+          priorityTimeoutRef.current = setTimeout(() => {
+            awaitingPriorityRef.current = false;
+          }, 2500);
+          showToast('Priority flag: Press 1 (P1), 2 (P2), 3 (P3), or 4 (P4)');
+          return;
+        }
+      }
+
+      // 10. T (Roll task to Tomorrow - 1-click reschedule)
+      if ((e.key === 't' || e.key === 'T') && !e.ctrlKey && !e.metaKey) {
+        if (!isAnyModalOpen) {
+          e.preventDefault();
+          const taskTarget = getActiveOrHoveredTask();
+          if (taskTarget) {
+            handlePostponeToTomorrow(taskTarget.id);
+            try { playTactileTick(); } catch {}
+          } else {
+            showToast('No task selected to reschedule');
+          }
+          return;
+        }
+      }
+
+      // 11. D (Mark selected task as Done / Completed)
+      if ((e.key === 'd' || e.key === 'D') && !e.ctrlKey && !e.metaKey) {
+        if (!isAnyModalOpen) {
+          e.preventDefault();
+          const taskTarget = getActiveOrHoveredTask();
+          if (taskTarget) {
+            toggleTaskCompleted(taskTarget);
+            try { playTactileTick(); } catch {}
+          } else {
+            showToast('No task selected to complete');
+          }
+          return;
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleGlobalKeyDown);
+      if (priorityTimeoutRef.current) clearTimeout(priorityTimeoutRef.current);
+    };
+  }, [
+    isTaskModalOpen,
+    isShortcutsModalOpen,
+    showScratchpad,
+    showActivityModal,
+    showKarmaModal,
+    showShutdownModal,
+    showAddSectionModal,
+    showBig3Picker,
+    showAddComposer,
+    showEmailInboxModal,
+    showCalendarFeedModal,
+    searchQuery,
+    isTimerRunning,
+    activeTimerTask,
+    handleOpenTaskModal,
+    getActiveOrHoveredTask,
+    handlePostponeToTomorrow,
+    toggleTaskCompleted,
+    handleUpdateTask
+  ]);
 
   // =========================================================================
   // LEGAL ROUTES (PRIVACY POLICY & TERMS OF SERVICE)
@@ -3439,6 +3654,7 @@ export default function App() {
             <div className="relative hidden sm:block w-48 md:w-56">
               <Search className="w-3.5 h-3.5 absolute left-3 top-3 text-slate-400 dark:text-zinc-400" />
               <input
+                ref={searchInputRef}
                 type="text"
                 placeholder="Search tasks (⌘K)..."
                 value={searchQuery}
@@ -3784,6 +4000,9 @@ export default function App() {
                       return (
                         <div
                           key={task.id}
+                          onMouseEnter={() => setHoveredTaskId(task.id)}
+                          onMouseLeave={() => setHoveredTaskId(prev => prev === task.id ? null : prev)}
+                          onClick={() => setSelectedTaskId(task.id)}
                           className="bg-white dark:bg-[#161c2b] border border-amber-200 dark:border-white/[0.12] p-3 rounded-xl shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between gap-2.5 relative group"
                         >
                           <div className="flex items-start justify-between gap-2">
@@ -4101,20 +4320,26 @@ export default function App() {
                             className="space-y-1.5 pl-1 pt-1"
                           >
                             {secTasks.map(task => (
-                              <ListTaskCard
+                              <div
                                 key={task.id}
-                                task={task}
-                                todayDateStr={todayDateStr}
-                                toggleTaskCompleted={toggleTaskCompleted}
-                                handleOpenTaskModal={handleOpenTaskModal}
-                                handlePostponeToTomorrow={handlePostponeToTomorrow}
-                                handleDeleteTask={handleDeleteTask}
-                                handleUpdateTask={handleUpdateTask}
-                                setActiveTimerTask={setActiveTimerTask}
-                                setTimerSeconds={setTimerSeconds}
-                                setIsTimerRunning={setIsTimerRunning}
-                                onCardDragEnd={(t, info) => handleListTaskDragEnd(t, sec.key, info)}
-                              />
+                                onMouseEnter={() => setHoveredTaskId(task.id)}
+                                onMouseLeave={() => setHoveredTaskId(prev => prev === task.id ? null : prev)}
+                                onClick={() => setSelectedTaskId(task.id)}
+                              >
+                                <ListTaskCard
+                                  task={task}
+                                  todayDateStr={todayDateStr}
+                                  toggleTaskCompleted={toggleTaskCompleted}
+                                  handleOpenTaskModal={handleOpenTaskModal}
+                                  handlePostponeToTomorrow={handlePostponeToTomorrow}
+                                  handleDeleteTask={handleDeleteTask}
+                                  handleUpdateTask={handleUpdateTask}
+                                  setActiveTimerTask={setActiveTimerTask}
+                                  setTimerSeconds={setTimerSeconds}
+                                  setIsTimerRunning={setIsTimerRunning}
+                                  onCardDragEnd={(t, info) => handleListTaskDragEnd(t, sec.key, info)}
+                                />
+                              </div>
                             ))}
                           </Reorder.Group>
 
@@ -4332,22 +4557,28 @@ export default function App() {
 
                         <div className="space-y-3 min-h-[40px]">
                           {columnTasks.map(task => (
-                            <BoardTaskCard
+                            <div
                               key={task.id}
-                              task={task}
-                              todayDateStr={todayDateStr}
-                              toggleTaskCompleted={toggleTaskCompleted}
-                              handleOpenTaskModal={handleOpenTaskModal}
-                              handlePostponeToTomorrow={handlePostponeToTomorrow}
-                              handleUpdateTask={handleUpdateTask}
-                              moveTaskSection={moveTaskSection}
-                              isDragging={draggingTaskId === task.id}
-                              dragOverPosition={dragOverTaskId === task.id ? dragInsertPosition : null}
-                              onCardDragStart={handleCardDragStart}
-                              onCardDragEnd={handleCardDragEnd}
-                              onCardDragOver={(e, t) => handleCardDragOver(e, t, column.key)}
-                              onCardDrop={(e, t) => handleCardDrop(e, t, column.key)}
-                            />
+                              onMouseEnter={() => setHoveredTaskId(task.id)}
+                              onMouseLeave={() => setHoveredTaskId(prev => prev === task.id ? null : prev)}
+                              onClick={() => setSelectedTaskId(task.id)}
+                            >
+                              <BoardTaskCard
+                                task={task}
+                                todayDateStr={todayDateStr}
+                                toggleTaskCompleted={toggleTaskCompleted}
+                                handleOpenTaskModal={handleOpenTaskModal}
+                                handlePostponeToTomorrow={handlePostponeToTomorrow}
+                                handleUpdateTask={handleUpdateTask}
+                                moveTaskSection={moveTaskSection}
+                                isDragging={draggingTaskId === task.id}
+                                dragOverPosition={dragOverTaskId === task.id ? dragInsertPosition : null}
+                                onCardDragStart={handleCardDragStart}
+                                onCardDragEnd={handleCardDragEnd}
+                                onCardDragOver={(e, t) => handleCardDragOver(e, t, column.key)}
+                                onCardDrop={(e, t) => handleCardDrop(e, t, column.key)}
+                              />
+                            </div>
                           ))}
                         </div>
 
@@ -4447,11 +4678,13 @@ export default function App() {
                           <div
                             key={task.id}
                             draggable={true}
+                            onMouseEnter={() => setHoveredTaskId(task.id)}
+                            onMouseLeave={() => setHoveredTaskId(prev => prev === task.id ? null : prev)}
                             onDragStart={(e) => {
                               e.dataTransfer.setData('text/plain', task.id);
                               setDraggingTaskId(task.id);
                             }}
-                            onClick={() => handleOpenTaskModal(task)}
+                            onClick={() => { setSelectedTaskId(task.id); handleOpenTaskModal(task); }}
                             className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#161c2b] border border-slate-200 dark:border-white/[0.12] hover:border-slate-300 dark:hover:border-white/[0.22] shadow-2xs hover:shadow-xs transition-all cursor-pointer group"
                           >
                             <p className="text-xs font-bold text-slate-800 dark:text-white truncate">{task.title}</p>

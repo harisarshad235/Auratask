@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   CheckCircle2, Circle, Clock, Plus, Search, Calendar, Inbox, Check,
   Sparkles, ArrowRight, Star, Shield, Flame, Kanban, ListFilter,
-  Play, Award, ChevronRight, Zap, Target, Layers, FileText, CheckSquare,
+  Play, Pause, Award, ChevronRight, Zap, Target, Layers, FileText, CheckSquare,
   MessageSquare, ExternalLink, Moon, Sun, Laptop, Smartphone, Users, Download,
   Mail, CalendarDays, Lock, Edit3, Heading, List, Code, Quote, Divide, RefreshCw, Eye,
   FastForward, BarChart3, Upload, Square, CheckCircle, Activity, Command, Timer
