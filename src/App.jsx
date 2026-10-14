@@ -8,7 +8,7 @@ import {
   ChevronDown, Filter, Flag, Layers, Award, Target, Eye, EyeOff, User,
   Mail, Lock, Sparkle, RefreshCw, Menu, HelpCircle, CheckCircle, GripVertical,
   CalendarDays, Share2, FileText, Copy, HardDriveDownload, Archive, MessageSquare,
-  FolderKanban, Hourglass
+  FolderKanban, Hourglass, Keyboard
 } from 'lucide-react';
 import { formatDuration, parseDurationMinutes, extractDurationHint } from './utils/formatDuration';
 import { Reorder, AnimatePresence, motion } from 'framer-motion';
@@ -17,6 +17,8 @@ import { supabase } from './supabaseClient';
 import TaskModal from './TaskModal';
 import LandingPage from './LandingPage';
 import MeetingScratchpad from './MeetingScratchpad';
+import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
+import { playTaskDoneSound, playPomodoroChime, playTactileTick } from './utils/soundEffects';
 import TaktLogo, { Logo } from './components/brand/TaktLogo';
 import CollapsibleWidget from './components/CollapsibleWidget';
 import BoardTaskCard from './components/BoardTaskCard';
@@ -933,6 +935,7 @@ export default function App() {
   const legalView = legalRoute;
   const setLegalView = setLegalRoute;
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
   const [modalTask, setModalTask] = useState(null);
   const [modalDefaultSection, setModalDefaultSection] = useState('todo');
   const [collapsedSections, setCollapsedSections] = useState(() => {
@@ -1596,6 +1599,9 @@ export default function App() {
       interval = setInterval(() => setTimerSeconds(prev => prev - 1), 1000);
     } else if (timerSeconds === 0 && isTimerRunning) {
       setIsTimerRunning(false);
+      try {
+        playPomodoroChime();
+      } catch {}
       if (activeTimerTask) {
         handleUpdateTask(activeTimerTask.id, {
           focused_minutes: (activeTimerTask.focused_minutes || 0) + 25
@@ -1610,8 +1616,53 @@ export default function App() {
     return () => clearInterval(interval);
   }, [isTimerRunning, timerSeconds, activeTimerTask]);
 
-  // Celebration Effect
+  // Dynamic Browser Tab Title During Active Pomodoro Flow
+  useEffect(() => {
+    if (isTimerRunning && activeTimerTask) {
+      const mins = Math.floor(timerSeconds / 60);
+      const secs = (timerSeconds % 60).toString().padStart(2, '0');
+      document.title = `(${mins}:${secs}) 🍅 Focus | Takt`;
+    } else {
+      document.title = 'Takt — Precision Task Command Center';
+    }
+    return () => {
+      document.title = 'Takt — Precision Task Command Center';
+    };
+  }, [isTimerRunning, timerSeconds, activeTimerTask]);
+
+  // Global Keyboard Navigation Shortcuts (? for cheat sheet, N for new task, Space for timer)
+  useEffect(() => {
+    const handleGlobalKeyDown = (e) => {
+      const target = e.target;
+      const isInput = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
+      if (isInput) return;
+
+      if (e.key === '?' || (e.shiftKey && e.key === '/')) {
+        e.preventDefault();
+        setIsShortcutsModalOpen(prev => !prev);
+      } else if ((e.key === 'n' || e.key === 'N') && !e.ctrlKey && !e.metaKey) {
+        if (!isTaskModalOpen && !isShortcutsModalOpen) {
+          e.preventDefault();
+          handleOpenTaskModal(null, 'todo');
+        }
+      } else if (e.key === ' ' || e.code === 'Space') {
+        if (activeTimerTask && !isTaskModalOpen && !isShortcutsModalOpen) {
+          e.preventDefault();
+          setIsTimerRunning(prev => !prev);
+          try { playTactileTick(); } catch {}
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [isTaskModalOpen, isShortcutsModalOpen, activeTimerTask, handleOpenTaskModal]);
+
+  // Celebration Effect & Audio Feedback
   const triggerCelebration = () => {
+    try {
+      playTaskDoneSound();
+    } catch {}
     try {
       confetti({
         particleCount: 80,
@@ -2736,13 +2787,22 @@ export default function App() {
             </div>
           </div>
 
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            className="p-1.5 text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-white/[0.08] transition-colors"
-            title={darkMode ? "Switch to Eye-Comfort Light Mode (☀️)" : "Switch to Dark Mode (🌙)"}
-          >
-            {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setIsShortcutsModalOpen(true)}
+              className="p-1.5 text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-white/[0.08] transition-colors"
+              title="Keyboard Navigation Shortcuts (?)"
+            >
+              <Keyboard className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className="p-1.5 text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-white/[0.08] transition-colors"
+              title={darkMode ? "Switch to Eye-Comfort Light Mode (☀️)" : "Switch to Dark Mode (🌙)"}
+            >
+              {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
+            </button>
+          </div>
         </div>
 
         {/* Global Quick Add Action */}
@@ -4622,6 +4682,12 @@ export default function App() {
         sections={customSections}
         darkMode={darkMode}
         session={session}
+      />
+
+      {/* --- KEYBOARD NAVIGATION SHORTCUTS MODAL --- */}
+      <KeyboardShortcutsModal
+        isOpen={isShortcutsModalOpen}
+        onClose={() => setIsShortcutsModalOpen(false)}
       />
 
       {/* --- TODAY'S BIG 3 PRIORITY PICKER MODAL --- */}

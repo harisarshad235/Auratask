@@ -8,6 +8,7 @@ import {
   FastForward, BarChart3, Upload, Square, CheckCircle, Activity, Command, Timer
 } from 'lucide-react';
 import Logo from './components/brand/Logo';
+import { playTactileTick } from './utils/soundEffects';
 
 export default function LandingPage({
   onStartForFree,
@@ -21,6 +22,10 @@ export default function LandingPage({
   setDarkMode
 }) {
   const [activeTemplateTab, setActiveTemplateTab] = useState('All');
+  const [heroTab, setHeroTab] = useState('kanban'); // 'kanban' | 'calendar' | 'pomodoro'
+  const [heroDemoRescheduled, setHeroDemoRescheduled] = useState(false);
+  const [heroDemoTimerRunning, setHeroDemoTimerRunning] = useState(false);
+  const [heroDemoSeconds, setHeroDemoSeconds] = useState(1458); // 24:18
 
   const templates = [
     { title: 'Engineering Sprint & Backlog', category: 'Work', tasks: 12, icon: '💻' },
@@ -262,158 +267,269 @@ export default function LandingPage({
               {/* View Selector Rail */}
               <div className="px-4 py-2 bg-neutral-100/50 dark:bg-[#0e1017] border-b border-neutral-200/60 dark:border-white/[0.06] flex items-center justify-between text-xs">
                 <div className="flex items-center gap-1">
-                  <span className="px-2.5 py-1 rounded-md font-semibold bg-white dark:bg-white/10 text-neutral-900 dark:text-white shadow-2xs flex items-center gap-1.5">
+                  <button
+                    onClick={() => { playTactileTick(); setHeroTab('kanban'); }}
+                    className={`px-2.5 py-1 rounded-md font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+                      heroTab === 'kanban'
+                        ? 'bg-white dark:bg-white/10 text-neutral-900 dark:text-white shadow-2xs'
+                        : 'text-neutral-500 dark:text-zinc-400 hover:text-neutral-900 dark:hover:text-zinc-200'
+                    }`}
+                  >
                     <Kanban className="w-3.5 h-3.5 text-indigo-500" />
                     <span>Kanban Swimlanes</span>
-                  </span>
-                  <span className="px-2.5 py-1 rounded-md text-neutral-500 dark:text-zinc-400 hover:text-neutral-900 dark:hover:text-zinc-200 transition-colors flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => { playTactileTick(); setHeroTab('calendar'); }}
+                    className={`px-2.5 py-1 rounded-md font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+                      heroTab === 'calendar'
+                        ? 'bg-white dark:bg-white/10 text-neutral-900 dark:text-white shadow-2xs'
+                        : 'text-neutral-500 dark:text-zinc-400 hover:text-neutral-900 dark:hover:text-zinc-200'
+                    }`}
+                  >
+                    <Calendar className="w-3.5 h-3.5 text-rose-500" />
                     <span>7-Day Horizon</span>
-                  </span>
-                  <span className="px-2.5 py-1 rounded-md text-neutral-500 dark:text-zinc-400 hover:text-neutral-900 dark:hover:text-zinc-200 transition-colors hidden sm:flex items-center gap-1.5">
-                    <Timer className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => { playTactileTick(); setHeroTab('pomodoro'); }}
+                    className={`px-2.5 py-1 rounded-md font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+                      heroTab === 'pomodoro'
+                        ? 'bg-white dark:bg-white/10 text-neutral-900 dark:text-white shadow-2xs'
+                        : 'text-neutral-500 dark:text-zinc-400 hover:text-neutral-900 dark:hover:text-zinc-200'
+                    }`}
+                  >
+                    <Timer className="w-3.5 h-3.5 text-amber-500" />
                     <span>Pomodoro Cadence</span>
-                  </span>
+                  </button>
                 </div>
                 <div className="text-[11px] font-mono text-neutral-400 dark:text-zinc-500 hidden sm:block">
-                  Today: 4/5 Tasks Done (80%)
+                  {heroTab === 'kanban' && 'Today: 4/5 Tasks Done (80%)'}
+                  {heroTab === 'calendar' && 'Rolling Horizon: 6 Scheduled'}
+                  {heroTab === 'pomodoro' && 'Target: 4 Deep Work Blocks'}
                 </div>
               </div>
 
-              {/* Three-Column Tactile Kanban Preview */}
-              <div className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-3 gap-4 bg-neutral-50/50 dark:bg-[#090b11]">
-                {/* Stage 1: To Do */}
-                <div className="bg-white dark:bg-[#121520] border border-neutral-200 dark:border-white/[0.08] rounded-xl p-3.5 space-y-2.5 shadow-sm">
-                  <div className="flex items-center justify-between text-xs font-semibold text-neutral-700 dark:text-zinc-200 pb-1">
-                    <span className="flex items-center gap-1.5">
-                      <Layers className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
-                      <span>Backlog &amp; Up Next</span>
-                    </span>
-                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-white/10 text-neutral-500 dark:text-zinc-400">2</span>
-                  </div>
-
-                  {/* Card 1 */}
-                  <div className="p-3 bg-neutral-50/80 dark:bg-[#181c2b]/90 border border-neutral-200/80 dark:border-white/[0.08] rounded-lg hover:border-neutral-300 dark:hover:border-white/20 transition-colors">
-                    <div className="flex items-start gap-2 text-xs font-medium text-neutral-900 dark:text-zinc-200">
-                      <Circle className="w-3.5 h-3.5 text-neutral-400 dark:text-zinc-500 mt-0.5 shrink-0" />
-                      <span>Design fluid typography scale &amp; obsidian tokens</span>
-                    </div>
-                    <div className="flex items-center justify-between mt-2.5 pt-1.5 border-t border-neutral-200/50 dark:border-white/[0.05]">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-500/20">P1</span>
-                        <span className="text-[9px] text-neutral-400 dark:text-zinc-500 font-mono">#Design</span>
-                      </div>
-                      <span className="text-[10px] font-mono text-neutral-400 dark:text-zinc-500 flex items-center gap-1">
-                        <Clock className="w-3 h-3" /> 35m
+              {/* View 1: Three-Column Tactile Kanban Preview */}
+              {heroTab === 'kanban' && (
+                <div className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-3 gap-4 bg-neutral-50/50 dark:bg-[#090b11] transition-opacity">
+                  {/* Stage 1: To Do */}
+                  <div className="bg-white dark:bg-[#121520] border border-neutral-200 dark:border-white/[0.08] rounded-xl p-3.5 space-y-2.5 shadow-sm">
+                    <div className="flex items-center justify-between text-xs font-semibold text-neutral-700 dark:text-zinc-200 pb-1">
+                      <span className="flex items-center gap-1.5">
+                        <Layers className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
+                        <span>Backlog &amp; Up Next</span>
                       </span>
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-white/10 text-neutral-500 dark:text-zinc-400">2</span>
                     </div>
-                  </div>
 
-                  {/* Card 2 */}
-                  <div className="p-3 bg-neutral-50/80 dark:bg-[#181c2b]/90 border border-neutral-200/80 dark:border-white/[0.08] rounded-lg hover:border-neutral-300 dark:hover:border-white/20 transition-colors">
-                    <div className="flex items-start gap-2 text-xs font-medium text-neutral-900 dark:text-zinc-200">
-                      <Circle className="w-3.5 h-3.5 text-neutral-400 dark:text-zinc-500 mt-0.5 shrink-0" />
-                      <span>Audit edge API endpoints &amp; CORS access guards</span>
-                    </div>
-                    <div className="flex items-center justify-between mt-2.5 pt-1.5 border-t border-neutral-200/50 dark:border-white/[0.05]">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-200/60 dark:border-amber-500/20">P2</span>
-                        <span className="text-[9px] text-neutral-400 dark:text-zinc-500 font-mono">#Security</span>
+                    {/* Card 1 */}
+                    <div className="p-3 bg-neutral-50/80 dark:bg-[#181c2b]/90 border border-neutral-200/80 dark:border-white/[0.08] rounded-lg hover:border-neutral-300 dark:hover:border-white/20 transition-colors">
+                      <div className="flex items-start gap-2 text-xs font-medium text-neutral-900 dark:text-zinc-200">
+                        <Circle className="w-3.5 h-3.5 text-neutral-400 dark:text-zinc-500 mt-0.5 shrink-0" />
+                        <span>Design fluid typography scale &amp; obsidian tokens</span>
                       </div>
-                      <span className="text-[10px] font-mono text-neutral-400 dark:text-zinc-500 flex items-center gap-1">
-                        <Clock className="w-3 h-3" /> 20m
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Stage 2: In Progress (Spotlight Deep Work Card) */}
-                <div className="bg-white dark:bg-[#121520] border border-indigo-200/70 dark:border-indigo-500/30 rounded-xl p-3.5 space-y-2.5 shadow-sm">
-                  <div className="flex items-center justify-between text-xs font-semibold text-amber-600 dark:text-amber-400 pb-1">
-                    <span className="flex items-center gap-1.5">
-                      <Flame className="w-3.5 h-3.5 text-amber-500" />
-                      <span>Active Flow Session</span>
-                    </span>
-                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300">1</span>
-                  </div>
-
-                  {/* Featured Spotlight Active Card */}
-                  <div className="p-3.5 bg-gradient-to-b from-indigo-50/60 to-white dark:from-indigo-950/25 dark:to-[#181c2b] border border-indigo-300 dark:border-indigo-500/40 rounded-lg shadow-[0_4px_20px_-4px_rgba(99,102,241,0.2)]">
-                    <div className="flex items-start gap-2 text-xs font-medium text-neutral-900 dark:text-zinc-100">
-                      <div className="w-3.5 h-3.5 rounded-full border-2 border-indigo-500 flex items-center justify-center mt-0.5 shrink-0">
-                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></div>
-                      </div>
-                      <span>Elevate landing hero with high-contrast art direction</span>
-                    </div>
-
-                    {/* Integrated Flow Timer Progress */}
-                    <div className="mt-3 p-2 rounded-md bg-white/80 dark:bg-[#0c0d12]/80 border border-indigo-200/60 dark:border-indigo-500/20">
-                      <div className="flex items-center justify-between text-[11px] font-mono font-medium text-indigo-700 dark:text-indigo-300 mb-1.5">
-                        <span className="flex items-center gap-1">
-                          <Activity className="w-3 h-3 text-indigo-500 animate-pulse" />
-                          <span>24:18 remaining</span>
+                      <div className="flex items-center justify-between mt-2.5 pt-1.5 border-t border-neutral-200/50 dark:border-white/[0.05]">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-500/20">P1</span>
+                          <span className="text-[9px] text-neutral-400 dark:text-zinc-500 font-mono">#Design</span>
+                        </div>
+                        <span className="text-[10px] font-mono text-neutral-400 dark:text-zinc-500 flex items-center gap-1">
+                          <Clock className="w-3 h-3" /> 35m
                         </span>
-                        <span className="text-[10px] text-neutral-400 dark:text-zinc-500">Pomodoro 2/4</span>
-                      </div>
-                      <div className="w-full h-1.5 rounded-full bg-neutral-200 dark:bg-white/10 overflow-hidden">
-                        <div className="h-full bg-gradient-to-r from-indigo-500 to-rose-500 rounded-full w-[72%]"></div>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between mt-2.5">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400">P1</span>
-                        <span className="text-[9px] text-neutral-400 dark:text-zinc-500 font-mono">#Frontend</span>
+                    {/* Card 2 */}
+                    <div className="p-3 bg-neutral-50/80 dark:bg-[#181c2b]/90 border border-neutral-200/80 dark:border-white/[0.08] rounded-lg hover:border-neutral-300 dark:hover:border-white/20 transition-colors">
+                      <div className="flex items-start gap-2 text-xs font-medium text-neutral-900 dark:text-zinc-200">
+                        <Circle className="w-3.5 h-3.5 text-neutral-400 dark:text-zinc-500 mt-0.5 shrink-0" />
+                        <span>Audit edge API endpoints &amp; CORS access guards</span>
                       </div>
-                      <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                        <Zap className="w-3 h-3" /> Focus Locked
+                      <div className="flex items-center justify-between mt-2.5 pt-1.5 border-t border-neutral-200/50 dark:border-white/[0.05]">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-200/60 dark:border-amber-500/20">P2</span>
+                          <span className="text-[9px] text-neutral-400 dark:text-zinc-500 font-mono">#Security</span>
+                        </div>
+                        <span className="text-[10px] font-mono text-neutral-400 dark:text-zinc-500 flex items-center gap-1">
+                          <Clock className="w-3 h-3" /> 20m
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Stage 2: In Progress (Spotlight Deep Work Card) */}
+                  <div className="bg-white dark:bg-[#121520] border border-indigo-200/70 dark:border-indigo-500/30 rounded-xl p-3.5 space-y-2.5 shadow-sm">
+                    <div className="flex items-center justify-between text-xs font-semibold text-amber-600 dark:text-amber-400 pb-1">
+                      <span className="flex items-center gap-1.5">
+                        <Flame className="w-3.5 h-3.5 text-amber-500" />
+                        <span>Active Flow Session</span>
                       </span>
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300">1</span>
+                    </div>
+
+                    {/* Featured Spotlight Active Card */}
+                    <div className="p-3.5 bg-gradient-to-b from-indigo-50/60 to-white dark:from-indigo-950/25 dark:to-[#181c2b] border border-indigo-300 dark:border-indigo-500/40 rounded-lg shadow-[0_4px_20px_-4px_rgba(99,102,241,0.2)]">
+                      <div className="flex items-start gap-2 text-xs font-medium text-neutral-900 dark:text-zinc-100">
+                        <div className="w-3.5 h-3.5 rounded-full border-2 border-indigo-500 flex items-center justify-center mt-0.5 shrink-0">
+                          <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></div>
+                        </div>
+                        <span>Elevate landing hero with high-contrast art direction</span>
+                      </div>
+
+                      {/* Integrated Flow Timer Progress */}
+                      <div className="mt-3 p-2 rounded-md bg-white/80 dark:bg-[#0c0d12]/80 border border-indigo-200/60 dark:border-indigo-500/20">
+                        <div className="flex items-center justify-between text-[11px] font-mono font-medium text-indigo-700 dark:text-indigo-300 mb-1.5">
+                          <span className="flex items-center gap-1">
+                            <Activity className="w-3 h-3 text-indigo-500 animate-pulse" />
+                            <span>24:18 remaining</span>
+                          </span>
+                          <span className="text-[10px] text-neutral-400 dark:text-zinc-500">Pomodoro 2/4</span>
+                        </div>
+                        <div className="w-full h-1.5 rounded-full bg-neutral-200 dark:bg-white/10 overflow-hidden">
+                          <div className="h-full bg-gradient-to-r from-indigo-500 to-rose-500 rounded-full w-[72%]"></div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between mt-2.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400">P1</span>
+                          <span className="text-[9px] text-neutral-400 dark:text-zinc-500 font-mono">#Frontend</span>
+                        </div>
+                        <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                          <Zap className="w-3 h-3" /> Focus Locked
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Stage 3: Completed */}
+                  <div className="bg-white dark:bg-[#121520] border border-neutral-200 dark:border-white/[0.08] rounded-xl p-3.5 space-y-2.5 shadow-sm">
+                    <div className="flex items-center justify-between text-xs font-semibold text-emerald-600 dark:text-emerald-400 pb-1">
+                      <span className="flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                        <span>Completed &amp; Shipped</span>
+                      </span>
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">2</span>
+                    </div>
+
+                    {/* Card 1 */}
+                    <div className="p-3 bg-neutral-50/80 dark:bg-[#181c2b]/90 border border-neutral-200/80 dark:border-white/[0.08] rounded-lg opacity-80">
+                      <div className="flex items-start gap-2 text-xs font-medium line-through text-neutral-400 dark:text-zinc-500">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 fill-emerald-50 dark:fill-emerald-950/40 mt-0.5 shrink-0" />
+                        <span>Automated daily backup &amp; sync tombstones</span>
+                      </div>
+                      <div className="text-[9px] font-mono text-neutral-400 dark:text-zinc-500 mt-2 pl-5.5">
+                        Finished at 10:45 AM · Saved to cloud
+                      </div>
+                    </div>
+
+                    {/* Card 2 */}
+                    <div className="p-3 bg-neutral-50/80 dark:bg-[#181c2b]/90 border border-neutral-200/80 dark:border-white/[0.08] rounded-lg opacity-80">
+                      <div className="flex items-start gap-2 text-xs font-medium line-through text-neutral-400 dark:text-zinc-500">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 fill-emerald-50 dark:fill-emerald-950/40 mt-0.5 shrink-0" />
+                        <span>Deploy Edge CDN &amp; Cloudflare Pages</span>
+                      </div>
+                      <div className="text-[9px] font-mono text-neutral-400 dark:text-zinc-500 mt-2 pl-5.5">
+                        Finished at 09:12 AM · Zero latency
+                      </div>
+                    </div>
+
+                    {/* Daily Momentum Summary */}
+                    <div className="p-2.5 rounded-lg bg-emerald-50/80 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-800/30 text-[11px] text-emerald-700 dark:text-emerald-300 font-medium flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <Sparkles className="w-3 h-3 text-emerald-500" />
+                        <span>Daily Velocity: 100% Met</span>
+                      </span>
+                      <span className="font-mono font-bold">+520 XP</span>
                     </div>
                   </div>
                 </div>
+              )}
 
-                {/* Stage 3: Completed */}
-                <div className="bg-white dark:bg-[#121520] border border-neutral-200 dark:border-white/[0.08] rounded-xl p-3.5 space-y-2.5 shadow-sm">
-                  <div className="flex items-center justify-between text-xs font-semibold text-emerald-600 dark:text-emerald-400 pb-1">
-                    <span className="flex items-center gap-1.5">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                      <span>Completed &amp; Shipped</span>
-                    </span>
-                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">2</span>
+              {/* View 2: Interactive 7-Day Horizon Preview */}
+              {heroTab === 'calendar' && (
+                <div className="p-4 sm:p-6 bg-neutral-50/50 dark:bg-[#090b11] space-y-4">
+                  <div className="grid grid-cols-4 sm:grid-cols-7 gap-2 text-center">
+                    {['Today', 'Tomorrow', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
+                      <div
+                        key={day}
+                        className={`p-2.5 rounded-xl border text-xs font-semibold ${
+                          i === 0
+                            ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-500/30 text-rose-600 dark:text-rose-400'
+                            : i === 1
+                            ? 'bg-white dark:bg-[#141824] border-neutral-200 dark:border-white/10 text-neutral-800 dark:text-zinc-200'
+                            : 'border-transparent text-neutral-400 dark:text-zinc-500'
+                        }`}
+                      >
+                        <div>{day}</div>
+                        <div className="text-[10px] font-mono font-normal text-neutral-400 dark:text-zinc-500 mt-1">
+                          {i === 0 ? (heroDemoRescheduled ? '2 tasks' : '3 tasks') : i === 1 ? (heroDemoRescheduled ? '3 tasks' : '2 tasks') : '1'}
+                        </div>
+                      </div>
+                    ))}
                   </div>
 
-                  {/* Card 1 */}
-                  <div className="p-3 bg-neutral-50/80 dark:bg-[#181c2b]/90 border border-neutral-200/80 dark:border-white/[0.08] rounded-lg opacity-80">
-                    <div className="flex items-start gap-2 text-xs font-medium line-through text-neutral-400 dark:text-zinc-500">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 fill-emerald-50 dark:fill-emerald-950/40 mt-0.5 shrink-0" />
-                      <span>Automated daily backup &amp; sync tombstones</span>
+                  <div className="p-4 bg-white dark:bg-[#121520] border border-neutral-200 dark:border-white/[0.08] rounded-xl flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <Circle className="w-4 h-4 text-rose-500 shrink-0" />
+                      <div>
+                        <div className="text-xs font-semibold text-neutral-900 dark:text-zinc-100">
+                          Finalize Edge Architecture &amp; DB Failover Sync
+                        </div>
+                        <div className="text-[10px] font-mono text-neutral-400 dark:text-zinc-500">
+                          {heroDemoRescheduled ? 'Rescheduled to Tomorrow • P1 Urgent' : 'Due Today • 18:00 • P1 Urgent'}
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-[9px] font-mono text-neutral-400 dark:text-zinc-500 mt-2 pl-5.5">
-                      Finished at 10:45 AM · Saved to cloud
-                    </div>
-                  </div>
-
-                  {/* Card 2 */}
-                  <div className="p-3 bg-neutral-50/80 dark:bg-[#181c2b]/90 border border-neutral-200/80 dark:border-white/[0.08] rounded-lg opacity-80">
-                    <div className="flex items-start gap-2 text-xs font-medium line-through text-neutral-400 dark:text-zinc-500">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 fill-emerald-50 dark:fill-emerald-950/40 mt-0.5 shrink-0" />
-                      <span>Deploy Edge CDN &amp; Cloudflare Pages</span>
-                    </div>
-                    <div className="text-[9px] font-mono text-neutral-400 dark:text-zinc-500 mt-2 pl-5.5">
-                      Finished at 09:12 AM · Zero latency
-                    </div>
-                  </div>
-
-                  {/* Daily Momentum Summary */}
-                  <div className="p-2.5 rounded-lg bg-emerald-50/80 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-800/30 text-[11px] text-emerald-700 dark:text-emerald-300 font-medium flex items-center justify-between">
-                    <span className="flex items-center gap-1.5">
-                      <Sparkles className="w-3 h-3 text-emerald-500" />
-                      <span>Daily Velocity: 100% Met</span>
-                    </span>
-                    <span className="font-mono font-bold">+520 XP</span>
+                    <button
+                      onClick={() => {
+                        playTactileTick();
+                        setHeroDemoRescheduled(!heroDemoRescheduled);
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-neutral-100 hover:bg-neutral-200 dark:bg-white/10 dark:hover:bg-white/15 text-[11px] font-medium text-neutral-800 dark:text-zinc-200 flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+                    >
+                      <FastForward className="w-3.5 h-3.5 text-rose-500" />
+                      <span>{heroDemoRescheduled ? 'Undo Rollover' : '⏩ Tomorrow'}</span>
+                    </button>
                   </div>
                 </div>
-              </div>
+              )}
+
+              {/* View 3: Interactive Pomodoro Cadence Preview */}
+              {heroTab === 'pomodoro' && (
+                <div className="p-6 bg-neutral-50/50 dark:bg-[#090b11] flex flex-col sm:flex-row items-center justify-between gap-6">
+                  <div className="space-y-2 max-w-sm">
+                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[11px] font-mono font-semibold border border-amber-500/20">
+                      <Flame className="w-3 h-3" /> DEEP WORK FLOW
+                    </div>
+                    <h3 className="text-sm font-bold text-neutral-900 dark:text-zinc-100">
+                      Elevate landing hero with high-contrast art direction
+                    </h3>
+                    <p className="text-xs text-neutral-500 dark:text-zinc-400">
+                      Run 25m focus sprints directly attached to tasks with automatic interval logging and audio cadence.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-4 bg-white dark:bg-[#121520] border border-neutral-200 dark:border-white/[0.08] p-4 rounded-2xl shadow-sm">
+                    <div className="text-center font-mono">
+                      <div className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-zinc-100">
+                        {heroDemoTimerRunning ? '24:14' : '25:00'}
+                      </div>
+                      <div className="text-[10px] text-neutral-400 dark:text-zinc-500 uppercase tracking-wider">
+                        {heroDemoTimerRunning ? 'Flow Active' : 'Ready'}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        playTactileTick();
+                        setHeroDemoTimerRunning(!heroDemoTimerRunning);
+                      }}
+                      className="w-10 h-10 rounded-full bg-rose-500 hover:bg-rose-600 text-white flex items-center justify-center transition-transform active:scale-95 cursor-pointer shadow-md"
+                    >
+                      {heroDemoTimerRunning ? <Pause className="w-4 h-4 fill-white" /> : <Play className="w-4 h-4 fill-white translate-x-0.5" />}
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Bottom Tactile Keyboard & Flow Toolbar */}
               <div className="px-4 py-2.5 bg-neutral-100/70 dark:bg-[#10121a] border-t border-neutral-200/70 dark:border-white/[0.06] flex flex-wrap items-center justify-between gap-3 text-xs">
@@ -442,208 +558,6 @@ export default function LandingPage({
         </div>
       </section>
 
-      {/* =========================================================================
-          2.5 APPLICATION PURPOSE & GOOGLE DATA TRANSPARENCY (Google OAuth Compliance)
-         ========================================================================= */}
-      <section id="purpose" className="py-20 border-t border-neutral-200/60 dark:border-white/[0.08] bg-neutral-50/70 dark:bg-[#0c0c0e]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header */}
-          <div className="text-center max-w-3xl mx-auto mb-14">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rose-50 dark:bg-rose-950/30 border border-rose-200/80 dark:border-rose-900/40 text-rose-700 dark:text-rose-400 text-xs font-semibold mb-4">
-              <Shield className="w-3.5 h-3.5" />
-              <span>Verified App Purpose &amp; Privacy Transparency</span>
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-neutral-900 dark:text-zinc-100 mb-4">
-              Application Purpose &amp; Google Data Transparency
-            </h2>
-            <p className="text-sm sm:text-base text-neutral-600 dark:text-zinc-400 leading-relaxed">
-              Takt is an open, privacy-first workspace engineered by <strong>Haris Arshad</strong>. We believe in complete transparency regarding what our application does, why we request sign-in, and how your data is protected.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch mb-10">
-            {/* Column 1: Application Purpose & Core Functionality */}
-            <div className="p-7 rounded-3xl bg-white dark:bg-[#121216] border border-neutral-200/80 dark:border-white/[0.08] shadow-[0_0_50px_-12px_rgba(99,102,241,0.15)] flex flex-col justify-between">
-              <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-2xl bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold">
-                    <Target className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-lg text-neutral-900 dark:text-zinc-100">
-                      Application Purpose &amp; Functionality
-                    </h3>
-                    <p className="text-xs text-neutral-500 dark:text-zinc-500">
-                      What Takt is and what it allows you to accomplish
-                    </p>
-                  </div>
-                </div>
-
-                <p className="text-xs sm:text-sm text-neutral-600 dark:text-zinc-400 leading-relaxed mb-5">
-                  <strong>Takt</strong> (<a href="https://takt.harisarshad.site/" className="text-rose-600 dark:text-rose-400 font-semibold underline">https://takt.harisarshad.site/</a>) is a high-velocity productivity command center, Kanban cadence workspace, and personal focus manager. Its primary purpose is to help knowledge workers, developers, and teams plan and execute work with zero cognitive overload.
-                </p>
-
-                <div className="space-y-3">
-                  {[
-                    {
-                      title: 'Tactile Task & Sprint Management',
-                      desc: 'Capture, organize, and categorize tasks with keyboard shortcuts, priority flags (P1–P4), custom tags, checklists, and duration ETAs.'
-                    },
-                    {
-                      title: 'Kanban Flow & Swimlanes',
-                      desc: 'Track tasks through visual lifecycle stages (To Do, In Progress, Review, Completed) with smooth drag-and-drop.'
-                    },
-                    {
-                      title: '7-Day Calendar Horizon',
-                      desc: 'Plan daily commitments across a rolling week, with a 1-click "⏩ Tomorrow" button to roll unfinished tasks forward without guilt.'
-                    },
-                    {
-                      title: 'Meeting Scratchpad',
-                      desc: 'Capture tactical standup minutes, 1-on-1 notes, and meeting agendas with rich Markdown and instant action-item checkboxes.'
-                    },
-                    {
-                      title: 'Pomodoro Focus Cadence',
-                      desc: 'Run 25-minute deep work intervals directly on tasks to maintain unbroken flow state.'
-                    }
-                  ].map((f, i) => (
-                    <div key={i} className="flex items-start gap-2.5 text-xs text-neutral-600 dark:text-zinc-400">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                      <div>
-                        <strong className="text-neutral-900 dark:text-zinc-200 font-semibold">{f.title}: </strong>
-                        <span>{f.desc}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mt-6 pt-5 border-t border-neutral-100 dark:border-white/[0.08] flex items-center justify-between text-xs">
-                <span className="text-neutral-500 dark:text-zinc-500">Publicly accessible with zero login barriers</span>
-                <button
-                  onClick={onTryDemo}
-                  className="font-semibold text-rose-600 dark:text-rose-400 hover:underline flex items-center gap-1"
-                >
-                  <span>Explore Demo Sandbox</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Column 2: Why Takt Requests Google User Data & Compliance */}
-            <div className="p-7 rounded-3xl bg-white dark:bg-[#121216] border border-neutral-200/80 dark:border-white/[0.08] shadow-[0_0_50px_-12px_rgba(99,102,241,0.15)] flex flex-col justify-between">
-              <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
-                    <Lock className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-lg text-neutral-900 dark:text-zinc-100">
-                      Why Takt Requests Google User Data
-                    </h3>
-                    <p className="text-xs text-neutral-500 dark:text-zinc-500">
-                      Transparent explanation of Google OAuth 2.0 integration
-                    </p>
-                  </div>
-                </div>
-
-                <p className="text-xs sm:text-sm text-neutral-600 dark:text-zinc-400 leading-relaxed mb-4">
-                  When you sign in using Google Single Sign-On (SSO), we request access exclusively to basic profile identity. We request this data solely to authenticate your session and sync your personal tasks securely across devices.
-                </p>
-
-                {/* Scope Table */}
-                <div className="overflow-hidden rounded-xl border border-neutral-200 dark:border-white/[0.08] mb-4 text-xs">
-                  <table className="w-full text-left">
-                    <thead className="bg-neutral-50 dark:bg-white/[0.04] text-neutral-700 dark:text-zinc-200 font-semibold">
-                      <tr>
-                        <th className="p-2.5 border-b border-neutral-200 dark:border-white/[0.08]">Scope</th>
-                        <th className="p-2.5 border-b border-neutral-200 dark:border-white/[0.08]">Data Received</th>
-                        <th className="p-2.5 border-b border-neutral-200 dark:border-white/[0.08]">Purpose in Takt</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-neutral-100 dark:divide-white/[0.08] text-neutral-600 dark:text-zinc-400">
-                      <tr>
-                        <td className="p-2.5 font-mono text-[11px] text-neutral-800 dark:text-zinc-300">openid</td>
-                        <td className="p-2.5">User ID</td>
-                        <td className="p-2.5">Unique cryptographic key to isolate tasks via Postgres Row Level Security.</td>
-                      </tr>
-                      <tr>
-                        <td className="p-2.5 font-mono text-[11px] text-neutral-800 dark:text-zinc-300">userinfo.email</td>
-                        <td className="p-2.5">Email address</td>
-                        <td className="p-2.5">To verify your account, ensure multi-device sync, and send security alerts.</td>
-                      </tr>
-                      <tr>
-                        <td className="p-2.5 font-mono text-[11px] text-neutral-800 dark:text-zinc-300">userinfo.profile</td>
-                        <td className="p-2.5">Name &amp; Avatar</td>
-                        <td className="p-2.5">To display your identity in the workspace and attribute task comments.</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Non-access Callout */}
-                <div className="p-3.5 rounded-xl bg-neutral-50 dark:bg-white/[0.04] border border-neutral-200/80 dark:border-white/[0.08] text-xs space-y-1.5">
-                  <div className="font-semibold text-neutral-900 dark:text-zinc-200 flex items-center gap-1.5">
-                    <Shield className="w-3.5 h-3.5 text-rose-500" />
-                    <span>Zero Access to Sensitive Google Data</span>
-                  </div>
-                  <p className="text-[11px] text-neutral-500 dark:text-zinc-400">
-                    Takt does <strong>NOT</strong> request, access, read, or store your Gmail messages, Google Drive documents, Calendar entries, or contacts.
-                  </p>
-                </div>
-              </div>
-
-              {/* Limited Use Box */}
-              <div className="mt-4 pt-4 border-t border-neutral-100 dark:border-white/[0.08] text-[11px] text-neutral-500 dark:text-zinc-500 space-y-1">
-                <p>
-                  <strong>Google Limited Use Compliance:</strong> Takt’s use and transfer to any other app of information received from Google APIs adheres to the <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener noreferrer" className="text-rose-600 dark:text-rose-400 underline">Google API Services User Data Policy</a>, including the Limited Use requirements.
-                </p>
-                <p>We do not sell user data, serve advertisements, or train AI models on your information.</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Banner with Links to Privacy Policy & Data Deletion */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#121216] border border-neutral-200/80 dark:border-white/[0.08] shadow-[0_0_50px_-12px_rgba(99,102,241,0.15)] flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="space-y-1 text-center md:text-left">
-              <h4 className="text-base font-semibold text-neutral-900 dark:text-zinc-100 flex items-center justify-center md:justify-start gap-2">
-                <FileText className="w-4 h-4 text-rose-500" />
-                <span>Your Data Ownership &amp; Right to Deletion</span>
-              </h4>
-              <p className="text-xs text-neutral-500 dark:text-zinc-400 max-w-2xl">
-                You retain 100% ownership of your tasks and notes. You can delete items at any time in-app, revoke Google access via your Google Account settings, or request permanent cloud account deletion by emailing <a href="mailto:harisengr73@gmail.com" className="text-rose-600 dark:text-rose-400 font-semibold underline">harisengr73@gmail.com</a> (processed within 7 business days).
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3 shrink-0">
-              <a
-                href="/privacy"
-                onClick={(e) => {
-                  if (onOpenPrivacy) {
-                    e.preventDefault();
-                    onOpenPrivacy();
-                  }
-                }}
-                className="px-5 py-2.5 rounded-full bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200 font-medium text-xs shadow-sm transition-all flex items-center gap-1.5"
-              >
-                <Shield className="w-3.5 h-3.5" />
-                <span>Read Full Privacy Policy</span>
-              </a>
-              <a
-                href="/terms"
-                onClick={(e) => {
-                  if (onOpenTerms) {
-                    e.preventDefault();
-                    onOpenTerms();
-                  }
-                }}
-                className="px-4 py-2.5 rounded-full bg-neutral-100 dark:bg-white/[0.06] text-neutral-700 dark:text-zinc-300 hover:bg-neutral-200 dark:hover:bg-white/[0.1] font-medium text-xs border border-neutral-200 dark:border-white/[0.08] transition-all"
-              >
-                <span>Terms of Service</span>
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* =========================================================================
           3. FEATURE 1: "Capture tasks at the speed of thought"
@@ -1080,6 +994,209 @@ export default function LandingPage({
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          8.5 APPLICATION PURPOSE & GOOGLE DATA TRANSPARENCY (Google OAuth Compliance)
+         ========================================================================= */}
+      <section id="purpose" className="py-20 border-t border-neutral-200/60 dark:border-white/[0.08] bg-neutral-50/70 dark:bg-[#0c0c0e]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Header */}
+          <div className="text-center max-w-3xl mx-auto mb-14">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rose-50 dark:bg-rose-950/30 border border-rose-200/80 dark:border-rose-900/40 text-rose-700 dark:text-rose-400 text-xs font-semibold mb-4">
+              <Shield className="w-3.5 h-3.5" />
+              <span>Verified App Purpose &amp; Privacy Transparency</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-neutral-900 dark:text-zinc-100 mb-4">
+              Application Purpose &amp; Google Data Transparency
+            </h2>
+            <p className="text-sm sm:text-base text-neutral-600 dark:text-zinc-400 leading-relaxed">
+              Takt is an open, privacy-first workspace engineered by <strong>Haris Arshad</strong>. We believe in complete transparency regarding what our application does, why we request sign-in, and how your data is protected.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch mb-10">
+            {/* Column 1: Application Purpose & Core Functionality */}
+            <div className="p-7 rounded-3xl bg-white dark:bg-[#121216] border border-neutral-200/80 dark:border-white/[0.08] shadow-[0_0_50px_-12px_rgba(99,102,241,0.15)] flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-2xl bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold">
+                    <Target className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg text-neutral-900 dark:text-zinc-100">
+                      Application Purpose &amp; Functionality
+                    </h3>
+                    <p className="text-xs text-neutral-500 dark:text-zinc-500">
+                      What Takt is and what it allows you to accomplish
+                    </p>
+                  </div>
+                </div>
+
+                <p className="text-xs sm:text-sm text-neutral-600 dark:text-zinc-400 leading-relaxed mb-5">
+                  <strong>Takt</strong> (<a href="https://takt.harisarshad.site/" className="text-rose-600 dark:text-rose-400 font-semibold underline">https://takt.harisarshad.site/</a>) is a high-velocity productivity command center, Kanban cadence workspace, and personal focus manager. Its primary purpose is to help knowledge workers, developers, and teams plan and execute work with zero cognitive overload.
+                </p>
+
+                <div className="space-y-3">
+                  {[
+                    {
+                      title: 'Tactile Task & Sprint Management',
+                      desc: 'Capture, organize, and categorize tasks with keyboard shortcuts, priority flags (P1–P4), custom tags, checklists, and duration ETAs.'
+                    },
+                    {
+                      title: 'Kanban Flow & Swimlanes',
+                      desc: 'Track tasks through visual lifecycle stages (To Do, In Progress, Review, Completed) with smooth drag-and-drop.'
+                    },
+                    {
+                      title: '7-Day Calendar Horizon',
+                      desc: 'Plan daily commitments across a rolling week, with a 1-click "⏩ Tomorrow" button to roll unfinished tasks forward without guilt.'
+                    },
+                    {
+                      title: 'Meeting Scratchpad',
+                      desc: 'Capture tactical standup minutes, 1-on-1 notes, and meeting agendas with rich Markdown and instant action-item checkboxes.'
+                    },
+                    {
+                      title: 'Pomodoro Focus Cadence',
+                      desc: 'Run 25-minute deep work intervals directly on tasks to maintain unbroken flow state.'
+                    }
+                  ].map((f, i) => (
+                    <div key={i} className="flex items-start gap-2.5 text-xs text-neutral-600 dark:text-zinc-400">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                      <div>
+                        <strong className="text-neutral-900 dark:text-zinc-200 font-semibold">{f.title}: </strong>
+                        <span>{f.desc}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-6 pt-5 border-t border-neutral-100 dark:border-white/[0.08] flex items-center justify-between text-xs">
+                <span className="text-neutral-500 dark:text-zinc-500">Publicly accessible with zero login barriers</span>
+                <button
+                  onClick={onTryDemo}
+                  className="font-semibold text-rose-600 dark:text-rose-400 hover:underline flex items-center gap-1"
+                >
+                  <span>Explore Demo Sandbox</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Column 2: Why Takt Requests Google User Data & Compliance */}
+            <div className="p-7 rounded-3xl bg-white dark:bg-[#121216] border border-neutral-200/80 dark:border-white/[0.08] shadow-[0_0_50px_-12px_rgba(99,102,241,0.15)] flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
+                    <Lock className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg text-neutral-900 dark:text-zinc-100">
+                      Why Takt Requests Google User Data
+                    </h3>
+                    <p className="text-xs text-neutral-500 dark:text-zinc-500">
+                      Transparent explanation of Google OAuth 2.0 integration
+                    </p>
+                  </div>
+                </div>
+
+                <p className="text-xs sm:text-sm text-neutral-600 dark:text-zinc-400 leading-relaxed mb-4">
+                  When you sign in using Google Single Sign-On (SSO), we request access exclusively to basic profile identity. We request this data solely to authenticate your session and sync your personal tasks securely across devices.
+                </p>
+
+                {/* Scope Table */}
+                <div className="overflow-hidden rounded-xl border border-neutral-200 dark:border-white/[0.08] mb-4 text-xs">
+                  <table className="w-full text-left">
+                    <thead className="bg-neutral-50 dark:bg-white/[0.04] text-neutral-700 dark:text-zinc-200 font-semibold">
+                      <tr>
+                        <th className="p-2.5 border-b border-neutral-200 dark:border-white/[0.08]">Scope</th>
+                        <th className="p-2.5 border-b border-neutral-200 dark:border-white/[0.08]">Data Received</th>
+                        <th className="p-2.5 border-b border-neutral-200 dark:border-white/[0.08]">Purpose in Takt</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-neutral-100 dark:divide-white/[0.08] text-neutral-600 dark:text-zinc-400">
+                      <tr>
+                        <td className="p-2.5 font-mono text-[11px] text-neutral-800 dark:text-zinc-300">openid</td>
+                        <td className="p-2.5">User ID</td>
+                        <td className="p-2.5">Unique cryptographic key to isolate tasks via Postgres Row Level Security.</td>
+                      </tr>
+                      <tr>
+                        <td className="p-2.5 font-mono text-[11px] text-neutral-800 dark:text-zinc-300">userinfo.email</td>
+                        <td className="p-2.5">Email address</td>
+                        <td className="p-2.5">To verify your account, ensure multi-device sync, and send security alerts.</td>
+                      </tr>
+                      <tr>
+                        <td className="p-2.5 font-mono text-[11px] text-neutral-800 dark:text-zinc-300">userinfo.profile</td>
+                        <td className="p-2.5">Name &amp; Avatar</td>
+                        <td className="p-2.5">To display your identity in the workspace and attribute task comments.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Non-access Callout */}
+                <div className="p-3.5 rounded-xl bg-neutral-50 dark:bg-white/[0.04] border border-neutral-200/80 dark:border-white/[0.08] text-xs space-y-1.5">
+                  <div className="font-semibold text-neutral-900 dark:text-zinc-200 flex items-center gap-1.5">
+                    <Shield className="w-3.5 h-3.5 text-rose-500" />
+                    <span>Zero Access to Sensitive Google Data</span>
+                  </div>
+                  <p className="text-[11px] text-neutral-500 dark:text-zinc-400">
+                    Takt does <strong>NOT</strong> request, access, read, or store your Gmail messages, Google Drive documents, Calendar entries, or contacts.
+                  </p>
+                </div>
+              </div>
+
+              {/* Limited Use Box */}
+              <div className="mt-4 pt-4 border-t border-neutral-100 dark:border-white/[0.08] text-[11px] text-neutral-500 dark:text-zinc-500 space-y-1">
+                <p>
+                  <strong>Google Limited Use Compliance:</strong> Takt’s use and transfer to any other app of information received from Google APIs adheres to the <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener noreferrer" className="text-rose-600 dark:text-rose-400 underline">Google API Services User Data Policy</a>, including the Limited Use requirements.
+                </p>
+                <p>We do not sell user data, serve advertisements, or train AI models on your information.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Banner with Links to Privacy Policy & Data Deletion */}
+          <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#121216] border border-neutral-200/80 dark:border-white/[0.08] shadow-[0_0_50px_-12px_rgba(99,102,241,0.15)] flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="space-y-1 text-center md:text-left">
+              <h4 className="text-base font-semibold text-neutral-900 dark:text-zinc-100 flex items-center justify-center md:justify-start gap-2">
+                <FileText className="w-4 h-4 text-rose-500" />
+                <span>Your Data Ownership &amp; Right to Deletion</span>
+              </h4>
+              <p className="text-xs text-neutral-500 dark:text-zinc-400 max-w-2xl">
+                You retain 100% ownership of your tasks and notes. You can delete items at any time in-app, revoke Google access via your Google Account settings, or request permanent cloud account deletion by emailing <a href="mailto:harisengr73@gmail.com" className="text-rose-600 dark:text-rose-400 font-semibold underline">harisengr73@gmail.com</a> (processed within 7 business days).
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 shrink-0">
+              <a
+                href="/privacy"
+                onClick={(e) => {
+                  if (onOpenPrivacy) {
+                    e.preventDefault();
+                    onOpenPrivacy();
+                  }
+                }}
+                className="px-5 py-2.5 rounded-full bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200 font-medium text-xs shadow-sm transition-all flex items-center gap-1.5"
+              >
+                <Shield className="w-3.5 h-3.5" />
+                <span>Read Full Privacy Policy</span>
+              </a>
+              <a
+                href="/terms"
+                onClick={(e) => {
+                  if (onOpenTerms) {
+                    e.preventDefault();
+                    onOpenTerms();
+                  }
+                }}
+                className="px-4 py-2.5 rounded-full bg-neutral-100 dark:bg-white/[0.06] text-neutral-700 dark:text-zinc-300 hover:bg-neutral-200 dark:hover:bg-white/[0.1] font-medium text-xs border border-neutral-200 dark:border-white/[0.08] transition-all"
+              >
+                <span>Terms of Service</span>
+              </a>
+            </div>
           </div>
         </div>
       </section>
