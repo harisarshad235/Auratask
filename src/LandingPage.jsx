@@ -1216,18 +1216,30 @@ export default function LandingPage({
             Start organizing your work and life with the most tactile, low-eyestrain obsidian workspace.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5">
-            <button
-              onClick={onStartForFree}
-              className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200 font-medium text-sm shadow-sm active:scale-[0.99] transition-all"
-            >
-              Start for free
-            </button>
-            <button
-              onClick={onTryDemo}
-              className="w-full sm:w-auto px-6 py-3.5 rounded-full border border-neutral-200 dark:border-white/10 hover:bg-neutral-50 dark:hover:bg-white/5 text-neutral-800 dark:text-zinc-300 font-medium text-sm transition-all"
-            >
-              Launch Live App
-            </button>
+            {hasActiveSession ? (
+              <button
+                onClick={onOpenApp}
+                className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200 font-semibold text-sm shadow-sm active:scale-[0.99] transition-all flex items-center justify-center gap-2 group cursor-pointer"
+              >
+                <span>Enter Your Workspace</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={onStartForFree}
+                  className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200 font-medium text-sm shadow-sm active:scale-[0.99] transition-all"
+                >
+                  Start for free
+                </button>
+                <button
+                  onClick={onTryDemo}
+                  className="w-full sm:w-auto px-6 py-3.5 rounded-full border border-neutral-200 dark:border-white/10 hover:bg-neutral-50 dark:hover:bg-white/5 text-neutral-800 dark:text-zinc-300 font-medium text-sm transition-all"
+                >
+                  Launch Live App
+                </button>
+              </>
+            )}
           </div>
         </div>
       </section>
@@ -1238,7 +1250,7 @@ export default function LandingPage({
       <footer className="border-t border-neutral-200/60 dark:border-white/[0.08] py-12 text-xs text-neutral-500 dark:text-zinc-500 bg-white dark:bg-[#09090b]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <Logo onClick={onTryDemo} href="/" />
+            <Logo onClick={hasActiveSession && onOpenApp ? onOpenApp : onTryDemo} href="/" />
             <span className="text-neutral-400 dark:text-zinc-500 border-l border-neutral-200 dark:border-white/[0.08] pl-3">© {new Date().getFullYear()} Takt by Haris Arshad</span>
           </div>
 

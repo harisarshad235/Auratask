@@ -813,13 +813,36 @@ export default function App() {
 
   // --- LANDING PAGE & TASK MODALS STATE ---
   const [showLandingPage, setShowLandingPage] = useState(() => {
-    if ((localStorage.getItem('takt_guest_mode') || localStorage.getItem('auratask_guest_mode')) === 'true') return false;
     if (typeof window !== 'undefined') {
-      const hash = window.location.hash || '';
-      const search = window.location.search || '';
+      const path = (window.location.pathname || '').toLowerCase();
+      const hash = (window.location.hash || '').toLowerCase();
+      const search = (window.location.search || '').toLowerCase();
+
+      // Feature tour route takes precedence (persists on hard refresh)
+      let isTourRoute = false;
+      try {
+        if (sessionStorage.getItem('takt_view') === 'tour') {
+          isTourRoute = true;
+        }
+      } catch { }
+      if (path.includes('/tour') || hash.includes('tour') || search.includes('tour')) {
+        isTourRoute = true;
+      }
+      if (isTourRoute) {
+        return true;
+      }
+
+      // Supabase OAuth callback tokens take precedence
       if (hash.includes('access_token') || hash.includes('refresh_token') || search.includes('code=')) {
         return false;
       }
+
+      // Guest mode
+      if ((localStorage.getItem('takt_guest_mode') || localStorage.getItem('auratask_guest_mode')) === 'true') {
+        return false;
+      }
+
+      // Logged-in Supabase user
       try {
         for (let i = 0; i < localStorage.length; i++) {
           const key = localStorage.key(i);
@@ -878,11 +901,40 @@ export default function App() {
     setLegalRoute(route);
   }, []);
 
+  // Feature tour navigation helper (synchronizes URL /tour and session state)
+  const openFeatureTour = useCallback(() => {
+    try {
+      sessionStorage.setItem('takt_view', 'tour');
+    } catch { }
+    if (typeof window !== 'undefined' && window.history.pushState) {
+      window.history.pushState({ fromApp: true, view: 'tour' }, '', '/tour');
+    }
+    setShowLandingPage(true);
+  }, []);
+
+  // Return to workspace from landing page / tour
+  const handleOpenWorkspace = useCallback((e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    try {
+      sessionStorage.removeItem('takt_view');
+    } catch { }
+    if (typeof window !== 'undefined' && window.history.pushState) {
+      window.history.pushState({}, '', '/');
+    }
+    setActiveTab('today');
+    setViewMode('board');
+    setShowLandingPage(false);
+  }, []);
+
   // Back-tracking from legal pages (handles in-page Back button & logo click)
   const handleLegalBack = useCallback(() => {
     setLegalRoute(null);
+    let isTour = false;
+    try {
+      if (sessionStorage.getItem('takt_view') === 'tour') isTour = true;
+    } catch { }
     const loggedIn = isUserLoggedIn();
-    if (loggedIn) {
+    if (loggedIn && !isTour) {
       setShowLandingPage(false);
     } else {
       setShowLandingPage(true);
@@ -897,7 +949,7 @@ export default function App() {
         if (window.history.state && window.history.state.fromApp && window.history.length > 1) {
           window.history.back();
         } else {
-          window.history.pushState({}, '', '/');
+          window.history.pushState({}, '', isTour ? '/tour' : '/');
         }
       }
     }
@@ -908,18 +960,29 @@ export default function App() {
     const handleLocationChange = () => {
       const path = (window.location.pathname || '').toLowerCase();
       const hash = (window.location.hash || '').toLowerCase();
+      const search = (window.location.search || '').toLowerCase();
+
       if (path.includes('privacy') || hash.includes('privacy')) {
         setLegalRoute('privacy');
       } else if (path.includes('terms') || hash.includes('terms')) {
         setLegalRoute('terms');
       } else {
         setLegalRoute(null);
-        // Back-tracked from legal route back to root /
-        const loggedIn = isUserLoggedIn();
-        if (loggedIn) {
-          setShowLandingPage(false);
-        } else {
+        if (path.includes('/tour') || hash.includes('tour') || search.includes('tour')) {
+          try {
+            sessionStorage.setItem('takt_view', 'tour');
+          } catch { }
           setShowLandingPage(true);
+        } else {
+          try {
+            sessionStorage.removeItem('takt_view');
+          } catch { }
+          const loggedIn = isUserLoggedIn();
+          if (loggedIn) {
+            setShowLandingPage(false);
+          } else {
+            setShowLandingPage(true);
+          }
         }
       }
     };
@@ -1159,6 +1222,12 @@ export default function App() {
 
   // Switch workspace to authenticated user
   const handleUserSessionEstablished = (userSession) => {
+    try {
+      sessionStorage.removeItem('takt_view');
+    } catch { }
+    if (typeof window !== 'undefined' && window.history.pushState) {
+      window.history.pushState({}, '', '/');
+    }
     setSession(userSession);
     setIsGuest(false);
     setShowLandingPage(false);
@@ -2376,6 +2445,12 @@ export default function App() {
   };
 
   const handleGuestLogin = () => {
+    try {
+      sessionStorage.removeItem('takt_view');
+    } catch { }
+    if (typeof window !== 'undefined' && window.history.pushState) {
+      window.history.pushState({}, '', '/');
+    }
     setIsGuest(true);
     setSession(null);
     localStorage.setItem('takt_guest_mode', 'true');
@@ -2397,9 +2472,12 @@ export default function App() {
     try {
       await supabase.auth.signOut();
     } catch { }
+    try {
+      sessionStorage.removeItem('takt_view');
+    } catch { }
     handleUserSignedOut();
-    if (typeof window !== 'undefined' && window.location.hash) {
-      try { window.history.replaceState({}, document.title, window.location.pathname); } catch { }
+    if (typeof window !== 'undefined') {
+      try { window.history.replaceState({}, document.title, '/'); } catch { }
     }
     setShowLandingPage(true);
     showToast('Signed out successfully.');
@@ -2533,11 +2611,7 @@ export default function App() {
           onStartForFree={() => { setAuthMode('register'); setShowAuthModal(true); }}
           onTryDemo={handleGuestLogin}
           onOpenLogin={() => { setAuthMode('login'); setShowAuthModal(true); }}
-          onOpenApp={() => {
-            setActiveTab('today');
-            setViewMode('board');
-            setShowLandingPage(false);
-          }}
+          onOpenApp={handleOpenWorkspace}
           onOpenPrivacy={() => openLegalView('privacy')}
           onOpenTerms={() => openLegalView('terms')}
           hasActiveSession={Boolean(session || isGuest)}
@@ -2954,7 +3028,7 @@ export default function App() {
 
               <button
                 type="button"
-                onClick={() => setShowLandingPage(true)}
+                onClick={openFeatureTour}
                 className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-white transition-colors"
               >
                 <div className="flex items-center gap-2.5">
