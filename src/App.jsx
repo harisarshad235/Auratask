@@ -18,6 +18,7 @@ import TaskModal from './TaskModal';
 import LandingPage from './LandingPage';
 import MeetingScratchpad from './MeetingScratchpad';
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
+import ActivityHistoryModal from './components/ActivityHistoryModal';
 import { playTaskDoneSound, playPomodoroChime, playTactileTick } from './utils/soundEffects';
 import TaktLogo, { Logo } from './components/brand/TaktLogo';
 import CollapsibleWidget from './components/CollapsibleWidget';
@@ -326,6 +327,34 @@ export const findOrphanedTasks = (userId) => {
   return found;
 };
 
+// Helper to heal any legacy activity logs (ensures valid ISO timestamps and metadata)
+const healActivityLogs = (raw) => {
+  if (!Array.isArray(raw)) return [];
+  return raw.map(log => {
+    if (!log) return null;
+    let ts = log.timestamp || log.created_at;
+    if (!ts && typeof log.id === 'string') {
+      const match = log.id.match(/^act-(\d{10,13})/);
+      if (match) {
+        let epoch = parseInt(match[1], 10);
+        if (epoch < 1e11) epoch *= 1000;
+        const d = new Date(epoch);
+        if (!isNaN(d.getTime()) && d.getFullYear() >= 2024 && d.getFullYear() <= 2030) {
+          ts = d.toISOString();
+        }
+      }
+    }
+    if (!ts) {
+      ts = new Date().toISOString();
+    }
+    return {
+      ...log,
+      timestamp: ts,
+      created_at: log.created_at || ts
+    };
+  }).filter(Boolean);
+};
+
 // Helper to safely load isolated user or guest data
 const loadScopedWorkspaceData = (userId = null) => {
   if (userId) {
@@ -355,7 +384,7 @@ const loadScopedWorkspaceData = (userId = null) => {
           }
         ],
         sections: savedSections ? JSON.parse(savedSections) : DEFAULT_SECTIONS,
-        activity: savedLogs ? JSON.parse(savedLogs) : []
+        activity: savedLogs ? healActivityLogs(JSON.parse(savedLogs)) : []
       };
     } catch {
       return { tasks: [], notes: [], sections: DEFAULT_SECTIONS, activity: [] };
@@ -388,8 +417,8 @@ const loadScopedWorkspaceData = (userId = null) => {
         tasks: parsedTasks,
         notes: parsedNotes,
         sections: guestSections ? JSON.parse(guestSections) : DEFAULT_SECTIONS,
-        activity: guestLogs ? JSON.parse(guestLogs) : [
-          { id: 'act-demo-1', text: 'Started Guest Sandbox session', time: 'Just now', icon: 'sparkle' }
+        activity: guestLogs ? healActivityLogs(JSON.parse(guestLogs)) : [
+          { id: 'act-demo-1', text: 'Started Guest Sandbox session', time: 'Just now', icon: 'sparkle', timestamp: new Date().toISOString() }
         ]
       };
     } catch {
@@ -501,15 +530,33 @@ export default function App() {
   const [newSectionTitle, setNewSectionTitle] = useState('');
   const csvFileInputRef = useRef(null);
 
-  const recordActivity = (text, icon = 'check') => {
+  const recordActivity = (text, icon = 'check', meta = {}) => {
+    const now = new Date();
     const newEntry = {
-      id: `act-${Date.now()}`,
+      id: `act-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       text,
-      time: 'Just now',
       icon,
-      timestamp: new Date().toISOString()
+      category: meta.category || null,
+      timestamp: now.toISOString(),
+      created_at: now.toISOString(),
+      actor: session?.user?.email ? (session.user.user_metadata?.full_name || session.user.email.split('@')[0]) : 'You'
     };
-    setActivityLogs(prev => [newEntry, ...prev.slice(0, 49)]);
+    setActivityLogs(prev => [newEntry, ...(Array.isArray(prev) ? prev.slice(0, 199) : [])]);
+  };
+
+  const handleClearActivityLogs = () => {
+    const uId = session?.user?.id;
+    setActivityLogs([]);
+    try {
+      if (uId) {
+        localStorage.removeItem(`takt_activity_u_${uId}`);
+        localStorage.removeItem(`auratask_activity_u_${uId}`);
+      } else {
+        localStorage.removeItem('takt_guest_activity');
+        localStorage.removeItem('auratask_guest_activity');
+      }
+      showToast('Activity history cleared');
+    } catch { }
   };
 
   // --- DRAG AND DROP & SWIMLANES STATE ---
@@ -2157,10 +2204,15 @@ export default function App() {
   const handleToggleSubtask = (taskId, subtaskId) => {
     setTasks(prev => prev.map(t => {
       if (t.id === taskId) {
+        const item = (t.subtasks || []).find(st => st.id === subtaskId);
+        const willComplete = !item?.completed;
         const updatedSubtasks = (t.subtasks || []).map(st =>
-          st.id === subtaskId ? { ...st, completed: !st.completed } : st
+          st.id === subtaskId ? { ...st, completed: willComplete } : st
         );
         handleUpdateTask(taskId, { subtasks: updatedSubtasks });
+        if (item?.text) {
+          recordActivity(`${willComplete ? 'Completed' : 'Reopened'} subtask "${item.text.slice(0, 24)}"`, 'check');
+        }
         return { ...t, subtasks: updatedSubtasks };
       }
       return t;
@@ -2181,6 +2233,7 @@ export default function App() {
       if (t.id === taskId) {
         const updated = [...(t.subtasks || []), newSubtask];
         handleUpdateTask(taskId, { subtasks: updated });
+        recordActivity(`Added subtask "${newSubtask.text.slice(0, 24)}"`, 'plus');
         return { ...t, subtasks: updated };
       }
       return t;
@@ -4749,42 +4802,14 @@ export default function App() {
         darkMode={darkMode}
       />
 
-      {/* --- ACTIVITY HISTORY MODAL (SCREENSHOT 1 ACTION) --- */}
-      {showActivityModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in">
-          <div className="bg-white dark:bg-[#121622] border border-slate-200 dark:border-white/[0.12] rounded-3xl max-w-lg w-full p-6 shadow-2xl">
-            <div className="flex justify-between items-center mb-4">
-              <div className="flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-blue-500" />
-                <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Activity History & Audit Log</h3>
-              </div>
-              <button onClick={() => setShowActivityModal(false)}><X className="w-4 h-4 text-slate-400 dark:text-zinc-400 hover:text-slate-700 dark:hover:text-white transition-colors" /></button>
-            </div>
-            <p className="text-xs text-slate-400 dark:text-zinc-400 mb-4">
-              Full timeline of completed tasks, Pomodoro sessions, and modifications.
-            </p>
-
-            <div className="space-y-2.5 max-h-80 overflow-y-auto pr-1">
-              {activityLogs.map(log => (
-                <div key={log.id} className="p-3 rounded-xl bg-slate-50 dark:bg-[#161c2b] border border-slate-100 dark:border-white/[0.08] flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2.5">
-                    <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span className="font-medium text-slate-800 dark:text-white">{log.text}</span>
-                  </div>
-                  <span className="text-[10px] text-slate-400 dark:text-zinc-400 font-mono shrink-0 ml-2">{log.time}</span>
-                </div>
-              ))}
-            </div>
-
-            <button
-              onClick={() => setShowActivityModal(false)}
-              className="mt-5 w-full py-2.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-black font-bold text-xs"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
+      {/* --- ACTIVITY HISTORY & AUDIT LOG MODAL --- */}
+      <ActivityHistoryModal
+        isOpen={showActivityModal}
+        onClose={() => setShowActivityModal(false)}
+        activityLogs={activityLogs}
+        onClearLogs={handleClearActivityLogs}
+        session={session}
+      />
 
       {/* --- ADD CUSTOM SECTION MODAL (SCREENSHOT 1 ACTION) --- */}
       {showAddSectionModal && (
