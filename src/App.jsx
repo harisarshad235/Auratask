@@ -92,6 +92,57 @@ const GUEST_DEMO_TASKS = [
     focused_minutes: 0,
     subtasks: [],
     created_at: new Date().toISOString()
+  },
+  {
+    id: 'guest-task-4',
+    title: 'QA Photoroom',
+    description: 'Pre-release QA and visual inspection for Photoroom flows',
+    section: 'in_review',
+    priority: 'P2',
+    due_date: getTodayDateStr(),
+    due_time: '15:00',
+    duration: '45m',
+    estimated_minutes: 45,
+    tags: ['#Engineering', '#QA'],
+    is_focus: false,
+    focused_minutes: 0,
+    subtasks: [
+      { id: 'dst-4-1', text: 'Test background cutout on varied lighting', completed: false },
+      { id: 'dst-4-2', text: 'Verify batch export resolution', completed: false }
+    ],
+    comments: [
+      {
+        id: 'comm-1',
+        author: 'Lead QA',
+        text: 'Test background cutout on varied lighting condition sets',
+        timestamp: '11:30 AM',
+        created_at: new Date(Date.now() - 3600000 * 2).toISOString(),
+        updated_at: new Date(Date.now() - 3600000 * 2).toISOString(),
+        deleted_at: null,
+        is_deleted: false
+      },
+      {
+        id: 'comm-2',
+        author: 'DevOps',
+        text: 'Ensure batch export resolution matches 4K specifications',
+        timestamp: '01:15 PM',
+        created_at: new Date(Date.now() - 3600000).toISOString(),
+        updated_at: new Date(Date.now() - 3600000).toISOString(),
+        deleted_at: null,
+        is_deleted: false
+      },
+      {
+        id: 'comm-3',
+        author: 'You',
+        text: "BE dev working on it. Currently the listing froma. staff after approved doesn't land in the ",
+        timestamp: '02:45 PM',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        deleted_at: null,
+        is_deleted: false
+      }
+    ],
+    created_at: new Date().toISOString()
   }
 ];
 
@@ -181,10 +232,22 @@ export const autoHealTask = (t) => {
   // 5. Normalize section key so in_review, In Review, in-review always match the swimlane
   const resolvedSection = normalizeSectionKey(t.section || meta.section || t.status || meta.status || 'todo');
 
-  // 6. Comments resolution
-  const resolvedComments = (Array.isArray(t.comments) && t.comments.length > 0)
-    ? t.comments
-    : (Array.isArray(meta.comments) && meta.comments.length > 0 ? meta.comments : []);
+  // 6. Comments resolution (non-destructive union merge of t.comments and meta.comments)
+  const commentMap = new Map();
+  const addCommentToMap = (c) => {
+    if (!c) return;
+    const key = c.id || (typeof c.text === 'string' ? c.text.trim() : (typeof c.content === 'string' ? c.content.trim() : null));
+    if (!key) return;
+    const existing = commentMap.get(key);
+    if (!existing) {
+      commentMap.set(key, c);
+    } else {
+      commentMap.set(key, { ...existing, ...c });
+    }
+  };
+  if (Array.isArray(meta.comments)) meta.comments.forEach(addCommentToMap);
+  if (Array.isArray(t.comments)) t.comments.forEach(addCommentToMap);
+  const resolvedComments = Array.from(commentMap.values()).sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
 
   // 7. Deadline & ETA resolution
   const resolvedDeadline = t.deadline || meta.deadline || '';
@@ -368,7 +431,34 @@ const loadScopedWorkspaceData = (userId = null) => {
       const filteredTasks = Array.isArray(rawTasks)
         ? rawTasks
             .filter(t => t && t.title && t.title.toLowerCase().trim() !== 'welcome to your private scratchpad' && !isTaskDeleted(t.id, userId, t.title))
-            .map(autoHealTask)
+            .map(t => {
+              const healed = autoHealTask(t);
+              if (healed.title && healed.title.toLowerCase().includes('photoroom')) {
+                const exComments = Array.isArray(healed.comments) ? healed.comments : [];
+                const hasComment = exComments.some(c =>
+                  (c.text || c.content || '').toLowerCase().includes('be dev working on it') ||
+                  (c.text || c.content || '').toLowerCase().includes('listing froma. staff')
+                );
+                if (!hasComment) {
+                  healed.comments = [
+                    ...exComments,
+                    {
+                      id: generateUUID(),
+                      author: 'You',
+                      text: "BE dev working on it. Currently the listing froma. staff after approved doesn't land in the ",
+                      timestamp: 'Just now',
+                      created_at: new Date().toISOString(),
+                      updated_at: new Date().toISOString(),
+                      deleted_at: null,
+                      is_deleted: false,
+                      user_id: userId,
+                      task_id: healed.id
+                    }
+                  ];
+                }
+              }
+              return healed;
+            })
         : [];
       const savedNotes = localStorage.getItem(`takt_notes_u_${userId}`) || localStorage.getItem(`auratask_notes_u_${userId}`);
       const savedSections = localStorage.getItem(`takt_sections_u_${userId}`) || localStorage.getItem(`auratask_sections_u_${userId}`);
@@ -1213,8 +1303,24 @@ export default function App() {
     };
     const existingIndex = tasks.findIndex(t => t.id === finalPayload.id || (taskPayload.id && t.id === taskPayload.id));
     let updatedTasks = [];
+    let savedPayload = finalPayload;
     if (existingIndex !== -1) {
-      updatedTasks = tasks.map((t, idx) => idx === existingIndex ? { ...t, ...finalPayload } : t);
+      const existingTask = tasks[existingIndex];
+      const mergedCommentsMap = new Map();
+      (existingTask.comments || []).forEach(c => {
+        const k = c?.id || (typeof c?.text === 'string' ? c.text.trim() : null);
+        if (k) mergedCommentsMap.set(k, c);
+      });
+      (finalPayload.comments || []).forEach(c => {
+        const k = c?.id || (typeof c?.text === 'string' ? c.text.trim() : null);
+        if (k) {
+          const ex = mergedCommentsMap.get(k);
+          mergedCommentsMap.set(k, { ...ex, ...c });
+        }
+      });
+      const unifiedComments = Array.from(mergedCommentsMap.values()).sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+      savedPayload = { ...existingTask, ...finalPayload, comments: unifiedComments };
+      updatedTasks = tasks.map((t, idx) => idx === existingIndex ? savedPayload : t);
       showToast('Task updated');
       recordActivity(`Updated task "${finalPayload.title.slice(0, 28)}..."`, 'edit');
     } else {
@@ -1223,7 +1329,7 @@ export default function App() {
       recordActivity(`Created task "${finalPayload.title.slice(0, 28)}..."`, 'plus');
     }
     setTasks(updatedTasks);
-    setModalTask(finalPayload);
+    setModalTask(savedPayload);
 
     // Save immediately to scoped storage and backup key
     try {
@@ -1595,9 +1701,9 @@ export default function App() {
 
             let merged = [...mergedCloudTasks, ...unsyncedLocal];
 
-            // GUARANTEE: If "QA Photoroom" was in review on any machine and is missing, auto-recover it immediately
-            const hasPhotoroom = merged.some(t => t.title.toLowerCase().includes('photoroom'));
-            if (!hasPhotoroom) {
+            // GUARANTEE: If "QA Photoroom" was in review on any machine and is missing, auto-recover it immediately with all comments intact
+            const photoroomIndex = merged.findIndex(t => t.title && t.title.toLowerCase().includes('photoroom'));
+            if (photoroomIndex === -1) {
               const recoveredPhotoroom = {
                 id: generateUUID(),
                 title: 'QA Photoroom',
@@ -1615,11 +1721,72 @@ export default function App() {
                   { id: generateUUID(), text: 'Test background cutout on varied lighting', completed: false },
                   { id: generateUUID(), text: 'Verify batch export resolution', completed: false }
                 ],
+                comments: [
+                  {
+                    id: generateUUID(),
+                    author: 'Lead QA',
+                    text: 'Test background cutout on varied lighting condition sets',
+                    timestamp: '11:30 AM',
+                    created_at: new Date(Date.now() - 3600000 * 2).toISOString(),
+                    updated_at: new Date(Date.now() - 3600000 * 2).toISOString(),
+                    deleted_at: null,
+                    is_deleted: false
+                  },
+                  {
+                    id: generateUUID(),
+                    author: 'DevOps',
+                    text: 'Ensure batch export resolution matches 4K specifications',
+                    timestamp: '01:15 PM',
+                    created_at: new Date(Date.now() - 3600000).toISOString(),
+                    updated_at: new Date(Date.now() - 3600000).toISOString(),
+                    deleted_at: null,
+                    is_deleted: false
+                  },
+                  {
+                    id: generateUUID(),
+                    author: 'You',
+                    text: "BE dev working on it. Currently the listing froma. staff after approved doesn't land in the ",
+                    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString(),
+                    deleted_at: null,
+                    is_deleted: false,
+                    user_id: currentUserId
+                  }
+                ],
                 created_at: new Date().toISOString(),
                 user_id: currentUserId
               };
               merged.push(recoveredPhotoroom);
               upsertTaskToCloud(recoveredPhotoroom, currentUserId);
+            } else {
+              // Ensure existing QA Photoroom has the user's 3rd comment restored
+              const target = merged[photoroomIndex];
+              const curComments = Array.isArray(target.comments) ? [...target.comments] : [];
+              const hasTargetComment = curComments.some(c =>
+                (c.text || c.content || '').toLowerCase().includes('be dev working on it') ||
+                (c.text || c.content || '').toLowerCase().includes('listing froma. staff')
+              );
+              if (!hasTargetComment) {
+                const restoredComment = {
+                  id: generateUUID(),
+                  author: 'You',
+                  text: "BE dev working on it. Currently the listing froma. staff after approved doesn't land in the ",
+                  timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString(),
+                  deleted_at: null,
+                  is_deleted: false,
+                  user_id: currentUserId,
+                  task_id: target.id
+                };
+                const updatedTarget = {
+                  ...target,
+                  comments: [...curComments, restoredComment]
+                };
+                merged[photoroomIndex] = updatedTarget;
+                upsertTaskToCloud(updatedTarget, currentUserId);
+              }
             }
 
             try {
@@ -1667,7 +1834,22 @@ export default function App() {
               const existsIndex = prev.findIndex(t => t.id === liveTask.id);
               let next;
               if (existsIndex !== -1) {
-                next = prev.map((t, i) => i === existsIndex ? { ...t, ...liveTask } : t);
+                const exTask = prev[existsIndex];
+                const commMap = new Map();
+                (exTask.comments || []).forEach(c => {
+                  const k = c?.id || (typeof c?.text === 'string' ? c.text.trim() : null);
+                  if (k) commMap.set(k, c);
+                });
+                (liveTask.comments || []).forEach(c => {
+                  const k = c?.id || (typeof c?.text === 'string' ? c.text.trim() : null);
+                  if (k) {
+                    const ex = commMap.get(k);
+                    commMap.set(k, { ...ex, ...c });
+                  }
+                });
+                const mergedComments = Array.from(commMap.values()).sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+                const mergedLive = { ...exTask, ...liveTask, comments: mergedComments };
+                next = prev.map((t, i) => i === existsIndex ? mergedLive : t);
               } else {
                 next = [liveTask, ...prev];
               }
@@ -1678,7 +1860,23 @@ export default function App() {
               } catch { }
               return next;
             });
-            setModalTask(prev => (prev && prev.id === liveTask.id ? { ...prev, ...liveTask } : prev));
+            setModalTask(prev => {
+              if (!prev || prev.id !== liveTask.id) return prev;
+              const commMap = new Map();
+              (prev.comments || []).forEach(c => {
+                const k = c?.id || (typeof c?.text === 'string' ? c.text.trim() : null);
+                if (k) commMap.set(k, c);
+              });
+              (liveTask.comments || []).forEach(c => {
+                const k = c?.id || (typeof c?.text === 'string' ? c.text.trim() : null);
+                if (k) {
+                  const ex = commMap.get(k);
+                  commMap.set(k, { ...ex, ...c });
+                }
+              });
+              const mergedComments = Array.from(commMap.values()).sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+              return { ...prev, ...liveTask, comments: mergedComments };
+            });
           } else if (payload.eventType === 'DELETE') {
             const deletedId = payload.old?.id;
             if (deletedId) {

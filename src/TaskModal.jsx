@@ -96,7 +96,24 @@ export default function TaskModal({
       setDeadlineTime(task.deadline || '');
       setTags(Array.isArray(task.tags) ? task.tags : []);
       setSubtasks(Array.isArray(task.subtasks) ? task.subtasks : []);
-      setComments(Array.isArray(task.comments) ? task.comments : []);
+      // Non-destructively union merge comments so freshly added comments or in-flight updates are never discarded
+      setComments(prev => {
+        const incoming = Array.isArray(task.comments) ? task.comments : [];
+        if (!prev || prev.length === 0) return incoming;
+        const map = new Map();
+        prev.forEach(c => {
+          const k = c?.id || (typeof c?.text === 'string' ? c.text.trim() : null);
+          if (k) map.set(k, c);
+        });
+        incoming.forEach(c => {
+          const k = c?.id || (typeof c?.text === 'string' ? c.text.trim() : null);
+          if (k) {
+            const ex = map.get(k);
+            map.set(k, { ...ex, ...c });
+          }
+        });
+        return Array.from(map.values()).sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+      });
       setReminder(task.reminder || 'none');
       const effDuration = task.duration || task.eta || (task.estimated_minutes ? formatDuration(task.estimated_minutes) : '');
       const effMins = task.estimated_minutes || (effDuration ? parseDurationMinutes(effDuration) : (task.focused_minutes || 30));
@@ -179,7 +196,6 @@ export default function TaskModal({
           } else {
             console.error("Supabase task_comments query failed:", commentsErr);
           }
-        } else if (Array.isArray(dbComments) && isMounted) {
           const formatted = dbComments.map(c => ({
             id: c.id,
             author: c.user_id === currentUserId ? 'You' : (c.author || 'Team Member'),
@@ -192,7 +208,21 @@ export default function TaskModal({
             user_id: c.user_id,
             task_id: c.task_id
           }));
-          setComments(formatted);
+          setComments(prev => {
+            const map = new Map();
+            (prev || []).forEach(c => {
+              const k = c?.id || (typeof c?.text === 'string' ? c.text.trim() : null);
+              if (k) map.set(k, c);
+            });
+            formatted.forEach(c => {
+              const k = c?.id || (typeof c?.text === 'string' ? c.text.trim() : null);
+              if (k) {
+                const ex = map.get(k);
+                map.set(k, { ...ex, ...c });
+              }
+            });
+            return Array.from(map.values()).sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+          });
         }
       } catch (err) {
         console.error("Exception fetching task comments:", err);
@@ -488,6 +518,42 @@ export default function TaskModal({
     if (e) e.preventDefault();
     if (!title.trim()) return;
 
+    let finalComments = [...comments];
+    const draftComment = (newCommentText || '').trim();
+    if (draftComment) {
+      const nowIso = new Date().toISOString();
+      const commentId = generateUUID();
+      const draftObj = {
+        id: commentId,
+        author: 'You',
+        text: draftComment,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        created_at: nowIso,
+        updated_at: nowIso,
+        deleted_at: null,
+        is_deleted: false,
+        user_id: currentUserId,
+        task_id: task?.id
+      };
+      finalComments.push(draftObj);
+      setComments(finalComments);
+      setNewCommentText('');
+
+      // Auto-insert draft to Supabase if authenticated
+      if (currentUserId && task?.id && isValidUUID(task.id)) {
+        supabase.from('task_comments').insert({
+          id: commentId,
+          task_id: task.id,
+          user_id: currentUserId,
+          content: draftComment,
+          created_at: nowIso,
+          updated_at: nowIso,
+          deleted_at: null,
+          is_deleted: false
+        }).catch(err => console.error("Auto-commit draft comment failed:", err));
+      }
+    }
+
     const finalDuration = duration ? duration.trim() : (estimatedMinutes ? formatDuration(estimatedMinutes) : '');
     const cleanDescription = (description || '').replace(TAKT_META_REGEX, '').trim();
 
@@ -508,7 +574,7 @@ export default function TaskModal({
       is_focus: isFocus,
       tags,
       subtasks,
-      comments,
+      comments: finalComments,
       reminder,
       created_at: task?.created_at || new Date().toISOString()
     };
@@ -858,7 +924,7 @@ export default function TaskModal({
 
               {/* Active Comment Thread List */}
               {activeComments.length > 0 ? (
-                <div className="space-y-2.5 max-h-44 overflow-y-auto pr-1">
+                <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
                   {activeComments.map((comm) => {
                     const authorName = comm.author || (comm.user_id === currentUserId ? 'You' : 'User');
                     const initial = (authorName.trim()[0] || 'U').toUpperCase();
