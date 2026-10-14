@@ -1,0 +1,208 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-14T11:25:20.000Z",
+  "title": "Design System: Takt",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Precision Rose",
+        "canonical": "#f43f5e",
+        "tonalRamp": ["#4c0519", "#881337", "#be123c", "#e11d48", "#f43f5e", "#fb7185", "#fda4af", "#ffe4e6"]
+      },
+      "primary-glow": {
+        "role": "primary",
+        "displayName": "Cadence Crimson",
+        "canonical": "#ff4b55",
+        "tonalRamp": ["#50070a", "#900c14", "#c81622", "#ed2938", "#ff4b55", "#ff7981", "#ffa6ac", "#ffe5e6"]
+      },
+      "secondary": {
+        "role": "secondary",
+        "displayName": "Cadence Violet",
+        "canonical": "#a855f7",
+        "tonalRamp": ["#3b0764", "#581c87", "#7e22ce", "#9333ea", "#a855f7", "#c084fc", "#e9d5ff", "#faf5ff"]
+      },
+      "tertiary": {
+        "role": "tertiary",
+        "displayName": "Flow Indigo",
+        "canonical": "#4f46e5",
+        "tonalRamp": ["#1e1b4b", "#312e81", "#3730a3", "#4338ca", "#4f46e5", "#6366f1", "#818cf8", "#e0e7ff"]
+      },
+      "success": {
+        "role": "status",
+        "displayName": "Flow Emerald",
+        "canonical": "#10b981",
+        "tonalRamp": ["#022c22", "#064e3b", "#065f46", "#047857", "#10b981", "#34d399", "#6ee7b7", "#d1fae5"]
+      },
+      "warning": {
+        "role": "status",
+        "displayName": "Amber Pulse",
+        "canonical": "#f59e0b",
+        "tonalRamp": ["#451a03", "#78350f", "#92400e", "#b45309", "#f59e0b", "#fbbf24", "#fde68a", "#fef3c7"]
+      },
+      "neutral-canvas-dark": {
+        "role": "neutral",
+        "displayName": "Deep Void Obsidian",
+        "canonical": "#090b11",
+        "tonalRamp": ["#000000", "#05070a", "#090b11", "#0e131f", "#131926", "#192132", "#334155", "#94a3b8"]
+      },
+      "neutral-surface-med": {
+        "role": "neutral",
+        "displayName": "Nightshade Surface",
+        "canonical": "#131926",
+        "tonalRamp": ["#090b11", "#0e131f", "#131926", "#192132", "#1e293b", "#334155", "#64748b", "#cbd5e1"]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Hero headlines and commanding section milestones."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Major modal headers, board swimlane titles, and view names."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Task titles, widget toggles, and drawer headers."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Task descriptions, scratchpad editor text, and dialog instructions."
+      },
+      "label": {
+        "displayName": "Label / Mono",
+        "purpose": "Timestamps, keyboard shortcuts, priority badges, and ETA duration badges."
+      }
+    },
+    "shadows": [
+      {
+        "name": "subtle-surface",
+        "value": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+        "purpose": "Light mode card resting state."
+      },
+      {
+        "name": "night-elevation",
+        "value": "0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.3)",
+        "purpose": "Dark mode card resting state on Nightshade Surface."
+      },
+      {
+        "name": "drag-lift",
+        "value": "0 10px 25px -5px rgba(0, 0, 0, 0.5)",
+        "purpose": "Card elevation during drag-and-drop operations."
+      },
+      {
+        "name": "ambient-accent-glow",
+        "value": "0 0 20px -3px rgba(244, 63, 94, 0.25)",
+        "purpose": "Focus state and active Pomodoro countdown glow."
+      }
+    ],
+    "motion": [
+      {
+        "name": "spring-layout",
+        "value": "spring(stiffness: 350, damping: 28)",
+        "purpose": "Framer Motion layout transitions and card reordering."
+      },
+      {
+        "name": "ease-standard",
+        "value": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "purpose": "Standard micro-interaction transitions."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Action Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Primary high-contrast button for modal submissions and start actions.",
+      "html": "<button class=\"ds-btn-primary\"><svg class=\"ds-btn-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\"><polyline points=\"20 6 9 17 4 12\"></polyline></svg><span>Save Changes</span></button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: #f43f5e; color: #ffffff; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 12px; font-weight: 700; padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; transition: all 0.15s ease; box-shadow: 0 1px 3px rgba(244, 63, 94, 0.3); } .ds-btn-primary:hover { background: #ff4b55; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(244, 63, 94, 0.4); } .ds-btn-primary:active { transform: translateY(0); } .ds-btn-icon { width: 14px; height: 14px; stroke: currentColor; }"
+    },
+    {
+      "name": "Ghost / Navigation Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Secondary neutral button for cancel, dismiss, or toolbar actions.",
+      "html": "<button class=\"ds-btn-ghost\"><span>Cancel</span></button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; justify-content: center; background: transparent; color: #94a3b8; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 8px; border: none; cursor: pointer; transition: all 0.15s ease; } .ds-btn-ghost:hover { background: rgba(255, 255, 255, 0.08); color: #ffffff; }"
+    },
+    {
+      "name": "Board Task Card",
+      "kind": "card",
+      "refersTo": "card-board",
+      "description": "High-velocity drag-and-drop task card for Kanban swimlanes.",
+      "html": "<div class=\"ds-board-card\"><div class=\"ds-card-header\"><span class=\"ds-grip\"><svg viewBox=\"0 0 24 24\" fill=\"currentColor\"><circle cx=\"9\" cy=\"5\" r=\"1.5\"/><circle cx=\"15\" cy=\"5\" r=\"1.5\"/><circle cx=\"9\" cy=\"12\" r=\"1.5\"/><circle cx=\"15\" cy=\"12\" r=\"1.5\"/><circle cx=\"9\" cy=\"19\" r=\"1.5\"/><circle cx=\"15\" cy=\"19\" r=\"1.5\"/></svg></span><h4 class=\"ds-card-title\">Design System Architecture</h4></div><p class=\"ds-card-desc\">Draft normative tokens and sidecar specifications for Takt.</p><div class=\"ds-card-badges\"><span class=\"ds-badge-p1\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z\"/><line x1=\"4\" y1=\"22\" x2=\"4\" y2=\"15\"/></svg>P1</span><span class=\"ds-badge-duration\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><polyline points=\"12 6 12 12 16 14\"/></svg>45m</span></div></div>",
+      "css": ".ds-board-card { background: #131926; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; padding: 14px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3); font-family: 'Plus Jakarta Sans', sans-serif; cursor: grab; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); } .ds-board-card:hover { border-color: rgba(255, 255, 255, 0.24); background: #192132; box-shadow: 0 8px 16px rgba(0,0,0,0.4); } .ds-card-header { display: flex; align-items: flex-start; gap: 8px; } .ds-grip { color: #64748b; width: 14px; height: 14px; shrink: 0; margin-top: 2px; } .ds-grip svg { width: 14px; height: 14px; } .ds-card-title { margin: 0; font-size: 13px; font-weight: 700; color: #ffffff; line-height: 1.3; } .ds-card-desc { margin: 6px 0 10px 22px; font-size: 11px; color: #94a3b8; line-height: 1.4; } .ds-card-badges { display: flex; align-items: center; gap: 6px; margin-left: 22px; } .ds-badge-p1 { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; font-weight: 700; color: #fda4af; background: rgba(244, 63, 94, 0.15); border: 1px solid rgba(244, 63, 94, 0.35); padding: 2px 6px; border-radius: 4px; } .ds-badge-p1 svg { width: 10px; height: 10px; stroke: currentColor; } .ds-badge-duration { display: inline-flex; align-items: center; gap: 3px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; color: #a5b4fc; background: rgba(79, 70, 229, 0.15); border: 1px solid rgba(79, 70, 229, 0.35); padding: 2px 6px; border-radius: 4px; } .ds-badge-duration svg { width: 10px; height: 10px; stroke: currentColor; }"
+    },
+    {
+      "name": "Text Input Field",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Standard high-contrast input field with focus ring.",
+      "html": "<input type=\"text\" class=\"ds-input\" placeholder=\"Search tasks or enter command...\" />",
+      "css": ".ds-input { width: 100%; box-sizing: border-box; background: #0e131f; color: #ffffff; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.12); outline: none; transition: border-color 0.15s, box-shadow 0.15s; } .ds-input::placeholder { color: #64748b; } .ds-input:focus { border-color: #f43f5e; box-shadow: 0 0 0 2px rgba(244, 63, 94, 0.25); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Obsidian Horology Lab",
+    "overview": "Takt is engineered as a high-precision, tactile command center. Drawing inspiration from precision horology and tactical instrumentation, the interface pairs deep titanium and obsidian voids with crisp hairline boundaries, calibrated typographic rhythm, and targeted luminous accents. It decisively rejects blurry, decorative neon glows, bloated enterprise tables, and sluggish interaction delays in favor of immediate, zero-latency feedback and crystalline contrast.\n\nEvery surface is built for intense cognitive focus. Dark mode is anchored in pitch obsidian (#090b11), layering subtle elevation steps (#0e131f to #192132) to establish clear hierarchy without relying on heavy muddy drop shadows.",
+    "keyCharacteristics": [
+      "Obsidian Architectural Contrast: High-contrast tonal surfaces exceeding WCAG AAA standards for effortless legibility.",
+      "Cadence Accents: Focused energy channeled through Precision Rose (#f43f5e), Cadence Violet (#a855f7), and Flow Emerald (#10b981).",
+      "Tactile Physics: Snappy spring physics for drag operations and crisp button presses.",
+      "Zero-Friction Ergonomics: Tight density, compact telemetry chips, and keyboard-driven workflows."
+    ],
+    "rules": [
+      {
+        "name": "The Cadence Accent Rule",
+        "body": "Luminous color accents (#f43f5e, #a855f7, #10b981) must occupy no more than 10% of any viewport. Chromatic saturation is an alert and focus signal; flooding surfaces with accent backgrounds destroys visual hierarchy.",
+        "section": "colors"
+      },
+      {
+        "name": "The Hairline Boundary Rule",
+        "body": "Structural separation is established by 1px hairline borders (rgba(255,255,255,0.10) on dark, #e2e8f0 on light) rather than multi-layered blurred drop shadows.",
+        "section": "colors"
+      },
+      {
+        "name": "The Negative Tracking Rule",
+        "body": "Any heading or title above 14px must apply tight negative tracking (-0.015em to -0.03em) to eliminate typographic flabbiness and reinforce the architectural grid.",
+        "section": "typography"
+      },
+      {
+        "name": "The Monospace Telemetry Rule",
+        "body": "All numeric counters, timer countdowns, and duration values (15m, 2h 30m) must be rendered in JetBrains Mono.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tonal Stepping Rule",
+        "body": "Visual depth rises sequentially: Canvas (#090b11) → Container (#0e131f) → Card (#131926) → Modal/Dropdown (#192132). Never skip a tier or place lower-tier tones over higher-tier tones.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Verified Contrast Rule",
+        "body": "All placeholder and secondary text must pass WCAG AA (minimum 4.5:1 for body and placeholders). Never use washed-out low-contrast grays (zinc-500 on dark or #94a3b8 on light canvas).",
+        "section": "colors"
+      }
+    ],
+    "dos": [
+      "Do preserve the high-contrast Obsidian dark mode hierarchy (#090b11 canvas with #131926 cards).",
+      "Do format all time blocks, countdowns, and duration chips using monospace JetBrains Mono.",
+      "Do use Framer Motion spring physics (stiffness: 350, damping: 28) for drag and layout animations.",
+      "Do provide immediate hover and active tactile states on every interactive surface.",
+      "Do ensure all text and icon contrasts surpass WCAG AA standards."
+    ],
+    "donts": [
+      "Don't flood entire card backgrounds or columns with vibrant primary red or purple; reserve high chroma for badges, focus states, and primary CTAs.",
+      "Don't use generic default system scrollbars; always apply the refined 5px semi-transparent custom scrollbar.",
+      "Don't introduce heavy, fuzzy, multi-colored drop shadows that muddy the architectural lines.",
+      "Don't build non-keyboard-accessible accordions or drag interactions; ensure full WAI-ARIA and focus-ring compliance."
+    ]
+  }
+}

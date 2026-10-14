@@ -487,7 +487,7 @@ export default function TaskModal({
                         onDeleteTask(task.id);
                         onClose();
                       }}
-                      className="w-full px-3 py-2 text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 flex items-center gap-2"
+                      className="w-full px-3 py-2 text-left text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-2"
                     >
                       <Trash2 className="w-3.5 h-3.5" /> Delete Task
                     </button>
@@ -541,7 +541,7 @@ export default function TaskModal({
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   autoFocus
-                  className={`w-full text-base sm:text-lg font-bold bg-transparent border-0 focus:outline-none placeholder:text-neutral-400 dark:placeholder:text-zinc-500 ${
+                  className={`w-full text-base sm:text-lg font-bold bg-transparent border-0 focus:outline-none placeholder:text-neutral-400 dark:placeholder:text-zinc-400 ${
                     isCompleted ? 'line-through text-neutral-400 dark:text-zinc-500' : 'text-neutral-900 dark:text-white'
                   }`}
                 />
@@ -559,7 +559,7 @@ export default function TaskModal({
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
-                className="w-full text-xs sm:text-sm bg-neutral-50/60 dark:bg-[#161c2b] border border-neutral-200/80 dark:border-white/[0.1] rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-red-500/30 text-neutral-800 dark:text-zinc-200 placeholder:text-neutral-400 dark:placeholder:text-zinc-500 leading-relaxed resize-y"
+                className="w-full text-xs sm:text-sm bg-neutral-50/60 dark:bg-[#161c2b] border border-neutral-200/80 dark:border-white/[0.1] rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-rose-500/40 text-neutral-800 dark:text-zinc-200 placeholder:text-neutral-400 dark:placeholder:text-zinc-400 leading-relaxed resize-y"
               />
             </div>
 
@@ -573,7 +573,7 @@ export default function TaskModal({
                   <button
                     type="button"
                     onClick={() => setShowSubtaskInput(true)}
-                    className="text-xs font-semibold text-red-600 dark:text-red-400 hover:underline flex items-center gap-1"
+                    className="text-xs font-semibold text-rose-600 dark:text-rose-400 hover:underline flex items-center gap-1"
                   >
                     <Plus className="w-3.5 h-3.5" /> Add sub-task
                   </button>
@@ -593,7 +593,7 @@ export default function TaskModal({
                           type="checkbox"
                           checked={st.completed}
                           onChange={() => toggleSubtask(st.id)}
-                          className="w-3.5 h-3.5 accent-red-600 rounded cursor-pointer"
+                          className="w-3.5 h-3.5 accent-rose-500 rounded cursor-pointer"
                         />
                         <span className={`text-xs ${st.completed ? 'line-through text-neutral-400 dark:text-zinc-500' : 'text-neutral-800 dark:text-zinc-200'}`}>
                           {st.text}
@@ -602,7 +602,7 @@ export default function TaskModal({
                       <button
                         type="button"
                         onClick={() => deleteSubtask(st.id)}
-                        className="opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-red-500 p-1 transition-opacity"
+                        className="opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-rose-500 p-1 transition-opacity"
                       >
                         <Trash2 className="w-3 h-3" />
                       </button>
@@ -628,12 +628,12 @@ export default function TaskModal({
                       }
                     }}
                     autoFocus
-                    className="flex-1 text-xs bg-neutral-50 dark:bg-[#161c2b] border border-neutral-200 dark:border-white/[0.1] rounded-lg px-2.5 py-1.5 text-neutral-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-red-500/30 placeholder:text-zinc-500"
+                    className="flex-1 text-xs bg-neutral-50 dark:bg-[#161c2b] border border-neutral-200 dark:border-white/[0.1] rounded-lg px-2.5 py-1.5 text-neutral-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-rose-500/40 placeholder:text-zinc-400"
                   />
                   <button
                     type="button"
                     onClick={handleAddSubtask}
-                    className="px-2.5 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-700"
+                    className="px-2.5 py-1.5 bg-rose-500 text-white text-xs font-semibold rounded-lg hover:bg-[#ff4b55]"
                   >
                     Add
                   </button>
@@ -657,7 +657,7 @@ export default function TaskModal({
                 </div>
                 {loadingComments && (
                   <span className="flex items-center gap-1 text-[10px] text-neutral-400 font-normal">
-                    <Loader2 className="w-3 h-3 animate-spin text-red-500" />
+                    <Loader2 className="w-3 h-3 animate-spin text-rose-500" />
                     <span>Syncing cloud...</span>
                   </span>
                 )}
@@ -672,7 +672,7 @@ export default function TaskModal({
                     const canDelete = !comm.user_id || comm.user_id === currentUserId;
                     return (
                       <div key={comm.id} className="group flex items-start gap-2.5 text-xs">
-                        <div className="w-6 h-6 rounded-full bg-red-100 dark:bg-rose-950/60 text-red-600 dark:text-rose-300 font-bold flex items-center justify-center text-[10px] shrink-0 border border-transparent dark:border-rose-500/30">
+                        <div className="w-6 h-6 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-300 font-bold flex items-center justify-center text-[10px] shrink-0 border border-transparent dark:border-rose-500/30">
                           {initial}
                         </div>
                         <div className="flex-1 bg-neutral-50 dark:bg-[#161c2b] border border-neutral-200/60 dark:border-white/[0.08] rounded-xl p-2.5 relative">
@@ -684,7 +684,7 @@ export default function TaskModal({
                                 <button
                                   type="button"
                                   onClick={() => handleDeleteComment(comm.id)}
-                                  className="opacity-0 group-hover:opacity-100 p-0.5 text-neutral-400 hover:text-red-500 transition-opacity"
+                                  className="opacity-0 group-hover:opacity-100 p-0.5 text-neutral-400 hover:text-rose-500 transition-opacity"
                                   title="Delete comment"
                                 >
                                   <Trash2 className="w-3 h-3" />
@@ -706,10 +706,10 @@ export default function TaskModal({
 
               {/* Pill-shaped Comment Input (Screenshot 2 exact style) */}
               <div className="flex items-center gap-2 pt-1">
-                <div className="w-7 h-7 rounded-full bg-red-100 dark:bg-rose-950/60 text-red-600 dark:text-rose-300 flex items-center justify-center text-xs font-bold shrink-0 border border-transparent dark:border-rose-500/30">
+                <div className="w-7 h-7 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-300 flex items-center justify-center text-xs font-bold shrink-0 border border-transparent dark:border-rose-500/30">
                   {session?.user?.email ? session.user.email[0].toUpperCase() : 'U'}
                 </div>
-                <div className="flex-1 flex items-center bg-neutral-50 dark:bg-[#161c2b] border border-neutral-200 dark:border-white/[0.1] rounded-full px-3 py-1.5 focus-within:border-red-500/50">
+                <div className="flex-1 flex items-center bg-neutral-50 dark:bg-[#161c2b] border border-neutral-200 dark:border-white/[0.1] rounded-full px-3 py-1.5 focus-within:border-rose-500/50">
                   <input
                     type="text"
                     placeholder="Leave a comment or task update..."
@@ -721,7 +721,7 @@ export default function TaskModal({
                         handleAddComment();
                       }
                     }}
-                    className="flex-1 text-xs bg-transparent border-0 focus:outline-none text-neutral-800 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-zinc-500"
+                    className="flex-1 text-xs bg-transparent border-0 focus:outline-none text-neutral-800 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-zinc-400"
                   />
                   <div className="flex items-center gap-1.5 ml-2 text-neutral-400 dark:text-zinc-400">
                     <button
@@ -735,7 +735,7 @@ export default function TaskModal({
                       type="button"
                       onClick={handleAddComment}
                       disabled={!newCommentText.trim()}
-                      className="p-1 text-red-600 dark:text-red-400 hover:text-red-700 disabled:opacity-30"
+                      className="p-1 text-rose-600 dark:text-rose-400 hover:text-rose-700 disabled:opacity-30"
                     >
                       <Send className="w-3.5 h-3.5" />
                     </button>
@@ -822,7 +822,7 @@ export default function TaskModal({
               <span className="text-[11px] font-bold text-neutral-400 dark:text-zinc-400">Priority</span>
               <div className="grid grid-cols-4 gap-1.5">
                 {[
-                  { key: 'P1', label: 'P1', color: 'text-red-500 dark:text-red-400', active: 'bg-red-50 dark:bg-red-950/60 border-red-500/50' },
+                  { key: 'P1', label: 'P1', color: 'text-rose-500 dark:text-rose-400', active: 'bg-rose-50 dark:bg-rose-950/60 border-rose-500/50' },
                   { key: 'P2', label: 'P2', color: 'text-amber-500 dark:text-amber-400', active: 'bg-amber-50 dark:bg-amber-950/60 border-amber-500/50' },
                   { key: 'P3', label: 'P3', color: 'text-blue-500 dark:text-blue-400', active: 'bg-blue-50 dark:bg-blue-950/60 border-blue-500/50' },
                   { key: 'P4', label: 'P4', color: 'text-neutral-400 dark:text-zinc-300', active: 'bg-neutral-100 dark:bg-white/[0.1] border-neutral-400 dark:border-white/[0.2]' }
@@ -833,7 +833,7 @@ export default function TaskModal({
                     onClick={() => setPriority(p.key)}
                     className={`py-1.5 px-2 rounded-lg border text-center font-bold flex items-center justify-center gap-1 transition-all ${
                       priority === p.key
-                        ? `${p.active} ring-1 ring-red-500/30`
+                        ? `${p.active} ring-1 ring-rose-500/30`
                         : 'border-neutral-200 dark:border-white/[0.08] bg-white dark:bg-[#161c2b] hover:bg-neutral-100 dark:hover:bg-white/[0.08]'
                     }`}
                   >
@@ -887,7 +887,7 @@ export default function TaskModal({
                     className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md bg-neutral-200/80 dark:bg-white/[0.08] text-neutral-700 dark:text-zinc-200 border border-transparent dark:border-white/[0.08]"
                   >
                     {t}
-                    <button type="button" onClick={() => removeTag(t)} className="hover:text-red-500">
+                    <button type="button" onClick={() => removeTag(t)} className="hover:text-rose-500">
                       <X className="w-2.5 h-2.5" />
                     </button>
                   </span>
@@ -1008,7 +1008,7 @@ export default function TaskModal({
                   placeholder="Custom e.g. 1h 45m"
                   value={duration}
                   onChange={(e) => setDuration(e.target.value)}
-                  className="w-full text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-white dark:bg-[#161c2b] border border-indigo-200/80 dark:border-white/[0.1] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="w-full text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-white dark:bg-[#161c2b] border border-indigo-200/80 dark:border-white/[0.1] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 />
               </div>
 
@@ -1027,7 +1027,7 @@ export default function TaskModal({
                   }}
                   className="w-full accent-indigo-600 cursor-pointer"
                 />
-                <div className="flex justify-between text-[9px] text-slate-400 dark:text-zinc-400 font-mono">
+                <div className="flex justify-between text-[10px] text-slate-400 dark:text-zinc-400 font-mono">
                   <span>15m</span>
                   <span>1h</span>
                   <span>2h</span>
@@ -1052,7 +1052,7 @@ export default function TaskModal({
                   onDeleteTask(task.id);
                   onClose();
                 }}
-                className="text-xs font-semibold text-neutral-400 hover:text-red-600 dark:text-zinc-400 dark:hover:text-red-400 flex items-center gap-1.5 py-1.5 px-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                className="text-xs font-semibold text-neutral-400 hover:text-rose-600 dark:text-zinc-400 dark:hover:text-rose-400 flex items-center gap-1.5 py-1.5 px-2 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Delete</span>
@@ -1072,7 +1072,7 @@ export default function TaskModal({
               type="button"
               onClick={handleSubmit}
               disabled={!title.trim()}
-              className="px-4 py-1.5 text-xs font-bold rounded-xl bg-red-600 hover:bg-red-700 text-white disabled:opacity-40 shadow-sm shadow-red-600/30 flex items-center gap-1.5 transition-all"
+              className="px-4 py-1.5 text-xs font-bold rounded-xl bg-rose-500 hover:bg-[#ff4b55] text-white disabled:opacity-40 shadow-sm shadow-rose-500/25 flex items-center gap-1.5 transition-all active:translate-y-0"
             >
               <Check className="w-3.5 h-3.5" />
               <span>{isEditing ? 'Save Changes' : 'Add Task'}</span>
