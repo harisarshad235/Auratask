@@ -50,7 +50,7 @@ export default function LandingPage({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Logo & Brand */}
           <div className="flex items-center gap-6">
-            <Logo onClick={hasActiveSession && onOpenApp ? onOpenApp : onTryDemo} href="/" subtitle="Auratask" />
+            <Logo onClick={hasActiveSession && onOpenApp ? onOpenApp : onTryDemo} href="/" />
 
             {/* Nav Links */}
             <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-neutral-600 dark:text-zinc-400">
@@ -143,8 +143,8 @@ export default function LandingPage({
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-            <span className="font-mono text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-600 dark:bg-indigo-400/15 dark:text-indigo-300 border border-indigo-500/20">
-              TAKT (AURATASK)
+            <span className="font-mono text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-600 dark:bg-indigo-400/15 dark:text-indigo-300 border border-indigo-500/20">
+              TAKT 2.4
             </span>
             <span className="text-neutral-300 dark:text-zinc-700">|</span>
             <span className="text-xs font-medium text-neutral-700 dark:text-zinc-200">
@@ -164,8 +164,8 @@ export default function LandingPage({
           </h1>
 
           {/* Refined Subhead / Value Proposition */}
-          <p className="text-base sm:text-lg lg:text-xl text-neutral-600 dark:text-zinc-400 max-w-[64ch] mx-auto mb-10 font-normal leading-relaxed tracking-[-0.012em]">
-            <strong>Takt</strong> (registered in Google Cloud Console as <strong>Auratask</strong>) is a high-velocity precision task command center, Kanban cadence workspace, and Pomodoro focus manager. 100% free and publicly accessible with zero sign-in required to explore.
+          <p className="text-base sm:text-lg lg:text-xl text-neutral-600 dark:text-zinc-400 max-w-[62ch] mx-auto mb-10 font-normal leading-relaxed tracking-[-0.012em]">
+            Organize tasks, map day-wise calendar horizons, and lock into deep Pomodoro flow. Designed with obsidian tactile depth, instant keyboard navigation, and zero-latency cloud sync.
           </p>
 
           {/* Elevated CTAs: Tactile Bevel Button + Frosted Interactive Demo */}
@@ -1013,7 +1013,7 @@ export default function LandingPage({
               Application Purpose &amp; Google Data Transparency
             </h2>
             <p className="text-sm sm:text-base text-neutral-600 dark:text-zinc-400 leading-relaxed">
-              Takt (registered in Google Cloud Console as <strong>Auratask</strong> / <strong>Takt Workspace</strong>) is an open, privacy-first workspace engineered by <strong>Haris Arshad</strong>. We believe in complete transparency regarding what our application does, why we request sign-in, and how your data is protected.
+              <strong>Takt</strong> is an open, privacy-first productivity platform engineered by <strong>Haris Arshad</strong>. We believe in complete transparency regarding what our application does, why we request sign-in, and how your data is protected.
             </p>
           </div>
 

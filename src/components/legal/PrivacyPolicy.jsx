@@ -40,7 +40,7 @@ export default function PrivacyPolicy({ onBack, onNavigate, isLoggedIn = false }
         </div>
 
         <div className="flex flex-wrap gap-2 text-[11px] font-semibold text-slate-500 dark:text-[#a1a1aa] mb-8">
-          <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-[#1c1c20] border border-slate-200 dark:border-[#28282e]">Application: Takt (Auratask)</span>
+          <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-[#1c1c20] border border-slate-200 dark:border-[#28282e]">Application: Takt</span>
           <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-[#1c1c20] border border-slate-200 dark:border-[#28282e]">Homepage: https://takt.harisarshad.site/</span>
           <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-[#1c1c20] border border-slate-200 dark:border-[#28282e]">Policy URL: https://takt.harisarshad.site/privacy</span>
           <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-[#1c1c20] border border-slate-200 dark:border-[#28282e]">Developer: Haris Arshad</span>
@@ -50,7 +50,7 @@ export default function PrivacyPolicy({ onBack, onNavigate, isLoggedIn = false }
 
         <div className="prose prose-slate dark:prose-invert max-w-none text-sm space-y-6 text-slate-600 dark:text-[#a1a1aa] leading-relaxed">
           <p>
-            This Privacy Policy applies to the <strong className="text-slate-900 dark:text-white">Takt</strong> web application (registered and identified in Google Cloud Console as <strong className="text-slate-900 dark:text-white">Auratask</strong> / <strong className="text-slate-900 dark:text-white">Takt Workspace</strong>, collectively referred to as &ldquo;Takt&rdquo;, &ldquo;Auratask&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;, &ldquo;our&rdquo;, or &ldquo;the Service&rdquo;), accessible at{' '}
+            This Privacy Policy applies to the <strong className="text-slate-900 dark:text-white">Takt</strong> web application (collectively referred to as &ldquo;Takt&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;, &ldquo;our&rdquo;, or &ldquo;the Service&rdquo;), accessible at{' '}
             <a href="https://takt.harisarshad.site/" className="text-rose-600 dark:text-rose-400 underline font-medium">https://takt.harisarshad.site/</a>. Takt is developed, owned, and operated by independent software engineer <strong className="text-slate-900 dark:text-white">Haris Arshad</strong>.
           </p>
           <p>
@@ -291,7 +291,7 @@ export default function PrivacyPolicy({ onBack, onNavigate, isLoggedIn = false }
             11. Developer, Application &amp; Organization Information
           </h2>
           <ul className="list-none space-y-1.5 pl-0 text-xs">
-            <li><strong>Application Name:</strong> Takt (registered in Google Cloud as <strong>Auratask</strong> / <strong>Takt Workspace</strong>)</li>
+            <li><strong>Application Name:</strong> Takt</li>
             <li><strong>Homepage URL:</strong> <a href="https://takt.harisarshad.site/" className="underline">https://takt.harisarshad.site/</a></li>
             <li><strong>Privacy Policy URL:</strong> <a href="https://takt.harisarshad.site/privacy" className="underline">https://takt.harisarshad.site/privacy</a></li>
             <li><strong>Terms of Service URL:</strong> <a href="https://takt.harisarshad.site/terms" className="underline">https://takt.harisarshad.site/terms</a></li>
@@ -303,7 +303,7 @@ export default function PrivacyPolicy({ onBack, onNavigate, isLoggedIn = false }
         </div>
 
         <div className="mt-12 pt-6 border-t border-slate-100 dark:border-[#222225] flex items-center justify-between text-xs text-slate-400">
-          <div>&copy; {new Date().getFullYear()} Takt (Auratask) by Haris Arshad. All rights reserved.</div>
+          <div>&copy; {new Date().getFullYear()} Takt by Haris Arshad. All rights reserved.</div>
           <div className="flex gap-4">
             <a
               href="/terms"
