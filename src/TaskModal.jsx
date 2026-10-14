@@ -3,7 +3,7 @@ import {
   X, Check, ChevronUp, ChevronDown, MoreHorizontal, Inbox, Calendar,
   Flag, Tag, Clock, Paperclip, Send, Trash2, CheckCircle2, Circle,
   FileText, Sparkles, CornerDownLeft, Plus, MessageSquare, AlertCircle,
-  Hourglass, Timer, Star, Loader2
+  Hourglass, Timer, Star, Loader2, Pencil, Eye, EyeOff
 } from 'lucide-react';
 import { formatDuration, parseDurationMinutes } from './utils/formatDuration';
 import { supabase } from './supabaseClient';
@@ -72,7 +72,10 @@ export default function TaskModal({
   // New subtask & comment inputs
   const [newSubtaskText, setNewSubtaskText] = useState('');
   const [showSubtaskInput, setShowSubtaskInput] = useState(false);
+  const [editingSubtaskId, setEditingSubtaskId] = useState(null);
+  const [editingSubtaskText, setEditingSubtaskText] = useState('');
   const [newCommentText, setNewCommentText] = useState('');
+  const [showAuditTrail, setShowAuditTrail] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [newTagInput, setNewTagInput] = useState('');
   const [showTagInput, setShowTagInput] = useState(false);
@@ -179,10 +182,13 @@ export default function TaskModal({
         } else if (Array.isArray(dbComments) && isMounted) {
           const formatted = dbComments.map(c => ({
             id: c.id,
-            author: c.user_id === currentUserId ? 'You' : 'Team Member',
-            text: c.content,
+            author: c.user_id === currentUserId ? 'You' : (c.author || 'Team Member'),
+            text: c.content || c.text,
             timestamp: new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             created_at: c.created_at,
+            updated_at: c.updated_at,
+            deleted_at: c.deleted_at || null,
+            is_deleted: Boolean(c.is_deleted || c.deleted_at),
             user_id: c.user_id,
             task_id: c.task_id
           }));
@@ -215,14 +221,26 @@ export default function TaskModal({
               if (prev.some(c => c.id === row.id)) return prev;
               return [...prev, {
                 id: row.id,
-                author: row.user_id === currentUserId ? 'You' : 'Team Member',
-                text: row.content,
+                author: row.user_id === currentUserId ? 'You' : (row.author || 'Team Member'),
+                text: row.content || row.text,
                 timestamp: new Date(row.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 created_at: row.created_at,
+                updated_at: row.updated_at,
+                deleted_at: row.deleted_at || null,
+                is_deleted: Boolean(row.is_deleted || row.deleted_at),
                 user_id: row.user_id,
                 task_id: row.task_id
               }];
             });
+          } else if (payload.eventType === 'UPDATE') {
+            const row = payload.new;
+            setComments(prev => prev.map(c => c.id === row.id ? {
+              ...c,
+              text: row.content || row.text || c.text,
+              updated_at: row.updated_at,
+              deleted_at: row.deleted_at || null,
+              is_deleted: Boolean(row.is_deleted || row.deleted_at)
+            } : c));
           } else if (payload.eventType === 'DELETE') {
             const delId = payload.old?.id;
             if (delId) {
@@ -265,17 +283,55 @@ export default function TaskModal({
       text: cleanSubtask,
       completed: false
     };
-    setSubtasks([...subtasks, newSt]);
+    const updated = [...subtasks, newSt];
+    setSubtasks(updated);
     setNewSubtaskText('');
     setShowSubtaskInput(false);
+    if (task && onSaveTask) {
+      onSaveTask({ ...task, subtasks: updated });
+    }
   };
 
   const toggleSubtask = (stId) => {
-    setSubtasks(subtasks.map(st => st.id === stId ? { ...st, completed: !st.completed } : st));
+    const updated = subtasks.map(st => st.id === stId ? { ...st, completed: !st.completed } : st);
+    setSubtasks(updated);
+    if (task && onSaveTask) {
+      onSaveTask({ ...task, subtasks: updated });
+    }
   };
 
   const deleteSubtask = (stId) => {
-    setSubtasks(subtasks.filter(st => st.id !== stId));
+    const updated = subtasks.filter(st => st.id !== stId);
+    setSubtasks(updated);
+    if (task && onSaveTask) {
+      onSaveTask({ ...task, subtasks: updated });
+    }
+  };
+
+  // Edit subtask
+  const handleStartEditSubtask = (st) => {
+    setEditingSubtaskId(st.id);
+    setEditingSubtaskText(st.text);
+  };
+
+  const handleCancelEditSubtask = () => {
+    setEditingSubtaskId(null);
+    setEditingSubtaskText('');
+  };
+
+  const handleSaveEditSubtask = (stId) => {
+    const cleanText = sanitizeString(editingSubtaskText, 300);
+    if (!cleanText) {
+      handleCancelEditSubtask();
+      return;
+    }
+    const updated = subtasks.map(st => st.id === stId ? { ...st, text: cleanText } : st);
+    setSubtasks(updated);
+    setEditingSubtaskId(null);
+    setEditingSubtaskText('');
+    if (task && onSaveTask) {
+      onSaveTask({ ...task, subtasks: updated });
+    }
   };
 
   // Add Comment (Persisting to both Supabase task_comments and task metadata)
@@ -291,6 +347,9 @@ export default function TaskModal({
       text: commentText,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       created_at: nowIso,
+      updated_at: nowIso,
+      deleted_at: null,
+      is_deleted: false,
       user_id: currentUserId,
       task_id: task?.id
     };
@@ -307,7 +366,10 @@ export default function TaskModal({
           task_id: task.id,
           user_id: currentUserId,
           content: commentText,
-          created_at: nowIso
+          created_at: nowIso,
+          updated_at: nowIso,
+          deleted_at: null,
+          is_deleted: false
         });
 
         if (error) {
@@ -331,23 +393,71 @@ export default function TaskModal({
     }
   };
 
-  // Delete Comment
+  // Delete Comment (Soft Deletion: preserves in database and audit history with deleted_at timestamp)
   const handleDeleteComment = async (commentId) => {
-    const updated = comments.filter(c => c.id !== commentId);
+    const nowIso = new Date().toISOString();
+    const updated = comments.map(c =>
+      c.id === commentId
+        ? { ...c, deleted_at: nowIso, is_deleted: true, deleted_by: currentUserId || 'User' }
+        : c
+    );
     setComments(updated);
 
-    if (currentUserId && isValidUUID(commentId)) {
+    // 1. Soft-delete in Supabase task_comments table by setting deleted_at and is_deleted
+    if (isValidUUID(commentId)) {
+      try {
+        const { error: softErr } = await supabase
+          .from('task_comments')
+          .update({
+            deleted_at: nowIso,
+            is_deleted: true,
+            updated_at: nowIso
+          })
+          .eq('id', commentId);
+
+        if (softErr) {
+          console.warn("Soft update on task_comments column failed (database table may need migration):", softErr.message);
+        }
+      } catch (err) {
+        console.error("Exception soft deleting comment from Supabase:", err);
+      }
+    }
+
+    // 2. Persist soft-deleted comment to parent task so client state and metadata envelope preserve it for database auditing
+    if (task && onSaveTask) {
+      onSaveTask({
+        ...task,
+        comments: updated
+      });
+    }
+  };
+
+  // Restore Comment (Un-archive soft-deleted comment)
+  const handleRestoreComment = async (commentId) => {
+    const nowIso = new Date().toISOString();
+    const updated = comments.map(c =>
+      c.id === commentId
+        ? { ...c, deleted_at: null, is_deleted: false }
+        : c
+    );
+    setComments(updated);
+
+    if (isValidUUID(commentId)) {
       try {
         const { error } = await supabase
           .from('task_comments')
-          .delete()
+          .update({
+            deleted_at: null,
+            is_deleted: false,
+            updated_at: nowIso
+          })
           .eq('id', commentId);
 
         if (error) {
-          console.error("Supabase operation failed on delete task_comments:", error);
+          console.warn("Restore on task_comments failed:", error.message);
         }
       } catch (err) {
-        console.error("Exception deleting comment from Supabase:", err);
+        console.error("Exception restoring comment:", err);
       }
     }
 
@@ -429,6 +539,9 @@ export default function TaskModal({
   }, [isOpen]);
 
   if (!isOpen) return null;
+
+  const activeComments = comments.filter(c => !c.deleted_at && !c.is_deleted);
+  const deletedComments = comments.filter(c => Boolean(c.deleted_at || c.is_deleted));
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-150">
@@ -609,24 +722,83 @@ export default function TaskModal({
                       key={st.id}
                       className="group flex items-center justify-between p-2 rounded-lg bg-neutral-50 dark:bg-[#161c2b] border border-neutral-200/60 dark:border-white/[0.08]"
                     >
-                      <label className="flex items-center gap-2.5 flex-1 cursor-pointer min-w-0">
-                        <input
-                          type="checkbox"
-                          checked={st.completed}
-                          onChange={() => toggleSubtask(st.id)}
-                          className="w-3.5 h-3.5 accent-rose-500 rounded cursor-pointer"
-                        />
-                        <span className={`text-xs ${st.completed ? 'line-through text-neutral-400 dark:text-zinc-500' : 'text-neutral-800 dark:text-zinc-200'}`}>
-                          {st.text}
-                        </span>
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => deleteSubtask(st.id)}
-                        className="opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-rose-500 p-1 transition-opacity"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
+                      {editingSubtaskId === st.id ? (
+                        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                          <input
+                            type="text"
+                            value={editingSubtaskText}
+                            onChange={(e) => setEditingSubtaskText(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleSaveEditSubtask(st.id);
+                              } else if (e.key === 'Escape') {
+                                e.preventDefault();
+                                handleCancelEditSubtask();
+                              }
+                            }}
+                            autoFocus
+                            placeholder="Edit subtask name..."
+                            className="flex-1 text-xs bg-white dark:bg-[#0e121b] border border-rose-500 rounded-md px-2 py-1 text-neutral-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-rose-500"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleSaveEditSubtask(st.id)}
+                            className="p-1 text-emerald-600 hover:text-emerald-500 dark:text-emerald-400 rounded hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+                            title="Save changes (Enter)"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleCancelEditSubtask}
+                            className="p-1 text-neutral-400 hover:text-neutral-600 dark:text-zinc-400 rounded hover:bg-neutral-100 dark:hover:bg-white/[0.08]"
+                            title="Cancel (Esc)"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <label className="flex items-center gap-2.5 flex-1 cursor-pointer min-w-0">
+                            <input
+                              type="checkbox"
+                              checked={st.completed}
+                              onChange={() => toggleSubtask(st.id)}
+                              className="w-3.5 h-3.5 accent-rose-500 rounded cursor-pointer shrink-0"
+                            />
+                            <span
+                              onDoubleClick={() => handleStartEditSubtask(st)}
+                              title="Double-click or click pencil to edit"
+                              className={`text-xs truncate select-none ${
+                                st.completed
+                                  ? 'line-through text-neutral-400 dark:text-zinc-500'
+                                  : 'text-neutral-800 dark:text-zinc-200'
+                              }`}
+                            >
+                              {st.text}
+                            </span>
+                          </label>
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              type="button"
+                              onClick={() => handleStartEditSubtask(st)}
+                              className="text-neutral-400 hover:text-rose-500 p-1 rounded hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors"
+                              title="Edit subtask"
+                            >
+                              <Pencil className="w-3 h-3" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => deleteSubtask(st.id)}
+                              className="text-neutral-400 hover:text-rose-500 p-1 rounded hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors"
+                              title="Delete subtask"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -684,13 +856,12 @@ export default function TaskModal({
                 )}
               </div>
 
-              {/* Comment Thread List */}
-              {comments.length > 0 ? (
+              {/* Active Comment Thread List */}
+              {activeComments.length > 0 ? (
                 <div className="space-y-2.5 max-h-44 overflow-y-auto pr-1">
-                  {comments.map((comm) => {
+                  {activeComments.map((comm) => {
                     const authorName = comm.author || (comm.user_id === currentUserId ? 'You' : 'User');
                     const initial = (authorName.trim()[0] || 'U').toUpperCase();
-                    const canDelete = !comm.user_id || comm.user_id === currentUserId;
                     return (
                       <div key={comm.id} className="group flex items-start gap-2.5 text-xs">
                         <div className="w-6 h-6 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-300 font-bold flex items-center justify-center text-[10px] shrink-0 border border-transparent dark:border-rose-500/30">
@@ -701,16 +872,14 @@ export default function TaskModal({
                             <span className="font-semibold text-neutral-800 dark:text-white">{authorName}</span>
                             <div className="flex items-center gap-1.5">
                               <span className="text-[10px] text-neutral-400 dark:text-zinc-400">{comm.timestamp}</span>
-                              {canDelete && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleDeleteComment(comm.id)}
-                                  className="opacity-0 group-hover:opacity-100 p-0.5 text-neutral-400 hover:text-rose-500 transition-opacity"
-                                  title="Delete comment"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </button>
-                              )}
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteComment(comm.id)}
+                                className="opacity-0 group-hover:opacity-100 p-0.5 text-neutral-400 hover:text-rose-500 transition-opacity"
+                                title="Soft delete comment (retained in DB)"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
                             </div>
                           </div>
                           <p className="text-neutral-600 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">{comm.text || comm.content}</p>
@@ -723,6 +892,56 @@ export default function TaskModal({
                 !loadingComments && (
                   <p className="text-[11px] text-neutral-400 dark:text-zinc-400 italic">No comments yet. Leave a note or update below.</p>
                 )
+              )}
+
+              {/* Soft-Deleted Comments Audit Trail (Preserved in database) */}
+              {deletedComments.length > 0 && (
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowAuditTrail(prev => !prev)}
+                    className="text-[11px] font-medium text-neutral-500 dark:text-zinc-400 hover:text-neutral-800 dark:hover:text-zinc-200 flex items-center gap-1.5 transition-colors"
+                  >
+                    {showAuditTrail ? <EyeOff className="w-3 h-3 text-rose-500" /> : <Eye className="w-3 h-3 text-rose-500" />}
+                    <span>{showAuditTrail ? 'Hide archived / soft-deleted comments' : `View ${deletedComments.length} soft-deleted comment(s) (Database Audit)`}</span>
+                  </button>
+
+                  {showAuditTrail && (
+                    <div className="mt-2 space-y-2 p-2.5 rounded-xl bg-neutral-100/70 dark:bg-black/30 border border-neutral-200/80 dark:border-white/[0.08]">
+                      <div className="flex items-center justify-between text-[10px] font-semibold text-neutral-400 dark:text-zinc-400 uppercase tracking-wider">
+                        <span>Database Audit Trail</span>
+                        <span className="text-amber-500 dark:text-amber-400 font-mono text-[9px]">Retained in Database</span>
+                      </div>
+                      {deletedComments.map((dComm) => (
+                        <div key={dComm.id} className="p-2 rounded-lg bg-white/70 dark:bg-[#121622]/80 border border-neutral-200/50 dark:border-white/[0.05] text-xs space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium text-neutral-700 dark:text-zinc-300 flex items-center gap-2">
+                              {dComm.author || 'User'}
+                              <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-300/40 font-mono">
+                                SOFT DELETED
+                              </span>
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleRestoreComment(dComm.id)}
+                              className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1"
+                              title="Restore comment back to active thread"
+                            >
+                              Restore
+                            </button>
+                          </div>
+                          <p className="text-neutral-500 dark:text-zinc-400 italic line-through text-[11px]">
+                            {dComm.text || dComm.content}
+                          </p>
+                          <div className="text-[10px] text-neutral-400 dark:text-zinc-500 flex items-center justify-between">
+                            <span>Created: {dComm.timestamp || 'N/A'}</span>
+                            <span>Archived: {dComm.deleted_at ? new Date(dComm.deleted_at).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Recorded'}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               )}
 
               {/* Pill-shaped Comment Input (Screenshot 2 exact style) */}

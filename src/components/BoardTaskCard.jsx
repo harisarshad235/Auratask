@@ -177,13 +177,13 @@ export function BoardTaskCard({
               </span>
             )}
 
-            {task.comments && task.comments.length > 0 && (
+            {task.comments && task.comments.filter(c => !c.deleted_at && !c.is_deleted).length > 0 && (
               <span
                 className="text-[10px] font-semibold px-1.5 py-0.5 rounded flex items-center gap-1 bg-slate-100 dark:bg-white/[0.08] border border-slate-200/60 dark:border-white/[0.12] text-slate-600 dark:text-zinc-200"
-                title={`${task.comments.length} comments`}
+                title={`${task.comments.filter(c => !c.deleted_at && !c.is_deleted).length} comments`}
               >
                 <MessageSquare className="w-2.5 h-2.5 text-slate-400 dark:text-zinc-400" />
-                <span>{task.comments.length}</span>
+                <span>{task.comments.filter(c => !c.deleted_at && !c.is_deleted).length}</span>
               </span>
             )}
 
