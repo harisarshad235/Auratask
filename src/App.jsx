@@ -5201,6 +5201,7 @@ export default function App() {
 
       {/* --- TASK DETAIL & CREATION MODAL --- */}
       <TaskModal
+        key={modalTask?.id || 'new-task-modal'}
         isOpen={isTaskModalOpen}
         onClose={() => setIsTaskModalOpen(false)}
         task={modalTask}
@@ -5212,6 +5213,7 @@ export default function App() {
         sections={customSections}
         darkMode={darkMode}
         session={session}
+        showToast={showToast}
       />
 
       {/* --- KEYBOARD NAVIGATION SHORTCUTS MODAL --- */}

@@ -46,7 +46,8 @@ export default function TaskModal({
     { key: 'completed', label: 'Completed' }
   ],
   darkMode = false,
-  session = null
+  session = null,
+  showToast = null
 }) {
   const isEditing = Boolean(task && task.id);
   const currentUserId = session?.user?.id;
@@ -63,6 +64,7 @@ export default function TaskModal({
   const [subtasks, setSubtasks] = useState([]);
   const [comments, setComments] = useState([]);
   const [loadingComments, setLoadingComments] = useState(false);
+  const [isPostingComment, setIsPostingComment] = useState(false);
   const [reminder, setReminder] = useState('none');
   const [estimatedMinutes, setEstimatedMinutes] = useState(30);
   const [duration, setDuration] = useState('30m');
@@ -83,6 +85,12 @@ export default function TaskModal({
   // Quick tag suggestions
   const SUGGESTED_TAGS = ['#Engineering', '#Design', '#Marketing', '#Product', '#Personal', '#Urgent'];
 
+  // Reset comment state immediately whenever active task id changes
+  useEffect(() => {
+    setComments(Array.isArray(task?.comments) ? task.comments : []);
+    setNewCommentText('');
+  }, [task?.id]);
+
   // Sync state when task changes
   useEffect(() => {
     if (task) {
@@ -96,24 +104,7 @@ export default function TaskModal({
       setDeadlineTime(task.deadline || '');
       setTags(Array.isArray(task.tags) ? task.tags : []);
       setSubtasks(Array.isArray(task.subtasks) ? task.subtasks : []);
-      // Non-destructively union merge comments so freshly added comments or in-flight updates are never discarded
-      setComments(prev => {
-        const incoming = Array.isArray(task.comments) ? task.comments : [];
-        if (!prev || prev.length === 0) return incoming;
-        const map = new Map();
-        prev.forEach(c => {
-          const k = c?.id || (typeof c?.text === 'string' ? c.text.trim() : null);
-          if (k) map.set(k, c);
-        });
-        incoming.forEach(c => {
-          const k = c?.id || (typeof c?.text === 'string' ? c.text.trim() : null);
-          if (k) {
-            const ex = map.get(k);
-            map.set(k, { ...ex, ...c });
-          }
-        });
-        return Array.from(map.values()).sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
-      });
+      setComments(Array.isArray(task.comments) ? task.comments : []);
       setReminder(task.reminder || 'none');
       const effDuration = task.duration || task.eta || (task.estimated_minutes ? formatDuration(task.estimated_minutes) : '');
       const effMins = task.estimated_minutes || (effDuration ? parseDurationMinutes(effDuration) : (task.focused_minutes || 30));
@@ -181,7 +172,7 @@ export default function TaskModal({
         console.warn("Exception fetching live task details:", err);
       }
 
-      // 2. Fetch live relational comments from task_comments table
+      // 2. Fetch live relational comments strictly scoped to current task
       setLoadingComments(true);
       try {
         const { data: dbComments, error: commentsErr } = await supabase
@@ -196,11 +187,15 @@ export default function TaskModal({
           } else {
             console.error("Supabase task_comments query failed:", commentsErr);
           }
+        } else if (dbComments && isMounted) {
           const formatted = dbComments.map(c => ({
             id: c.id,
             author: c.user_id === currentUserId ? 'You' : (c.author || 'Team Member'),
             text: c.content || c.text,
-            timestamp: new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            content: c.content || c.text,
+            timestamp: c.created_at
+              ? new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+              : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             created_at: c.created_at,
             updated_at: c.updated_at,
             deleted_at: c.deleted_at || null,
@@ -208,21 +203,7 @@ export default function TaskModal({
             user_id: c.user_id,
             task_id: c.task_id
           }));
-          setComments(prev => {
-            const map = new Map();
-            (prev || []).forEach(c => {
-              const k = c?.id || (typeof c?.text === 'string' ? c.text.trim() : null);
-              if (k) map.set(k, c);
-            });
-            formatted.forEach(c => {
-              const k = c?.id || (typeof c?.text === 'string' ? c.text.trim() : null);
-              if (k) {
-                const ex = map.get(k);
-                map.set(k, { ...ex, ...c });
-              }
-            });
-            return Array.from(map.values()).sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
-          });
+          setComments(formatted);
         }
       } catch (err) {
         console.error("Exception fetching task comments:", err);
@@ -247,13 +228,17 @@ export default function TaskModal({
         (payload) => {
           if (payload.eventType === 'INSERT') {
             const row = payload.new;
+            if (row.task_id !== task.id) return;
             setComments(prev => {
               if (prev.some(c => c.id === row.id)) return prev;
               return [...prev, {
                 id: row.id,
                 author: row.user_id === currentUserId ? 'You' : (row.author || 'Team Member'),
                 text: row.content || row.text,
-                timestamp: new Date(row.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                content: row.content || row.text,
+                timestamp: row.created_at
+                  ? new Date(row.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                  : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 created_at: row.created_at,
                 updated_at: row.updated_at,
                 deleted_at: row.deleted_at || null,
@@ -264,9 +249,11 @@ export default function TaskModal({
             });
           } else if (payload.eventType === 'UPDATE') {
             const row = payload.new;
+            if (row.task_id !== task.id) return;
             setComments(prev => prev.map(c => c.id === row.id ? {
               ...c,
               text: row.content || row.text || c.text,
+              content: row.content || row.text || c.content,
               updated_at: row.updated_at,
               deleted_at: row.deleted_at || null,
               is_deleted: Boolean(row.is_deleted || row.deleted_at)
@@ -364,62 +351,112 @@ export default function TaskModal({
     }
   };
 
-  // Add Comment (Persisting to both Supabase task_comments and task metadata)
+  // Add Comment (Directly executes an insert to Supabase task_comments immediately upon sending)
   const handleAddComment = async () => {
-    const commentText = sanitizeString(newCommentText, 3000);
-    if (!commentText) return;
-    const commentId = generateUUID();
-    const nowIso = new Date().toISOString();
+    const cleanCommentText = (newCommentText || '').trim();
+    if (!cleanCommentText || isPostingComment) return;
 
-    const commentObj = {
-      id: commentId,
-      author: 'You',
-      text: commentText,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      created_at: nowIso,
-      updated_at: nowIso,
-      deleted_at: null,
-      is_deleted: false,
-      user_id: currentUserId,
-      task_id: task?.id
-    };
-
-    const updatedComments = [...comments, commentObj];
-    setComments(updatedComments);
-    setNewCommentText('');
-
-    // If authenticated and task exists in Supabase, insert directly to task_comments table
-    if (currentUserId && task?.id && isValidUUID(task.id)) {
-      try {
-        const { error } = await supabase.from('task_comments').insert({
-          id: commentId,
-          task_id: task.id,
-          user_id: currentUserId,
-          content: commentText,
-          created_at: nowIso,
-          updated_at: nowIso,
-          deleted_at: null,
-          is_deleted: false
-        });
-
-        if (error) {
-          if (error.code === 'PGRST205' || error.message?.includes('schema cache')) {
-            console.info("task_comments table not yet provisioned; comment is preserved via task metadata.");
-          } else {
-            console.error("Supabase operation failed on insert task_comments:", error);
-          }
-        }
-      } catch (err) {
-        console.error("Exception writing comment to Supabase:", err);
-      }
+    const activeTask = task;
+    if (!activeTask?.id) {
+      // Local fallback for unsaved tasks
+      const localComment = {
+        id: generateUUID(),
+        author: 'You',
+        text: cleanCommentText,
+        content: cleanCommentText,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        created_at: new Date().toISOString(),
+        deleted_at: null,
+        is_deleted: false,
+        user_id: currentUserId,
+        task_id: null
+      };
+      setComments(prev => [...prev, localComment]);
+      setNewCommentText('');
+      return;
     }
 
-    // Immediately propagate to parent task so client-side state & metadata envelope stay in sync
-    if (task && onSaveTask) {
-      onSaveTask({
-        ...task,
-        comments: updatedComments
-      });
+    setIsPostingComment(true);
+    setNewCommentText('');
+
+    try {
+      const activeTaskId = activeTask.id;
+      const uid = currentUserId || session?.user?.id || (await supabase.auth.getUser())?.data?.user?.id;
+      const insertRow = {
+        task_id: activeTaskId,
+        content: cleanCommentText
+      };
+      if (uid) {
+        insertRow.user_id = uid;
+      }
+
+      let { data, error } = await supabase
+        .from('task_comments')
+        .insert([insertRow])
+        .select()
+        .single();
+
+      // If user_id column schema constraint causes failure, retry without user_id
+      if (error && (error.message?.includes('user_id') || error.code === 'PGRST204')) {
+        const retry = await supabase
+          .from('task_comments')
+          .insert([
+            {
+              task_id: activeTaskId,
+              content: cleanCommentText
+            }
+          ])
+          .select()
+          .single();
+        data = retry.data;
+        error = retry.error;
+      }
+
+      if (error) {
+        console.error('Failed to post comment:', error);
+        if (showToast) {
+          showToast(`Failed to post comment: ${error.message || 'Database error'}`);
+        }
+        setNewCommentText(cleanCommentText);
+        return;
+      }
+
+      if (data) {
+        // Append returned row to local comments state
+        const formattedData = {
+          ...data,
+          text: data.content || data.text || cleanCommentText,
+          content: data.content || cleanCommentText,
+          author: (data.user_id && currentUserId && data.user_id === currentUserId) ? 'You' : (data.author || 'You'),
+          timestamp: data.created_at
+            ? new Date(data.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          deleted_at: data.deleted_at || null,
+          is_deleted: Boolean(data.is_deleted || data.deleted_at),
+          task_id: data.task_id || activeTaskId
+        };
+
+        setComments(prev => {
+          if (prev.some(c => c.id === formattedData.id)) return prev;
+          return [...prev, formattedData];
+        });
+
+        // Also propagate to parent task so client state and metadata envelope stay in sync
+        if (activeTask && onSaveTask) {
+          onSaveTask({
+            ...activeTask,
+            comments: [...(comments || []), formattedData]
+          });
+        }
+      }
+    } catch (err) {
+      console.error('Failed to post comment:', err);
+      if (showToast) {
+        showToast('Failed to post comment');
+      }
+      setNewCommentText(cleanCommentText);
+    } finally {
+      setIsPostingComment(false);
     }
   };
 
@@ -937,7 +974,9 @@ export default function TaskModal({
                           <div className="flex items-center justify-between mb-1">
                             <span className="font-semibold text-neutral-800 dark:text-white">{authorName}</span>
                             <div className="flex items-center gap-1.5">
-                              <span className="text-[10px] text-neutral-400 dark:text-zinc-400">{comm.timestamp}</span>
+                              <span className="text-[10px] text-neutral-400 dark:text-zinc-400">
+                                {comm.timestamp || (comm.created_at ? new Date(comm.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '')}
+                              </span>
                               <button
                                 type="button"
                                 onClick={() => handleDeleteComment(comm.id)}
@@ -1027,7 +1066,8 @@ export default function TaskModal({
                         handleAddComment();
                       }
                     }}
-                    className="flex-1 text-xs bg-transparent border-0 focus:outline-none text-neutral-800 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-zinc-400"
+                    disabled={isPostingComment}
+                    className="flex-1 text-xs bg-transparent border-0 focus:outline-none text-neutral-800 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-zinc-400 disabled:opacity-60"
                   />
                   <div className="flex items-center gap-1.5 ml-2 text-neutral-400 dark:text-zinc-400">
                     <button
@@ -1040,10 +1080,10 @@ export default function TaskModal({
                     <button
                       type="button"
                       onClick={handleAddComment}
-                      disabled={!newCommentText.trim()}
-                      className="p-1 text-rose-600 dark:text-rose-400 hover:text-rose-700 disabled:opacity-30"
+                      disabled={!newCommentText.trim() || isPostingComment}
+                      className="p-1 text-rose-600 dark:text-rose-400 hover:text-rose-700 disabled:opacity-30 flex items-center justify-center"
                     >
-                      <Send className="w-3.5 h-3.5" />
+                      {isPostingComment ? <Loader2 className="w-3.5 h-3.5 animate-spin text-rose-500" /> : <Send className="w-3.5 h-3.5" />}
                     </button>
                   </div>
                 </div>
