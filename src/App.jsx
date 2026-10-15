@@ -28,6 +28,7 @@ import PrivacyPolicy from './components/legal/PrivacyPolicy';
 import TermsOfService from './components/legal/TermsOfService';
 import { sanitizeString, clientRateLimiter } from './utils/security';
 import { formatLocalDate, getTodayDateStr, getTomorrowDateStr, getDaysFromNowStr } from './utils/dateUtils';
+import { useTaskRollover } from './hooks/useTaskRollover';
 
 // --- BRAND LOGO ---
 export const AuraLogo = TaktLogo;
@@ -232,10 +233,13 @@ export const autoHealTask = (t) => {
   // 5. Normalize section key so in_review, In Review, in-review always match the swimlane
   const resolvedSection = normalizeSectionKey(t.section || meta.section || t.status || meta.status || 'todo');
 
-  // 6. Comments resolution (non-destructive union merge of t.comments and meta.comments)
+  // 6. Comments resolution (strictly scoped to this task, filtering out foreign comments)
+  const currentTaskId = isValidUUID(t?.id) ? t.id : (isValidUUID(meta?.id) ? meta.id : t?.id);
   const commentMap = new Map();
   const addCommentToMap = (c) => {
     if (!c) return;
+    // Discard any foreign comment that explicitly belongs to another task
+    if (c.task_id && currentTaskId && c.task_id !== currentTaskId) return;
     const key = c.id || (typeof c.text === 'string' ? c.text.trim() : (typeof c.content === 'string' ? c.content.trim() : null));
     if (!key) return;
     const existing = commentMap.get(key);
@@ -664,6 +668,15 @@ export default function App() {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
   };
+
+  // --- AUTOMATIC DAILY TASK ROLLOVER & MIDNIGHT TIMER ---
+  useTaskRollover({
+    tasks,
+    setTasks,
+    session,
+    showToast,
+    isTaskDeleted
+  });
 
   // --- INLINE TASK CREATOR ---
   const [showAddComposer, setShowAddComposer] = useState(false);
@@ -1306,20 +1319,10 @@ export default function App() {
     let savedPayload = finalPayload;
     if (existingIndex !== -1) {
       const existingTask = tasks[existingIndex];
-      const mergedCommentsMap = new Map();
-      (existingTask.comments || []).forEach(c => {
-        const k = c?.id || (typeof c?.text === 'string' ? c.text.trim() : null);
-        if (k) mergedCommentsMap.set(k, c);
-      });
-      (finalPayload.comments || []).forEach(c => {
-        const k = c?.id || (typeof c?.text === 'string' ? c.text.trim() : null);
-        if (k) {
-          const ex = mergedCommentsMap.get(k);
-          mergedCommentsMap.set(k, { ...ex, ...c });
-        }
-      });
-      const unifiedComments = Array.from(mergedCommentsMap.values()).sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
-      savedPayload = { ...existingTask, ...finalPayload, comments: unifiedComments };
+      const authoritativeComments = Array.isArray(taskPayload.comments)
+        ? taskPayload.comments.filter(c => !c.task_id || c.task_id === finalPayload.id)
+        : (existingTask.comments || []).filter(c => !c.task_id || c.task_id === finalPayload.id);
+      savedPayload = { ...existingTask, ...finalPayload, comments: authoritativeComments };
       updatedTasks = tasks.map((t, idx) => idx === existingIndex ? savedPayload : t);
       showToast('Task updated');
       recordActivity(`Updated task "${finalPayload.title.slice(0, 28)}..."`, 'edit');
@@ -1589,16 +1592,48 @@ export default function App() {
         // Flush any offline queued changes first
         await flushSyncQueue(currentUserId);
 
-        const { data, error } = await supabase
-          .from('tasks')
-          .select('*')
-          .eq('user_id', currentUserId)
-          .order('created_at', { ascending: false });
+        const [{ data, error }, commentsRes] = await Promise.all([
+          supabase
+            .from('tasks')
+            .select('*')
+            .eq('user_id', currentUserId)
+            .order('created_at', { ascending: false }),
+          supabase
+            .from('task_comments')
+            .select('*')
+            .order('created_at', { ascending: true })
+        ]);
 
         if (error) {
           console.error("Supabase fetchTasks operation failed:", error);
           showToast(`Cloud sync error: ${error.message}`);
           return;
+        }
+
+        // Build ground-truth map of relational comments by task_id
+        const commentsByTaskId = new Map();
+        if (Array.isArray(commentsRes?.data)) {
+          commentsRes.data.forEach(c => {
+            if (!c.task_id) return;
+            if (!commentsByTaskId.has(c.task_id)) {
+              commentsByTaskId.set(c.task_id, []);
+            }
+            commentsByTaskId.get(c.task_id).push({
+              id: c.id,
+              author: c.user_id === currentUserId ? 'You' : (c.author || 'Team Member'),
+              text: c.content || c.text,
+              content: c.content || c.text,
+              timestamp: c.created_at
+                ? new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              created_at: c.created_at,
+              updated_at: c.updated_at,
+              deleted_at: c.deleted_at || null,
+              is_deleted: Boolean(c.is_deleted || c.deleted_at),
+              user_id: c.user_id,
+              task_id: c.task_id
+            });
+          });
         }
 
         if (Array.isArray(data)) {
@@ -1646,7 +1681,13 @@ export default function App() {
 
             const mergedCloudTasks = normalizedCloudTasks.map(cloudTask => {
               const local = localMap.get(cloudTask.id);
-              if (!local) return cloudTask;
+              if (!local) {
+                const taskRelationalComments = commentsByTaskId.get(cloudTask.id);
+                return {
+                  ...cloudTask,
+                  comments: taskRelationalComments !== undefined ? taskRelationalComments : (cloudTask.comments || [])
+                };
+              }
 
               // Check timestamps to avoid stale background cloud fetch reverting local edits:
               const localIsNewer = local.updated_at && (
@@ -1665,7 +1706,13 @@ export default function App() {
                 upsertTaskToCloud({ ...cloudTask, ...local, section, priority }, currentUserId);
               }
 
-              // KEEP all local details (duration, tags, is_focus, comments, subtasks, deadline) intact!
+              // Ground-truth relational database comments:
+              const taskRelationalComments = commentsByTaskId.get(cloudTask.id);
+              const resolvedComments = (taskRelationalComments !== undefined)
+                ? taskRelationalComments
+                : (Array.isArray(commentsRes?.data) ? [] : (Array.isArray(local.comments) ? local.comments.filter(c => !c.task_id || c.task_id === cloudTask.id) : []));
+
+              // KEEP all local details (duration, tags, is_focus, subtasks, deadline) intact!
               return {
                 ...cloudTask,
                 ...local,
@@ -1678,7 +1725,7 @@ export default function App() {
                 focused_minutes: Math.max(cloudTask.focused_minutes || 0, local.focused_minutes || 0),
                 tags: (Array.isArray(local.tags) && local.tags.length > 0) ? local.tags : (cloudTask.tags || ['#Work']),
                 is_focus: local.is_focus !== undefined ? Boolean(local.is_focus) : Boolean(cloudTask.is_focus),
-                comments: (Array.isArray(local.comments) && local.comments.length > 0) ? local.comments : (cloudTask.comments || []),
+                comments: resolvedComments,
                 subtasks: (Array.isArray(local.subtasks) && local.subtasks.length > 0) ? local.subtasks : (cloudTask.subtasks || [])
               };
             });
@@ -1690,7 +1737,10 @@ export default function App() {
               t.title?.toLowerCase().trim() !== 'welcome to your private scratchpad' &&
               !cloudIds.has(t.id) &&
               !mergedCloudTasks.some(ct => ct.title.trim().toLowerCase() === t.title.trim().toLowerCase())
-            );
+            ).map(t => {
+              const cleanComments = (t.comments || []).filter(c => !c.task_id || c.task_id === t.id);
+              return { ...t, comments: cleanComments };
+            });
 
             // Upload any unsynced local tasks to cloud safely
             if (unsyncedLocal.length > 0) {
@@ -1701,9 +1751,8 @@ export default function App() {
 
             let merged = [...mergedCloudTasks, ...unsyncedLocal];
 
-            // GUARANTEE: If "QA Photoroom" was in review on any machine and is missing, auto-recover it immediately with all comments intact
-            const photoroomIndex = merged.findIndex(t => t.title && t.title.toLowerCase().includes('photoroom'));
-            if (photoroomIndex === -1) {
+            // If empty workspace, recover default QA Photoroom starter
+            if (merged.length === 0) {
               const recoveredPhotoroom = {
                 id: generateUUID(),
                 title: 'QA Photoroom',
@@ -1731,27 +1780,6 @@ export default function App() {
                     updated_at: new Date(Date.now() - 3600000 * 2).toISOString(),
                     deleted_at: null,
                     is_deleted: false
-                  },
-                  {
-                    id: generateUUID(),
-                    author: 'DevOps',
-                    text: 'Ensure batch export resolution matches 4K specifications',
-                    timestamp: '01:15 PM',
-                    created_at: new Date(Date.now() - 3600000).toISOString(),
-                    updated_at: new Date(Date.now() - 3600000).toISOString(),
-                    deleted_at: null,
-                    is_deleted: false
-                  },
-                  {
-                    id: generateUUID(),
-                    author: 'You',
-                    text: "BE dev working on it. Currently the listing froma. staff after approved doesn't land in the ",
-                    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                    created_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString(),
-                    deleted_at: null,
-                    is_deleted: false,
-                    user_id: currentUserId
                   }
                 ],
                 created_at: new Date().toISOString(),
@@ -1759,34 +1787,6 @@ export default function App() {
               };
               merged.push(recoveredPhotoroom);
               upsertTaskToCloud(recoveredPhotoroom, currentUserId);
-            } else {
-              // Ensure existing QA Photoroom has the user's 3rd comment restored
-              const target = merged[photoroomIndex];
-              const curComments = Array.isArray(target.comments) ? [...target.comments] : [];
-              const hasTargetComment = curComments.some(c =>
-                (c.text || c.content || '').toLowerCase().includes('be dev working on it') ||
-                (c.text || c.content || '').toLowerCase().includes('listing froma. staff')
-              );
-              if (!hasTargetComment) {
-                const restoredComment = {
-                  id: generateUUID(),
-                  author: 'You',
-                  text: "BE dev working on it. Currently the listing froma. staff after approved doesn't land in the ",
-                  timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                  created_at: new Date().toISOString(),
-                  updated_at: new Date().toISOString(),
-                  deleted_at: null,
-                  is_deleted: false,
-                  user_id: currentUserId,
-                  task_id: target.id
-                };
-                const updatedTarget = {
-                  ...target,
-                  comments: [...curComments, restoredComment]
-                };
-                merged[photoroomIndex] = updatedTarget;
-                upsertTaskToCloud(updatedTarget, currentUserId);
-              }
             }
 
             try {
@@ -1891,6 +1891,115 @@ export default function App() {
               });
               setModalTask(prev => (prev && prev.id === deletedId ? null : prev));
             }
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'task_comments'
+        },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            const row = payload.new;
+            if (!row || !row.task_id) return;
+            const formatted = {
+              id: row.id,
+              author: row.user_id === currentUserId ? 'You' : (row.author || 'Team Member'),
+              text: row.content || row.text,
+              content: row.content || row.text,
+              timestamp: row.created_at
+                ? new Date(row.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              created_at: row.created_at,
+              updated_at: row.updated_at,
+              deleted_at: row.deleted_at || null,
+              is_deleted: Boolean(row.is_deleted || row.deleted_at),
+              user_id: row.user_id,
+              task_id: row.task_id
+            };
+            setTasks(prev => {
+              const updated = prev.map(t => {
+                if (t.id === row.task_id) {
+                  const existing = t.comments || [];
+                  if (existing.some(c => c.id === row.id)) return t;
+                  return { ...t, comments: [...existing, formatted] };
+                }
+                return t;
+              });
+              try {
+                const dataStr = JSON.stringify(updated);
+                localStorage.setItem(`takt_tasks_u_${currentUserId}`, dataStr);
+                localStorage.setItem(`takt_tasks_backup_u_${currentUserId}`, dataStr);
+              } catch { }
+              return updated;
+            });
+            setModalTask(prev => {
+              if (!prev || prev.id !== row.task_id) return prev;
+              const existing = prev.comments || [];
+              if (existing.some(c => c.id === row.id)) return prev;
+              return { ...prev, comments: [...existing, formatted] };
+            });
+          } else if (payload.eventType === 'UPDATE') {
+            const row = payload.new;
+            if (!row || !row.task_id) return;
+            setTasks(prev => {
+              const updated = prev.map(t => {
+                if (t.id === row.task_id) {
+                  const updatedComments = (t.comments || []).map(c => c.id === row.id ? {
+                    ...c,
+                    text: row.content || row.text || c.text,
+                    content: row.content || row.text || c.content,
+                    updated_at: row.updated_at,
+                    deleted_at: row.deleted_at || null,
+                    is_deleted: Boolean(row.is_deleted || row.deleted_at)
+                  } : c);
+                  return { ...t, comments: updatedComments };
+                }
+                return t;
+              });
+              try {
+                const dataStr = JSON.stringify(updated);
+                localStorage.setItem(`takt_tasks_u_${currentUserId}`, dataStr);
+                localStorage.setItem(`takt_tasks_backup_u_${currentUserId}`, dataStr);
+              } catch { }
+              return updated;
+            });
+            setModalTask(prev => {
+              if (!prev || prev.id !== row.task_id) return prev;
+              const updatedComments = (prev.comments || []).map(c => c.id === row.id ? {
+                ...c,
+                text: row.content || row.text || c.text,
+                content: row.content || row.text || c.content,
+                updated_at: row.updated_at,
+                deleted_at: row.deleted_at || null,
+                is_deleted: Boolean(row.is_deleted || row.deleted_at)
+              } : c);
+              return { ...prev, comments: updatedComments };
+            });
+          } else if (payload.eventType === 'DELETE') {
+            const delId = payload.old?.id;
+            if (!delId) return;
+            setTasks(prev => {
+              const updated = prev.map(t => {
+                if ((t.comments || []).some(c => c.id === delId)) {
+                  return { ...t, comments: (t.comments || []).filter(c => c.id !== delId) };
+                }
+                return t;
+              });
+              try {
+                const dataStr = JSON.stringify(updated);
+                localStorage.setItem(`takt_tasks_u_${currentUserId}`, dataStr);
+                localStorage.setItem(`takt_tasks_backup_u_${currentUserId}`, dataStr);
+              } catch { }
+              return updated;
+            });
+            setModalTask(prev => {
+              if (!prev || !(prev.comments || []).some(c => c.id === delId)) return prev;
+              return { ...prev, comments: (prev.comments || []).filter(c => c.id !== delId) };
+            });
           }
         }
       )
