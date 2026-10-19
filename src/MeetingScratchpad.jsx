@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
   X, Plus, Trash2, Copy, Download, Save, Check, Clock, Search,
   Bold, Italic, List, ListOrdered, CheckSquare, Heading, Heading1, Heading2,
-  Quote, Code, Minus, BookOpen, Eye, Edit3, Sparkles, Cloud, CloudCheck, HardDrive
+  Quote, Code, Minus, BookOpen, Eye, Edit3, Sparkles, Cloud, CloudCheck, HardDrive,
+  ChevronLeft
 } from 'lucide-react';
 
 export default function MeetingScratchpad({
@@ -19,6 +20,7 @@ export default function MeetingScratchpad({
   const [activeViewMode, setActiveViewMode] = useState('write'); // 'write' or 'preview'
   const [searchQuery, setSearchQuery] = useState('');
   const [saveStatus, setSaveStatus] = useState('saved'); // 'saving' | 'saved' | 'idle'
+  const [mobileView, setMobileView] = useState('editor'); // 'list' | 'editor' on mobile screens
   const textareaRef = useRef(null);
 
   // Synchronize active note if current note was deleted or if notes change
@@ -252,6 +254,7 @@ export default function MeetingScratchpad({
                   const created = onCreateNote();
                   if (created?.id) {
                     setActiveNoteId(created.id);
+                    setMobileView('editor');
                   }
                 }
               }}
@@ -274,7 +277,7 @@ export default function MeetingScratchpad({
         <div className="flex-1 flex min-h-0 overflow-hidden">
           
           {/* 1. LEFT NOTES ARCHIVE LIST */}
-          <div className="w-64 border-r border-slate-200 dark:border-white/[0.08] bg-slate-50/50 dark:bg-[#0c0f17] flex flex-col shrink-0">
+          <div className={`w-full sm:w-64 border-r border-slate-200 dark:border-white/[0.08] bg-slate-50/50 dark:bg-[#0c0f17] flex-col shrink-0 ${mobileView === 'list' ? 'flex' : 'hidden sm:flex'}`}>
             {/* Search filter */}
             <div className="p-3 border-b border-slate-200 dark:border-white/[0.08]">
               <div className="relative">
@@ -300,7 +303,10 @@ export default function MeetingScratchpad({
                 return (
                   <div
                     key={note.id}
-                    onClick={() => setActiveNoteId(note.id)}
+                    onClick={() => {
+                      setActiveNoteId(note.id);
+                      setMobileView('editor');
+                    }}
                     className={`p-2.5 rounded-xl transition-all cursor-pointer border text-left group ${
                       isSelected
                         ? 'bg-white dark:bg-[#161c2b] border-red-500/50 shadow-xs'
@@ -332,18 +338,31 @@ export default function MeetingScratchpad({
 
           {/* 2. RIGHT NOTE EDITOR / VIEWER */}
           {activeNote ? (
-            <div className="flex-1 flex flex-col min-w-0 bg-white dark:bg-[#0e121b]">
+            <div className={`flex-1 flex-col min-w-0 bg-white dark:bg-[#0e121b] ${mobileView === 'editor' ? 'flex' : 'hidden sm:flex'}`}>
               
               {/* Note Action Toolbar */}
               <div className="p-3 border-b border-slate-200 dark:border-white/[0.08] flex flex-wrap items-center justify-between gap-2 bg-slate-50/50 dark:bg-[#121622]">
-                {/* Title Input */}
-                <input
-                  type="text"
-                  placeholder="Meeting Title (e.g. Q4 Sprint Planning)..."
-                  value={titleInput}
-                  onChange={(e) => setTitleInput(e.target.value)}
-                  className="flex-1 min-w-[200px] bg-transparent text-sm font-extrabold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none"
-                />
+                <div className="flex items-center gap-2 flex-1 min-w-[200px]">
+                  {/* Mobile Back to Notes button */}
+                  <button
+                    type="button"
+                    onClick={() => setMobileView('list')}
+                    className="sm:hidden p-1.5 -ml-1 text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-white rounded-lg flex items-center gap-1 text-xs font-bold shrink-0 hover:bg-slate-200/60 dark:hover:bg-white/[0.08]"
+                    title="Back to notes list"
+                  >
+                    <ChevronLeft className="w-4 h-4 text-red-500" />
+                    <span>Notes</span>
+                  </button>
+
+                  {/* Title Input */}
+                  <input
+                    type="text"
+                    placeholder="Meeting Title (e.g. Q4 Sprint Planning)..."
+                    value={titleInput}
+                    onChange={(e) => setTitleInput(e.target.value)}
+                    className="flex-1 bg-transparent text-sm font-extrabold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none"
+                  />
+                </div>
 
                 {/* Top Action Buttons */}
                 <div className="flex items-center gap-1.5 shrink-0">
