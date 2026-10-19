@@ -8,7 +8,7 @@ import {
   ChevronDown, Filter, Flag, Layers, Award, Target, Eye, EyeOff, User,
   Mail, Lock, Sparkle, RefreshCw, Menu, HelpCircle, CheckCircle, GripVertical,
   CalendarDays, Share2, FileText, Copy, HardDriveDownload, Archive, MessageSquare,
-  FolderKanban, Hourglass, Keyboard
+  FolderKanban, Hourglass, Keyboard, KeyRound
 } from 'lucide-react';
 import { formatDuration, parseDurationMinutes, extractDurationHint } from './utils/formatDuration';
 import { Reorder, AnimatePresence, motion } from 'framer-motion';
@@ -19,6 +19,7 @@ import LandingPage from './LandingPage';
 import MeetingScratchpad from './MeetingScratchpad';
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 import ActivityHistoryModal from './components/ActivityHistoryModal';
+import ChangePasswordModal from './components/ChangePasswordModal';
 import { playTaskDoneSound, playPomodoroChime, playTactileTick } from './utils/soundEffects';
 import TaktLogo, { Logo } from './components/brand/TaktLogo';
 import CollapsibleWidget from './components/CollapsibleWidget';
@@ -636,6 +637,7 @@ export default function App() {
   const [showEmailInboxModal, setShowEmailInboxModal] = useState(false);
   const [showCalendarFeedModal, setShowCalendarFeedModal] = useState(false);
   const [showAddSectionModal, setShowAddSectionModal] = useState(false);
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [newSectionTitle, setNewSectionTitle] = useState('');
   const csvFileInputRef = useRef(null);
 
@@ -1531,6 +1533,11 @@ export default function App() {
     // 3. Check existing session and fallback to manual token hydration
     supabase.auth.getSession().then(async ({ data: { session: existingSession } }) => {
       if (!isMounted) return;
+      const isRecoveryHash = typeof window !== 'undefined' && window.location.hash.includes('type=recovery');
+      if (isRecoveryHash) {
+        setShowChangePasswordModal(true);
+        setShowLandingPage(false);
+      }
       if (existingSession) {
         handleUserSessionEstablished(existingSession);
         if (typeof window !== 'undefined' && window.location.hash) {
@@ -1580,6 +1587,11 @@ export default function App() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
       if (!isMounted) return;
+      if (event === 'PASSWORD_RECOVERY') {
+        setShowChangePasswordModal(true);
+        setShowLandingPage(false);
+        showToast('Password recovery detected. Please choose a new password.', 'info');
+      }
       if (s) {
         handleUserSessionEstablished(s);
         // Clean URL OAuth tokens if present without triggering page reload
@@ -2882,13 +2894,24 @@ export default function App() {
       return;
     }
 
-    if (authPassword.length < 8) {
+    if (authMode !== 'reset' && authPassword.length < 8) {
       setAuthError('Password must be at least 8 characters long.');
       setAuthLoading(false);
       return;
     }
 
     try {
+      if (authMode === 'reset') {
+        const redirectUrl = typeof window !== 'undefined' ? window.location.origin : undefined;
+        const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+          redirectTo: redirectUrl,
+        });
+        if (error) throw error;
+        setAuthSuccessMsg(`Password reset instructions sent to ${cleanEmail}. Please check your email inbox!`);
+        showToast('Password reset link sent to your email', 'success');
+        return;
+      }
+
       if (rememberMe) {
         localStorage.setItem('takt_remember_me', 'true');
         localStorage.setItem('takt_remembered_email', cleanEmail);
@@ -3096,6 +3119,7 @@ export default function App() {
         if (showAddComposer) { setShowAddComposer(false); return; }
         if (showEmailInboxModal) { setShowEmailInboxModal(false); return; }
         if (showCalendarFeedModal) { setShowCalendarFeedModal(false); return; }
+        if (showChangePasswordModal) { setShowChangePasswordModal(false); return; }
         if (searchQuery) { setSearchQuery(''); return; }
       }
 
@@ -3104,7 +3128,7 @@ export default function App() {
       const isInput = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
       if (isInput) return;
 
-      const isAnyModalOpen = isTaskModalOpen || isShortcutsModalOpen || showScratchpad || showActivityModal || showKarmaModal || showShutdownModal || showAddSectionModal || showBig3Picker || showEmailInboxModal || showCalendarFeedModal;
+      const isAnyModalOpen = isTaskModalOpen || isShortcutsModalOpen || showScratchpad || showActivityModal || showKarmaModal || showShutdownModal || showAddSectionModal || showBig3Picker || showEmailInboxModal || showCalendarFeedModal || showChangePasswordModal;
 
       // 3. Priority flag chord: if user pressed 'P' within last 2.5s and now presses 1-4
       if (awaitingPriorityRef.current && ['1', '2', '3', '4'].includes(e.key)) {
@@ -3371,46 +3395,69 @@ export default function App() {
                   </p>
                 </div>
 
-                {/* Mode Selector Tabs */}
-                <div className="flex p-1 bg-slate-100 dark:bg-[#0c0f17] border border-slate-200 dark:border-white/[0.1] rounded-xl mb-6">
-                  <button
-                    type="button"
-                    onClick={() => { setAuthMode('register'); setAuthError(null); }}
-                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${authMode === 'register' ? 'bg-white dark:bg-[#161c2b] text-slate-900 dark:text-white shadow-xs' : 'text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-white'}`}
-                  >
-                    Create Account
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setAuthMode('login'); setAuthError(null); }}
-                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${authMode === 'login' ? 'bg-white dark:bg-[#161c2b] text-slate-900 dark:text-white shadow-xs' : 'text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-white'}`}
-                  >
-                    Sign In
-                  </button>
-                </div>
+                {/* Mode Selector Tabs or Reset Header */}
+                {authMode === 'reset' ? (
+                  <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-100 dark:border-white/[0.08]">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center">
+                        <KeyRound className="w-4 h-4" />
+                      </div>
+                      <span className="text-sm font-bold text-slate-900 dark:text-white">Reset Password</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => { setAuthMode('login'); setAuthError(null); setAuthSuccessMsg(null); }}
+                      className="text-xs font-semibold text-slate-500 dark:text-zinc-400 hover:text-rose-500 dark:hover:text-rose-400 flex items-center gap-1 transition-colors"
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                      <span>Back to Sign In</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex p-1 bg-slate-100 dark:bg-[#0c0f17] border border-slate-200 dark:border-white/[0.1] rounded-xl mb-6">
+                    <button
+                      type="button"
+                      onClick={() => { setAuthMode('register'); setAuthError(null); setAuthSuccessMsg(null); }}
+                      className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${authMode === 'register' ? 'bg-white dark:bg-[#161c2b] text-slate-900 dark:text-white shadow-xs' : 'text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-white'}`}
+                    >
+                      Create Account
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setAuthMode('login'); setAuthError(null); setAuthSuccessMsg(null); }}
+                      className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${authMode === 'login' ? 'bg-white dark:bg-[#161c2b] text-slate-900 dark:text-white shadow-xs' : 'text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-white'}`}
+                    >
+                      Sign In
+                    </button>
+                  </div>
+                )}
 
-                {/* Google OAuth Button */}
-                <button
-                  onClick={handleGoogleSignIn}
-                  disabled={authLoading}
-                  className="w-full py-2.5 px-4 rounded-xl border border-slate-300 dark:border-white/[0.12] bg-white dark:bg-[#161c2b] hover:bg-slate-50 dark:hover:bg-[#1e2638] text-slate-800 dark:text-white font-semibold text-sm flex items-center justify-center gap-3 shadow-2xs hover:shadow-xs transition-all active:scale-[0.99]"
-                >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                  </svg>
-                  <span>Continue with Google</span>
-                </button>
+                {/* Google OAuth Button (hidden in reset mode) */}
+                {authMode !== 'reset' && (
+                  <>
+                    <button
+                      onClick={handleGoogleSignIn}
+                      disabled={authLoading}
+                      className="w-full py-2.5 px-4 rounded-xl border border-slate-300 dark:border-white/[0.12] bg-white dark:bg-[#161c2b] hover:bg-slate-50 dark:hover:bg-[#1e2638] text-slate-800 dark:text-white font-semibold text-sm flex items-center justify-center gap-3 shadow-2xs hover:shadow-xs transition-all active:scale-[0.99]"
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                      </svg>
+                      <span>Continue with Google</span>
+                    </button>
 
-                {/* Divider */}
-                <div className="relative my-5 flex items-center justify-center">
-                  <div className="border-t border-slate-200 dark:border-white/[0.1] w-full"></div>
-                  <span className="bg-white dark:bg-[#121622] px-3 text-[11px] font-medium text-slate-400 dark:text-zinc-400 absolute">
-                    or continue with email
-                  </span>
-                </div>
+                    {/* Divider */}
+                    <div className="relative my-5 flex items-center justify-center">
+                      <div className="border-t border-slate-200 dark:border-white/[0.1] w-full"></div>
+                      <span className="bg-white dark:bg-[#121622] px-3 text-[11px] font-medium text-slate-400 dark:text-zinc-400 absolute">
+                        or continue with email
+                      </span>
+                    </div>
+                  </>
+                )}
 
                 {/* Notifications */}
                 {authError && (
@@ -3424,6 +3471,13 @@ export default function App() {
                     <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" />
                     <span className="leading-snug">{authSuccessMsg}</span>
                   </div>
+                )}
+
+                {/* Reset Mode Explainer */}
+                {authMode === 'reset' && !authSuccessMsg && (
+                  <p className="text-xs text-slate-600 dark:text-zinc-400 mb-4 leading-relaxed">
+                    Enter the email address tied to your Takt account. We will email you a secure link to choose a new password.
+                  </p>
                 )}
 
                 {/* Form */}
@@ -3460,43 +3514,58 @@ export default function App() {
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-[#a1a1aa] mb-1">Password</label>
-                    <div className="relative">
-                      <Lock className="w-4 h-4 absolute left-3 top-3 text-slate-400 dark:text-[#52525b]" />
-                      <input
-                        type={showPassword ? "text" : "password"}
-                        required
-                        minLength={6}
-                        placeholder="••••••••"
-                        value={authPassword}
-                        onChange={(e) => setAuthPassword(e.target.value)}
-                        className="w-full pl-9 pr-10 py-2.5 bg-slate-50 dark:bg-[#09090b] border border-slate-200 dark:border-[#222225] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 text-slate-900 dark:text-[#ededed] placeholder:text-slate-400 dark:placeholder:text-[#52525b]"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-3 text-slate-400 dark:text-[#a1a1aa] hover:text-slate-600 dark:hover:text-[#ededed]"
-                      >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
+                  {authMode !== 'reset' && (
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-xs font-semibold text-slate-700 dark:text-[#a1a1aa]">Password</label>
+                        {authMode === 'login' && (
+                          <button
+                            type="button"
+                            onClick={() => { setAuthMode('reset'); setAuthError(null); setAuthSuccessMsg(null); }}
+                            className="text-[11px] font-semibold text-rose-500 hover:text-rose-600 dark:text-rose-400 dark:hover:text-rose-300 transition-colors"
+                          >
+                            Forgot password?
+                          </button>
+                        )}
+                      </div>
+                      <div className="relative">
+                        <Lock className="w-4 h-4 absolute left-3 top-3 text-slate-400 dark:text-[#52525b]" />
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          required
+                          minLength={6}
+                          placeholder="••••••••"
+                          value={authPassword}
+                          onChange={(e) => setAuthPassword(e.target.value)}
+                          className="w-full pl-9 pr-10 py-2.5 bg-slate-50 dark:bg-[#09090b] border border-slate-200 dark:border-[#222225] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 text-slate-900 dark:text-[#ededed] placeholder:text-slate-400 dark:placeholder:text-[#52525b]"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-3 text-slate-400 dark:text-[#a1a1aa] hover:text-slate-600 dark:hover:text-[#ededed]"
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* REMEMBER ME CHECKBOX */}
-                  <div className="flex items-center justify-between pt-0.5">
-                    <label className="inline-flex items-center gap-2 cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        checked={rememberMe}
-                        onChange={(e) => setRememberMe(e.target.checked)}
-                        className="w-4 h-4 rounded border-slate-300 dark:border-[#38383e] text-red-600 focus:ring-red-500/30 accent-red-600 cursor-pointer"
-                      />
-                      <span className="text-xs font-medium text-slate-600 dark:text-[#a1a1aa] hover:text-slate-900 dark:hover:text-[#ededed] transition-colors">
-                        Remember me
-                      </span>
-                    </label>
-                  </div>
+                  {authMode !== 'reset' && (
+                    <div className="flex items-center justify-between pt-0.5">
+                      <label className="inline-flex items-center gap-2 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={rememberMe}
+                          onChange={(e) => setRememberMe(e.target.checked)}
+                          className="w-4 h-4 rounded border-slate-300 dark:border-[#38383e] text-red-600 focus:ring-red-500/30 accent-red-600 cursor-pointer"
+                        />
+                        <span className="text-xs font-medium text-slate-600 dark:text-[#a1a1aa] hover:text-slate-900 dark:hover:text-[#ededed] transition-colors">
+                          Remember me
+                        </span>
+                      </label>
+                    </div>
+                  )}
 
                   <button
                     type="submit"
@@ -3507,11 +3576,27 @@ export default function App() {
                       <RefreshCw className="w-4 h-4 animate-spin" />
                     ) : (
                       <>
-                        <span>{authMode === 'register' ? 'Sign Up for Free' : 'Sign In to Workspace'}</span>
+                        <span>
+                          {authMode === 'register'
+                            ? 'Sign Up for Free'
+                            : authMode === 'reset'
+                            ? 'Send Password Reset Link'
+                            : 'Sign In to Workspace'}
+                        </span>
                         <ArrowRight className="w-4 h-4" />
                       </>
                     )}
                   </button>
+
+                  {authMode === 'reset' && (
+                    <button
+                      type="button"
+                      onClick={() => { setAuthMode('login'); setAuthError(null); setAuthSuccessMsg(null); }}
+                      className="w-full py-2 text-xs font-semibold text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white transition-colors text-center"
+                    >
+                      ← Back to Sign In
+                    </button>
+                  )}
                 </form>
 
                 <div className="mt-6 pt-5 border-t border-slate-100 dark:border-[#222225] text-center space-y-3">
@@ -4024,6 +4109,18 @@ export default function App() {
                       <span>Sync Cloud Database</span>
                     </button>
 
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsSidebarUserMenuOpen(false);
+                        setShowChangePasswordModal(true);
+                      }}
+                      className="w-full px-3 py-2 text-left rounded-lg text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-white/[0.08] flex items-center gap-2 transition-colors font-medium"
+                    >
+                      <KeyRound className="w-3.5 h-3.5 text-amber-500" />
+                      <span>Change Password</span>
+                    </button>
+
                     <div className="my-1 border-t border-slate-100 dark:border-white/[0.08]" />
 
                     <a
@@ -4373,6 +4470,21 @@ export default function App() {
                           <span>Sync Cloud Database</span>
                         </div>
                         <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">Active</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsTopbarUserMenuOpen(false);
+                          setShowChangePasswordModal(true);
+                        }}
+                        className="w-full px-3 py-2 text-left rounded-lg text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-white/[0.08] flex items-center justify-between transition-colors font-medium mt-1"
+                      >
+                        <div className="flex items-center gap-2">
+                          <KeyRound className="w-3.5 h-3.5 text-amber-500" />
+                          <span>Change Password</span>
+                        </div>
+                        <span className="text-[10px] text-slate-400 dark:text-zinc-500 font-mono">Security</span>
                       </button>
 
                       <div className="my-1 border-t border-slate-100 dark:border-white/[0.08]" />
@@ -5485,6 +5597,14 @@ export default function App() {
       <KeyboardShortcutsModal
         isOpen={isShortcutsModalOpen}
         onClose={() => setIsShortcutsModalOpen(false)}
+      />
+
+      {/* --- CHANGE PASSWORD MODAL --- */}
+      <ChangePasswordModal
+        isOpen={showChangePasswordModal}
+        onClose={() => setShowChangePasswordModal(false)}
+        session={session}
+        showToast={showToast}
       />
 
       {/* --- TODAY'S BIG 3 PRIORITY PICKER MODAL --- */}
