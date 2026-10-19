@@ -34,28 +34,77 @@ export default function MeetingScratchpad({
 
   const [titleInput, setTitleInput] = useState('');
   const [contentInput, setContentInput] = useState('');
+  const lastSyncedRef = useRef({ id: null, title: '', content: '', updated_at: null });
 
-  // Update local inputs when activeNote changes
+  // Update local inputs when activeNote changes (by selection or remote real-time update)
   useEffect(() => {
-    if (activeNote) {
+    if (!activeNote) return;
+
+    const isDifferentNote = activeNote.id !== lastSyncedRef.current.id;
+    const isRemoteUpdate =
+      activeNote.updated_at !== lastSyncedRef.current.updated_at &&
+      (activeNote.title !== lastSyncedRef.current.title || activeNote.content !== lastSyncedRef.current.content);
+
+    // If switching to a different note, load it
+    if (isDifferentNote) {
       setTitleInput(activeNote.title || '');
       setContentInput(activeNote.content || '');
+      lastSyncedRef.current = {
+        id: activeNote.id,
+        title: activeNote.title || '',
+        content: activeNote.content || '',
+        updated_at: activeNote.updated_at
+      };
       setSaveStatus('saved');
+      return;
     }
-  }, [activeNote?.id]);
+
+    // If same note received a remote update from another device:
+    // Only update if user isn't in the middle of typing unsaved changes
+    if (isRemoteUpdate) {
+      const isDirty =
+        titleInput !== lastSyncedRef.current.title ||
+        contentInput !== lastSyncedRef.current.content;
+
+      if (!isDirty) {
+        setTitleInput(activeNote.title || '');
+        setContentInput(activeNote.content || '');
+        lastSyncedRef.current = {
+          id: activeNote.id,
+          title: activeNote.title || '',
+          content: activeNote.content || '',
+          updated_at: activeNote.updated_at
+        };
+        setSaveStatus('saved');
+      }
+    }
+  }, [activeNote]);
 
   // Debounced auto-save
   useEffect(() => {
     if (!activeNote) return;
     if (titleInput === activeNote.title && contentInput === activeNote.content) return;
+    if (
+      titleInput === lastSyncedRef.current.title &&
+      contentInput === lastSyncedRef.current.content
+    ) {
+      return;
+    }
 
     setSaveStatus('saving');
     const timer = setTimeout(() => {
+      const nowIso = new Date().toISOString();
+      lastSyncedRef.current = {
+        id: activeNote.id,
+        title: titleInput || 'Untitled Meeting Note',
+        content: contentInput,
+        updated_at: nowIso
+      };
       onSaveNote({
         ...activeNote,
         title: titleInput || 'Untitled Meeting Note',
         content: contentInput,
-        updated_at: new Date().toISOString()
+        updated_at: nowIso
       });
       setSaveStatus('saved');
     }, 600);
@@ -198,7 +247,14 @@ export default function MeetingScratchpad({
 
           <div className="flex items-center gap-2">
             <button
-              onClick={onCreateNote}
+              onClick={() => {
+                if (onCreateNote) {
+                  const created = onCreateNote();
+                  if (created?.id) {
+                    setActiveNoteId(created.id);
+                  }
+                }
+              }}
               className="px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm shadow-red-500/20 transition-all"
             >
               <Plus className="w-3.5 h-3.5 stroke-[3]" />

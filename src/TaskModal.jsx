@@ -3,7 +3,7 @@ import {
   X, Check, ChevronUp, ChevronDown, MoreHorizontal, Inbox, Calendar,
   Flag, Tag, Clock, Paperclip, Send, Trash2, CheckCircle2, Circle,
   FileText, Sparkles, CornerDownLeft, Plus, MessageSquare, AlertCircle,
-  Hourglass, Timer, Star, Loader2, Pencil, Eye, EyeOff
+  Hourglass, Timer, Star, Loader2, Pencil
 } from 'lucide-react';
 import { formatDuration, parseDurationMinutes } from './utils/formatDuration';
 import { supabase } from './supabaseClient';
@@ -77,7 +77,6 @@ export default function TaskModal({
   const [editingSubtaskId, setEditingSubtaskId] = useState(null);
   const [editingSubtaskText, setEditingSubtaskText] = useState('');
   const [newCommentText, setNewCommentText] = useState('');
-  const [showAuditTrail, setShowAuditTrail] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [newTagInput, setNewTagInput] = useState('');
   const [showTagInput, setShowTagInput] = useState(false);
@@ -499,42 +498,6 @@ export default function TaskModal({
     }
   };
 
-  // Restore Comment (Un-archive soft-deleted comment)
-  const handleRestoreComment = async (commentId) => {
-    const nowIso = new Date().toISOString();
-    const updated = comments.map(c =>
-      c.id === commentId
-        ? { ...c, deleted_at: null, is_deleted: false }
-        : c
-    );
-    setComments(updated);
-
-    if (isValidUUID(commentId)) {
-      try {
-        const { error } = await supabase
-          .from('task_comments')
-          .update({
-            deleted_at: null,
-            is_deleted: false,
-            updated_at: nowIso
-          })
-          .eq('id', commentId);
-
-        if (error) {
-          console.warn("Restore on task_comments failed:", error.message);
-        }
-      } catch (err) {
-        console.error("Exception restoring comment:", err);
-      }
-    }
-
-    if (task && onSaveTask) {
-      onSaveTask({
-        ...task,
-        comments: updated
-      });
-    }
-  };
 
   // Add Tag
   const handleAddTag = (tagToAdd) => {
@@ -644,7 +607,6 @@ export default function TaskModal({
   if (!isOpen) return null;
 
   const activeComments = comments.filter(c => !c.deleted_at && !c.is_deleted);
-  const deletedComments = comments.filter(c => Boolean(c.deleted_at || c.is_deleted));
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-150">
@@ -981,7 +943,7 @@ export default function TaskModal({
                                 type="button"
                                 onClick={() => handleDeleteComment(comm.id)}
                                 className="opacity-0 group-hover:opacity-100 p-0.5 text-neutral-400 hover:text-rose-500 transition-opacity"
-                                title="Soft delete comment (retained in DB)"
+                                title="Delete comment"
                               >
                                 <Trash2 className="w-3 h-3" />
                               </button>
@@ -997,56 +959,6 @@ export default function TaskModal({
                 !loadingComments && (
                   <p className="text-[11px] text-neutral-400 dark:text-zinc-400 italic">No comments yet. Leave a note or update below.</p>
                 )
-              )}
-
-              {/* Soft-Deleted Comments Audit Trail (Preserved in database) */}
-              {deletedComments.length > 0 && (
-                <div className="pt-1">
-                  <button
-                    type="button"
-                    onClick={() => setShowAuditTrail(prev => !prev)}
-                    className="text-[11px] font-medium text-neutral-500 dark:text-zinc-400 hover:text-neutral-800 dark:hover:text-zinc-200 flex items-center gap-1.5 transition-colors"
-                  >
-                    {showAuditTrail ? <EyeOff className="w-3 h-3 text-rose-500" /> : <Eye className="w-3 h-3 text-rose-500" />}
-                    <span>{showAuditTrail ? 'Hide archived / soft-deleted comments' : `View ${deletedComments.length} soft-deleted comment(s) (Database Audit)`}</span>
-                  </button>
-
-                  {showAuditTrail && (
-                    <div className="mt-2 space-y-2 p-2.5 rounded-xl bg-neutral-100/70 dark:bg-black/30 border border-neutral-200/80 dark:border-white/[0.08]">
-                      <div className="flex items-center justify-between text-[10px] font-semibold text-neutral-400 dark:text-zinc-400 uppercase tracking-wider">
-                        <span>Database Audit Trail</span>
-                        <span className="text-amber-500 dark:text-amber-400 font-mono text-[9px]">Retained in Database</span>
-                      </div>
-                      {deletedComments.map((dComm) => (
-                        <div key={dComm.id} className="p-2 rounded-lg bg-white/70 dark:bg-[#121622]/80 border border-neutral-200/50 dark:border-white/[0.05] text-xs space-y-1">
-                          <div className="flex items-center justify-between">
-                            <span className="font-medium text-neutral-700 dark:text-zinc-300 flex items-center gap-2">
-                              {dComm.author || 'User'}
-                              <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-300/40 font-mono">
-                                SOFT DELETED
-                              </span>
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => handleRestoreComment(dComm.id)}
-                              className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1"
-                              title="Restore comment back to active thread"
-                            >
-                              Restore
-                            </button>
-                          </div>
-                          <p className="text-neutral-500 dark:text-zinc-400 italic line-through text-[11px]">
-                            {dComm.text || dComm.content}
-                          </p>
-                          <div className="text-[10px] text-neutral-400 dark:text-zinc-500 flex items-center justify-between">
-                            <span>Created: {dComm.timestamp || 'N/A'}</span>
-                            <span>Archived: {dComm.deleted_at ? new Date(dComm.deleted_at).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Recorded'}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
               )}
 
               {/* Pill-shaped Comment Input (Screenshot 2 exact style) */}

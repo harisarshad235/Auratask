@@ -465,18 +465,33 @@ const loadScopedWorkspaceData = (userId = null) => {
             })
         : [];
       const savedNotes = localStorage.getItem(`takt_notes_u_${userId}`) || localStorage.getItem(`auratask_notes_u_${userId}`);
-      const savedSections = localStorage.getItem(`takt_sections_u_${userId}`) || localStorage.getItem(`auratask_sections_u_${userId}`);
-      const savedLogs = localStorage.getItem(`takt_activity_u_${userId}`) || localStorage.getItem(`auratask_activity_u_${userId}`);
-      return {
-        tasks: filteredTasks,
-        notes: savedNotes ? JSON.parse(savedNotes) : [
+      let parsedNotes = [];
+      try {
+        if (savedNotes) {
+          const rawParsed = JSON.parse(savedNotes);
+          if (Array.isArray(rawParsed)) {
+            parsedNotes = rawParsed.map(n => ({
+              ...n,
+              id: isValidUUID(n?.id) ? n.id : generateUUID()
+            }));
+          }
+        }
+      } catch {}
+      if (parsedNotes.length === 0) {
+        parsedNotes = [
           {
-            id: `note-${Date.now()}`,
+            id: generateUUID(),
             title: 'Welcome to your Private Scratchpad',
             content: '### My Private Meeting Notes\n• Only visible to your account\n• Auto-saved to your personal cloud database\n\n### Action Items\n- [ ] Add your first task',
             updated_at: new Date().toISOString()
           }
-        ],
+        ];
+      }
+      const savedSections = localStorage.getItem(`takt_sections_u_${userId}`) || localStorage.getItem(`auratask_sections_u_${userId}`);
+      const savedLogs = localStorage.getItem(`takt_activity_u_${userId}`) || localStorage.getItem(`auratask_activity_u_${userId}`);
+      return {
+        tasks: filteredTasks,
+        notes: parsedNotes,
         sections: savedSections ? JSON.parse(savedSections) : DEFAULT_SECTIONS,
         activity: savedLogs ? healActivityLogs(JSON.parse(savedLogs)) : []
       };
@@ -841,14 +856,27 @@ export default function App() {
   const handleSaveMeetingNote = async (updatedNote) => {
     const cleanTitle = sanitizeString(updatedNote.title || 'Untitled Meeting Note', 200);
     const cleanContent = sanitizeString(updatedNote.content || '', 50000);
-    const safeNote = { ...updatedNote, title: cleanTitle, content: cleanContent };
+    const noteId = isValidUUID(updatedNote.id) ? updatedNote.id : generateUUID();
+    const nowIso = updatedNote.updated_at || new Date().toISOString();
+    const safeNote = { ...updatedNote, id: noteId, title: cleanTitle, content: cleanContent, updated_at: nowIso };
 
     setMeetingNotes(prev => {
-      const exists = prev.some(n => n.id === safeNote.id);
+      const exists = prev.some(n => n.id === safeNote.id || n.id === updatedNote.id);
+      let next;
       if (exists) {
-        return prev.map(n => n.id === safeNote.id ? safeNote : n);
+        next = prev.map(n => (n.id === safeNote.id || n.id === updatedNote.id) ? safeNote : n);
+      } else {
+        next = [safeNote, ...prev];
       }
-      return [safeNote, ...prev];
+      try {
+        const uId = session?.user?.id;
+        const noteKey = uId ? `takt_notes_u_${uId}` : 'takt_guest_notes';
+        const legacyKey = uId ? `auratask_notes_u_${uId}` : 'auratask_guest_notes';
+        const dataStr = JSON.stringify(next);
+        localStorage.setItem(noteKey, dataStr);
+        localStorage.setItem(legacyKey, dataStr);
+      } catch {}
+      return next;
     });
 
     if (session?.user?.id) {
@@ -858,11 +886,13 @@ export default function App() {
           title: cleanTitle,
           description: cleanContent,
           section: 'meeting_notes',
+          status: 'meeting_notes',
           priority: 'P2',
           due_date: getTodayDateStr(),
           due_time: '',
           subtasks: [],
-          created_at: safeNote.updated_at || new Date().toISOString(),
+          created_at: safeNote.updated_at || nowIso,
+          updated_at: nowIso,
           user_id: session.user.id
         });
         if (error) {
@@ -875,9 +905,20 @@ export default function App() {
   };
 
   const handleDeleteMeetingNote = async (noteId) => {
-    setMeetingNotes(prev => prev.filter(n => n.id !== noteId));
+    setMeetingNotes(prev => {
+      const next = prev.filter(n => n.id !== noteId);
+      try {
+        const uId = session?.user?.id;
+        const noteKey = uId ? `takt_notes_u_${uId}` : 'takt_guest_notes';
+        const legacyKey = uId ? `auratask_notes_u_${uId}` : 'auratask_guest_notes';
+        const dataStr = JSON.stringify(next);
+        localStorage.setItem(noteKey, dataStr);
+        localStorage.setItem(legacyKey, dataStr);
+      } catch {}
+      return next;
+    });
     showToast('Note deleted');
-    if (session?.user?.id) {
+    if (session?.user?.id && isValidUUID(noteId)) {
       try {
         const { error } = await supabase.from('tasks').delete().eq('id', noteId).eq('user_id', session.user.id);
         if (error) {
@@ -891,7 +932,7 @@ export default function App() {
 
   const handleCreateMeetingNote = () => {
     const newNote = {
-      id: `note-${Date.now()}`,
+      id: generateUUID(),
       title: 'New Meeting Note',
       content: '### Agenda\n• \n\n### Action Items\n- [ ] ',
       updated_at: new Date().toISOString()
@@ -899,6 +940,7 @@ export default function App() {
     setMeetingNotes(prev => [newNote, ...prev]);
     handleSaveMeetingNote(newNote);
     showToast('New note created');
+    return newNote;
   };
 
   // --- TODAY'S BIG 3 SPOTLIGHT HANDLERS ---
@@ -1799,12 +1841,89 @@ export default function App() {
           });
 
           if (cloudNotes.length > 0) {
-            setMeetingNotes(cloudNotes.map(item => ({
+            const formattedCloudNotes = cloudNotes.map(item => ({
               id: item.id,
-              title: item.title,
-              content: item.description,
-              updated_at: item.created_at
-            })));
+              title: item.title || 'Untitled Meeting Note',
+              content: item.description || '',
+              updated_at: item.updated_at || item.created_at || new Date().toISOString()
+            }));
+
+            setMeetingNotes(prevNotes => {
+              const noteMap = new Map();
+              formattedCloudNotes.forEach(cn => noteMap.set(cn.id, cn));
+
+              // Auto-sync any local note that isn't in cloud yet
+              (prevNotes || []).forEach(pn => {
+                if (!noteMap.has(pn.id)) {
+                  const validId = isValidUUID(pn.id) ? pn.id : generateUUID();
+                  const updatedLocalNote = { ...pn, id: validId };
+                  noteMap.set(validId, updatedLocalNote);
+                  supabase.from('tasks').upsert({
+                    id: validId,
+                    title: sanitizeString(updatedLocalNote.title || 'Untitled Meeting Note', 200),
+                    description: sanitizeString(updatedLocalNote.content || '', 50000),
+                    section: 'meeting_notes',
+                    status: 'meeting_notes',
+                    priority: 'P2',
+                    due_date: getTodayDateStr(),
+                    due_time: '',
+                    subtasks: [],
+                    created_at: updatedLocalNote.updated_at || new Date().toISOString(),
+                    updated_at: updatedLocalNote.updated_at || new Date().toISOString(),
+                    user_id: currentUserId
+                  }).then(() => {});
+                }
+              });
+
+              const merged = Array.from(noteMap.values()).sort(
+                (a, b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0)
+              );
+
+              try {
+                const dataStr = JSON.stringify(merged);
+                localStorage.setItem(`takt_notes_u_${currentUserId}`, dataStr);
+                localStorage.setItem(`auratask_notes_u_${currentUserId}`, dataStr);
+              } catch {}
+
+              return merged;
+            });
+          } else {
+            // Cloud has 0 notes for this user, upload any existing local notes so other devices can access them
+            setMeetingNotes(prevNotes => {
+              const localNotes = Array.isArray(prevNotes) && prevNotes.length > 0
+                ? prevNotes
+                : loadScopedWorkspaceData(currentUserId).notes;
+
+              const validatedNotes = (localNotes || []).map(note => ({
+                ...note,
+                id: isValidUUID(note.id) ? note.id : generateUUID()
+              }));
+
+              validatedNotes.forEach(note => {
+                supabase.from('tasks').upsert({
+                  id: note.id,
+                  title: sanitizeString(note.title || 'Untitled Meeting Note', 200),
+                  description: sanitizeString(note.content || '', 50000),
+                  section: 'meeting_notes',
+                  status: 'meeting_notes',
+                  priority: 'P2',
+                  due_date: getTodayDateStr(),
+                  due_time: '',
+                  subtasks: [],
+                  created_at: note.updated_at || new Date().toISOString(),
+                  updated_at: note.updated_at || new Date().toISOString(),
+                  user_id: currentUserId
+                }).then(() => {});
+              });
+
+              try {
+                const dataStr = JSON.stringify(validatedNotes);
+                localStorage.setItem(`takt_notes_u_${currentUserId}`, dataStr);
+                localStorage.setItem(`auratask_notes_u_${currentUserId}`, dataStr);
+              } catch {}
+
+              return validatedNotes;
+            });
           }
         }
       } catch (err) {
@@ -1828,7 +1947,35 @@ export default function App() {
         (payload) => {
           if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
             const raw = payload.new;
-            if (!raw || raw.section === 'meeting_notes') return;
+            if (!raw) return;
+
+            // Multi-device synchronization for Meeting Scratchpad notes
+            if (raw.section === 'meeting_notes') {
+              const liveNote = {
+                id: raw.id,
+                title: raw.title || 'Untitled Meeting Note',
+                content: raw.description || '',
+                updated_at: raw.updated_at || raw.created_at || new Date().toISOString()
+              };
+
+              setMeetingNotes(prev => {
+                const existsIndex = prev.findIndex(n => n.id === liveNote.id);
+                let next;
+                if (existsIndex !== -1) {
+                  next = prev.map((n, i) => i === existsIndex ? liveNote : n);
+                } else {
+                  next = [liveNote, ...prev];
+                }
+                try {
+                  const dataStr = JSON.stringify(next);
+                  localStorage.setItem(`takt_notes_u_${currentUserId}`, dataStr);
+                  localStorage.setItem(`auratask_notes_u_${currentUserId}`, dataStr);
+                } catch {}
+                return next;
+              });
+              return;
+            }
+
             const liveTask = autoHealTask(raw);
             setTasks(prev => {
               const existsIndex = prev.findIndex(t => t.id === liveTask.id);
@@ -1887,6 +2034,15 @@ export default function App() {
                   localStorage.setItem(`takt_tasks_u_${currentUserId}`, dataStr);
                   localStorage.setItem(`takt_tasks_backup_u_${currentUserId}`, dataStr);
                 } catch { }
+                return next;
+              });
+              setMeetingNotes(prev => {
+                const next = prev.filter(n => n.id !== deletedId);
+                try {
+                  const dataStr = JSON.stringify(next);
+                  localStorage.setItem(`takt_notes_u_${currentUserId}`, dataStr);
+                  localStorage.setItem(`auratask_notes_u_${currentUserId}`, dataStr);
+                } catch {}
                 return next;
               });
               setModalTask(prev => (prev && prev.id === deletedId ? null : prev));
