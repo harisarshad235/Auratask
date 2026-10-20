@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
-import { getTodayDateStr } from '../utils/dateUtils';
+import { getTodayDateStr, normalizeSectionKey } from '../utils/dateUtils';
 
 /**
  * Custom hook for automatic daily rollover of uncompleted tasks.
@@ -46,8 +46,12 @@ export function useTaskRollover({
     const eligibleTasks = currentTasks.filter(task => {
       if (!task || !task.id) return false;
 
-      // Incomplete check
-      const isCompleted = task.section === 'completed' || task.status === 'completed' || Boolean(task.completed);
+      // Incomplete check (ensure completed or done tasks are never rolled over)
+      const isCompleted =
+        normalizeSectionKey(task.section) === 'completed' ||
+        normalizeSectionKey(task.status) === 'completed' ||
+        Boolean(task.completed) ||
+        Boolean(task.completed_at);
       if (isCompleted) return false;
 
       // Archived or soft-deleted check

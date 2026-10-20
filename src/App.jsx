@@ -28,7 +28,7 @@ import ListTaskCard from './components/ListTaskCard';
 import PrivacyPolicy from './components/legal/PrivacyPolicy';
 import TermsOfService from './components/legal/TermsOfService';
 import { sanitizeString, clientRateLimiter } from './utils/security';
-import { formatLocalDate, getTodayDateStr, getTomorrowDateStr, getDaysFromNowStr } from './utils/dateUtils';
+import { formatLocalDate, getTodayDateStr, getTomorrowDateStr, getDaysFromNowStr, getLocalDateFromTimestamp, isTaskCompletedToday } from './utils/dateUtils';
 import { useTaskRollover } from './hooks/useTaskRollover';
 
 // --- BRAND LOGO ---
@@ -258,6 +258,14 @@ export const autoHealTask = (t) => {
   const resolvedDeadline = t.deadline || meta.deadline || '';
   const resolvedEta = t.eta || meta.eta || effDuration || '';
 
+  // 8. Completed At resolution
+  let resolvedCompletedAt = t.completed_at || meta.completed_at || null;
+  if (resolvedSection === 'completed' && !resolvedCompletedAt) {
+    resolvedCompletedAt = t.updated_at || t.created_at || null;
+  } else if (resolvedSection !== 'completed') {
+    resolvedCompletedAt = null;
+  }
+
   return {
     ...t,
     id: isValidUUID(t.id) ? t.id : (isValidUUID(meta.id) ? meta.id : (t.id || generateUUID())),
@@ -278,6 +286,7 @@ export const autoHealTask = (t) => {
     comments: resolvedComments,
     is_focus: isFocusVal,
     reminder: t.reminder || meta.reminder || 'none',
+    completed_at: resolvedCompletedAt,
     created_at: t.created_at || new Date().toISOString()
   };
 };
@@ -300,6 +309,7 @@ export const prepareBaseCloudTask = (t, userId) => {
     is_focus: Boolean(healed.is_focus),
     comments: Array.isArray(healed.comments) ? healed.comments : [],
     reminder: healed.reminder || 'none',
+    completed_at: healed.completed_at || null,
     id: healed.id
   };
 
@@ -538,7 +548,51 @@ const loadScopedWorkspaceData = (userId = null) => {
 };
 
 export default function App() {
-  const todayDateStr = getTodayDateStr();
+  const [todayDateStr, setTodayDateStr] = useState(() => getTodayDateStr());
+
+  // Automatic midnight and day-pass transition listener
+  useEffect(() => {
+    let timerId = null;
+
+    const checkDateTransition = () => {
+      const currentToday = getTodayDateStr();
+      setTodayDateStr(prev => (prev !== currentToday ? currentToday : prev));
+    };
+
+    const scheduleMidnightCheck = () => {
+      const now = new Date();
+      const nextMidnight = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate() + 1,
+        0, 0, 1
+      );
+      const msUntilMidnight = Math.max(1000, nextMidnight.getTime() - now.getTime());
+
+      timerId = setTimeout(() => {
+        checkDateTransition();
+        scheduleMidnightCheck();
+      }, msUntilMidnight);
+    };
+
+    scheduleMidnightCheck();
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        checkDateTransition();
+      }
+    };
+    const handleFocus = () => checkDateTransition();
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      if (timerId) clearTimeout(timerId);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, []);
 
   // --- AUTH STATE ---
   const [session, setSession] = useState(null);
@@ -773,6 +827,7 @@ export default function App() {
         deadline: healed.deadline || '',
         tags: Array.isArray(healed.tags) && healed.tags.length > 0 ? healed.tags : ['#Work'],
         status: healed.section || 'todo',
+        completed_at: healed.completed_at || null,
         updated_at: nowIso
       };
 
@@ -1356,6 +1411,9 @@ export default function App() {
       subtasks: Array.isArray(taskPayload.subtasks) ? taskPayload.subtasks : [],
       is_focus: Boolean(taskPayload.is_focus),
       reminder: taskPayload.reminder || 'none',
+      completed_at: normalizeSectionKey(taskPayload.section) === 'completed'
+        ? (taskPayload.completed_at || modalTask?.completed_at || new Date().toISOString())
+        : null,
       id: isValidUUID(taskPayload.id) ? taskPayload.id : generateUUID()
     };
     const existingIndex = tasks.findIndex(t => t.id === finalPayload.id || (taskPayload.id && t.id === taskPayload.id));
@@ -2402,14 +2460,22 @@ export default function App() {
   };
 
   const toggleTaskCompleted = (task) => {
-    const isCompleted = task.section === 'completed';
+    const isCompleted = normalizeSectionKey(task.section) === 'completed';
     const nextSection = isCompleted ? 'todo' : 'completed';
-    handleUpdateTask(task.id, { section: nextSection });
+    const nowIso = new Date().toISOString();
+    handleUpdateTask(task.id, {
+      section: nextSection,
+      status: nextSection,
+      completed_at: isCompleted ? null : nowIso
+    });
 
     if (!isCompleted) {
       triggerCelebration();
       recordActivity(`Marked "${task.title.slice(0, 28)}" completed`, 'check');
       showToast('Task completed! Keep the momentum going 🔥');
+    } else {
+      recordActivity(`Reopened "${task.title.slice(0, 28)}"`, 'rotate');
+      showToast('Task moved back to To Do');
     }
   };
 
@@ -2432,8 +2498,14 @@ export default function App() {
 
     let targetIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1;
     if (targetIndex >= 0 && targetIndex < sectionKeys.length) {
-      const nextSection = sectionKeys[targetIndex];
-      handleUpdateTask(taskId, { section: nextSection });
+      const nextSection = normalizeSectionKey(sectionKeys[targetIndex]);
+      const updates = { section: nextSection, status: nextSection };
+      if (nextSection === 'completed') {
+        updates.completed_at = new Date().toISOString();
+      } else if (normalizeSectionKey(currentTask.section) === 'completed') {
+        updates.completed_at = null;
+      }
+      handleUpdateTask(taskId, updates);
       if (nextSection === 'completed') triggerCelebration();
     }
   };
@@ -2445,8 +2517,14 @@ export default function App() {
 
     if (boardGrouping === 'stage') {
       const normTarget = normalizeSectionKey(targetKey);
-      if (task.section === normTarget) return;
-      handleUpdateTask(taskId, { section: normTarget });
+      if (normalizeSectionKey(task.section) === normTarget) return;
+      const updates = { section: normTarget, status: normTarget };
+      if (normTarget === 'completed') {
+        updates.completed_at = new Date().toISOString();
+      } else if (normalizeSectionKey(task.section) === 'completed') {
+        updates.completed_at = null;
+      }
+      handleUpdateTask(taskId, updates);
       if (normTarget === 'completed') {
         triggerCelebration();
         showToast('Task completed! Keep the momentum going 🔥');
@@ -2571,10 +2649,17 @@ export default function App() {
 
       if (boardGrouping === 'stage') {
         const normTarget = normalizeSectionKey(targetColKey);
-        if (draggedTask.section !== normTarget) {
+        if (normalizeSectionKey(draggedTask.section) !== normTarget) {
+          const wasCompleted = normalizeSectionKey(draggedTask.section) === 'completed';
           draggedTask.section = normTarget;
+          draggedTask.status = normTarget;
+          if (normTarget === 'completed') {
+            draggedTask.completed_at = nowIso;
+            triggerCelebration();
+          } else if (wasCompleted) {
+            draggedTask.completed_at = null;
+          }
           sectionUpdated = true;
-          if (normTarget === 'completed') triggerCelebration();
         }
       } else {
         if (draggedTask.priority !== targetColKey) {
@@ -3021,32 +3106,28 @@ export default function App() {
       }
 
       // Active Tab & View Mode logic
-      // In Kanban Board View with stage grouping, the swimlanes themselves separate stages.
-      // Therefore, completed tasks must remain visible in the Completed swimlane!
-      if (viewMode === 'board' && boardGrouping === 'stage') {
-        if (activeTab === 'today') {
-          return t.due_date === todayDateStr || t.is_focus;
-        }
-        if (activeTab === 'upcoming') {
-          return t.due_date > todayDateStr;
-        }
-        if (activeTab === 'completed') {
-          return t.section === 'completed';
-        }
-        return true;
+      if (activeTab === 'inbox') {
+        return normalizeSectionKey(t.section) !== 'completed';
       }
 
-      if (activeTab === 'inbox') {
-        return t.section !== 'completed';
-      }
       if (activeTab === 'today') {
-        return (t.due_date === todayDateStr || t.is_focus) && t.section !== 'completed';
+        const isCompleted = normalizeSectionKey(t.section) === 'completed';
+        if (isCompleted) {
+          // In Today view (both Board and List), ONLY show tasks completed strictly today.
+          // Tasks completed yesterday or earlier will NOT appear.
+          // If the day passes, they automatically vanish.
+          return isTaskCompletedToday(t, todayDateStr);
+        }
+        // Incomplete active tasks due today or in Big 3
+        return t.due_date === todayDateStr || Boolean(t.is_focus);
       }
+
       if (activeTab === 'upcoming') {
-        return t.due_date > todayDateStr && t.section !== 'completed';
+        return t.due_date > todayDateStr && normalizeSectionKey(t.section) !== 'completed';
       }
+
       if (activeTab === 'completed') {
-        return t.section === 'completed';
+        return normalizeSectionKey(t.section) === 'completed';
       }
 
       return true;
@@ -3054,9 +3135,10 @@ export default function App() {
   }, [tasks, searchQuery, selectedTag, activeTab, todayDateStr, viewMode, boardGrouping]);
 
   // Productivity Metrics
-  const completedCount = useMemo(() => tasks.filter(t => t.section === 'completed').length, [tasks]);
-  const todayDueCount = useMemo(() => tasks.filter(t => t.due_date === todayDateStr && t.section !== 'completed').length, [tasks, todayDateStr]);
-  const big3Tasks = useMemo(() => tasks.filter(t => t.is_focus && t.section !== 'completed'), [tasks]);
+  const completedCount = useMemo(() => tasks.filter(t => normalizeSectionKey(t.section) === 'completed').length, [tasks]);
+  const todayCompletedCount = useMemo(() => tasks.filter(t => isTaskCompletedToday(t, todayDateStr)).length, [tasks, todayDateStr]);
+  const todayDueCount = useMemo(() => tasks.filter(t => t.due_date === todayDateStr && normalizeSectionKey(t.section) !== 'completed').length, [tasks, todayDateStr]);
+  const big3Tasks = useMemo(() => tasks.filter(t => t.is_focus && normalizeSectionKey(t.section) !== 'completed'), [tasks]);
 
   // Rolling 7-day calendar horizon dates
   const calendarDays = useMemo(() => {
@@ -5528,12 +5610,12 @@ export default function App() {
               <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#161c2b] border border-slate-200/80 dark:border-white/[0.1] space-y-2">
                 <div className="flex justify-between text-xs font-bold text-slate-800 dark:text-white">
                   <span>Daily Goal Progress</span>
-                  <span>{completedCount} / 5 tasks</span>
+                  <span>{todayCompletedCount} / 5 tasks</span>
                 </div>
                 <div className="w-full bg-slate-200 dark:bg-white/[0.1] h-2 rounded-full overflow-hidden">
                   <div
                     className="bg-emerald-500 h-full rounded-full transition-all"
-                    style={{ width: `${Math.min(100, (completedCount / 5) * 100)}%` }}
+                    style={{ width: `${Math.min(100, (todayCompletedCount / 5) * 100)}%` }}
                   ></div>
                 </div>
                 <p className="text-[11px] text-slate-400 dark:text-zinc-400">Complete 5 tasks daily to maintain your 4-day streak.</p>
@@ -5559,7 +5641,7 @@ export default function App() {
             </div>
             <h3 className="font-extrabold text-lg text-slate-900 dark:text-white mb-1">Daily Shutdown Ritual</h3>
             <p className="text-xs text-slate-500 dark:text-zinc-300 mb-5 leading-relaxed">
-              You crushed <span className="font-bold text-emerald-600 dark:text-emerald-400">{completedCount} tasks</span> today. Disconnect cleanly, recharge, and return tomorrow with clarity.
+              You crushed <span className="font-bold text-emerald-600 dark:text-emerald-400">{todayCompletedCount} tasks</span> today. Disconnect cleanly, recharge, and return tomorrow with clarity.
             </p>
 
             <button

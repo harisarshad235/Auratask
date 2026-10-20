@@ -557,12 +557,23 @@ export default function TaskModal({
     const finalDuration = duration ? duration.trim() : (estimatedMinutes ? formatDuration(estimatedMinutes) : '');
     const cleanDescription = (description || '').replace(TAKT_META_REGEX, '').trim();
 
+    const isNowCompleted = isCompleted || section === 'completed';
+    const wasCompleted = task?.section === 'completed';
+    let resolvedCompletedAt = task?.completed_at || null;
+    if (isNowCompleted) {
+      if (!wasCompleted || !resolvedCompletedAt) {
+        resolvedCompletedAt = resolvedCompletedAt || new Date().toISOString();
+      }
+    } else {
+      resolvedCompletedAt = null;
+    }
+
     const taskPayload = {
       id: task?.id || generateUUID(),
       title: title.trim(),
       description: cleanDescription,
-      section: isCompleted ? 'completed' : section,
-      status: isCompleted ? 'completed' : section,
+      section: isNowCompleted ? 'completed' : section,
+      status: isNowCompleted ? 'completed' : section,
       priority,
       due_date: dueDate,
       due_time: dueTime,
@@ -576,6 +587,7 @@ export default function TaskModal({
       subtasks,
       comments: finalComments,
       reminder,
+      completed_at: resolvedCompletedAt,
       created_at: task?.created_at || new Date().toISOString()
     };
 
