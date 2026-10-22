@@ -3,7 +3,7 @@ import {
   X, Check, ChevronUp, ChevronDown, MoreHorizontal, Inbox, Calendar,
   Flag, Tag, Clock, Paperclip, Send, Trash2, CheckCircle2, Circle,
   FileText, Sparkles, CornerDownLeft, Plus, MessageSquare, AlertCircle,
-  Hourglass, Timer, Star, Loader2, Pencil
+  Hourglass, Timer, Star, Loader2, Pencil, Target
 } from 'lucide-react';
 import { formatDuration, parseDurationMinutes } from './utils/formatDuration';
 import { supabase } from './supabaseClient';
