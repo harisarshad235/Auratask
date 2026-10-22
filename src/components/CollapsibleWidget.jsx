@@ -54,14 +54,14 @@ export function CollapsibleWidget({
               <Icon
                 className={`${
                   isSubSection ? 'w-3.5 h-3.5' : 'w-4 h-4'
-                } text-slate-400 dark:text-zinc-400 group-hover:text-slate-700 dark:group-hover:text-white transition-colors shrink-0`}
+                } stroke-[1.75] text-slate-400 dark:text-zinc-400 group-hover:text-slate-700 dark:group-hover:text-zinc-200 transition-colors shrink-0`}
               />
             )}
             <span
-              className={`font-bold tracking-wider uppercase truncate transition-colors ${
+              className={`font-semibold tracking-wider uppercase truncate transition-colors ${
                 isSubSection
-                  ? 'text-[10px] text-slate-500 dark:text-zinc-400 group-hover:text-slate-800 dark:group-hover:text-zinc-200'
-                  : 'text-[11px] text-slate-600 dark:text-zinc-300 group-hover:text-slate-900 dark:group-hover:text-white'
+                  ? 'text-[10px] text-slate-400 dark:text-zinc-400 group-hover:text-slate-700 dark:group-hover:text-zinc-200'
+                  : 'text-[11px] text-slate-500 dark:text-zinc-400 group-hover:text-slate-900 dark:group-hover:text-white'
               }`}
             >
               {title}

@@ -21,7 +21,7 @@ const generateUUID = () => {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     try {
       return crypto.randomUUID();
-    } catch {}
+    } catch { }
   }
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
@@ -752,9 +752,8 @@ export default function TaskModal({
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   autoFocus
-                  className={`w-full text-base sm:text-lg font-bold bg-transparent border-0 focus:outline-none placeholder:text-neutral-400 dark:placeholder:text-zinc-400 ${
-                    isCompleted ? 'line-through text-neutral-400 dark:text-zinc-500' : 'text-neutral-900 dark:text-white'
-                  }`}
+                  className={`w-full text-base sm:text-lg font-bold bg-transparent border-0 focus:outline-none placeholder:text-neutral-400 dark:placeholder:text-zinc-400 ${isCompleted ? 'line-through text-neutral-400 dark:text-zinc-500' : 'text-neutral-900 dark:text-white'
+                    }`}
                 />
               </div>
             </div>
@@ -847,11 +846,10 @@ export default function TaskModal({
                             <span
                               onDoubleClick={() => handleStartEditSubtask(st)}
                               title="Double-click or click pencil to edit"
-                              className={`text-xs truncate select-none ${
-                                st.completed
+                              className={`text-xs truncate select-none ${st.completed
                                   ? 'line-through text-neutral-400 dark:text-zinc-500'
                                   : 'text-neutral-800 dark:text-zinc-200'
-                              }`}
+                                }`}
                             >
                               {st.text}
                             </span>
@@ -1101,11 +1099,10 @@ export default function TaskModal({
                     key={p.key}
                     type="button"
                     onClick={() => setPriority(p.key)}
-                    className={`py-1.5 px-2 rounded-lg border text-center font-bold flex items-center justify-center gap-1 transition-all ${
-                      priority === p.key
+                    className={`py-1.5 px-2 rounded-lg border text-center font-bold flex items-center justify-center gap-1 transition-all ${priority === p.key
                         ? `${p.active} ring-1 ring-rose-500/30`
                         : 'border-neutral-200 dark:border-white/[0.08] bg-white dark:bg-[#161c2b] hover:bg-neutral-100 dark:hover:bg-white/[0.08]'
-                    }`}
+                      }`}
                   >
                     <Flag className={`w-3 h-3 ${p.color}`} />
                     <span className={p.color}>{p.key}</span>
@@ -1120,17 +1117,16 @@ export default function TaskModal({
               <button
                 type="button"
                 onClick={() => setIsFocus(!isFocus)}
-                className={`w-full py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-between gap-2 transition-all ${
-                  isFocus
-                    ? 'bg-amber-50 dark:bg-amber-950/60 border-amber-300 dark:border-amber-500/40 text-amber-700 dark:text-amber-300 shadow-xs'
+                className={`w-full py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-between gap-2 transition-all ${isFocus
+                    ? 'bg-slate-100 dark:bg-white/[0.1] border-slate-300 dark:border-white/[0.2] text-slate-900 dark:text-white shadow-2xs'
                     : 'bg-white dark:bg-[#161c2b] border-neutral-200 dark:border-white/[0.1] text-neutral-600 dark:text-zinc-300 hover:border-neutral-300 dark:hover:border-white/[0.2]'
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-2">
-                  <Star className={`w-3.5 h-3.5 ${isFocus ? 'text-amber-500 fill-amber-500' : 'text-neutral-400 dark:text-zinc-400'}`} />
+                  <Target className={`w-3.5 h-3.5 ${isFocus ? 'text-slate-900 dark:text-white stroke-[2.2]' : 'text-neutral-400 dark:text-zinc-400'}`} />
                   <span>{isFocus ? "Pinned to Today's Big 3" : "Pin to Today's Big 3 Spotlight"}</span>
                 </div>
-                <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${isFocus ? 'bg-amber-200/60 dark:bg-amber-500/30 text-amber-900 dark:text-amber-200' : 'bg-neutral-100 dark:bg-white/[0.08] text-neutral-400 dark:text-zinc-400'}`}>
+                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${isFocus ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'bg-neutral-100 dark:bg-white/[0.08] text-neutral-500 dark:text-zinc-400'}`}>
                   {isFocus ? 'PINNED' : 'OFF'}
                 </span>
               </button>
@@ -1259,11 +1255,10 @@ export default function TaskModal({
                         setDuration(preset.label);
                         setEstimatedMinutes(preset.mins);
                       }}
-                      className={`text-[10px] font-bold px-2 py-1 rounded-lg transition-all ${
-                        isSelected
+                      className={`text-[10px] font-bold px-2 py-1 rounded-lg transition-all ${isSelected
                           ? 'bg-indigo-600 text-white shadow-xs scale-105'
                           : 'bg-white dark:bg-white/[0.08] text-slate-700 dark:text-zinc-300 hover:bg-indigo-100 dark:hover:bg-white/[0.12] border border-slate-200/60 dark:border-white/[0.08]'
-                      }`}
+                        }`}
                     >
                       {preset.label}
                     </button>

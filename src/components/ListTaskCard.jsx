@@ -52,10 +52,10 @@ export function ListTaskCard({
         if (onCardDragEnd) onCardDragEnd(task, info);
       }}
       onClick={() => handleOpenTaskModal(task)}
-      className={`group bg-white dark:bg-[#161c2b] border rounded-xl p-3 shadow-2xs hover:shadow-xs transition-shadow flex items-center justify-between gap-4 cursor-grab active:cursor-grabbing select-none relative ${
+      className={`group bg-white dark:bg-[#151c2d] border rounded-xl p-3 shadow-2xs hover:shadow-xs transition-all flex items-center justify-between gap-4 cursor-grab active:cursor-grabbing select-none relative ${
         isTaskCompleted
           ? 'border-slate-200/60 dark:border-white/[0.06] opacity-60'
-          : 'border-slate-200/90 dark:border-white/[0.12] hover:border-slate-300 dark:hover:border-white/[0.25] dark:hover:bg-[#1c2438]'
+          : 'border-slate-200/80 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/[0.18] dark:hover:bg-[#182136]'
       }`}
     >
       <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -78,7 +78,7 @@ export function ListTaskCard({
             toggleTaskCompleted(task);
           }}
           onPointerDown={(e) => e.stopPropagation()}
-          className="text-slate-300 dark:text-zinc-500 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded"
+          className="text-slate-300 dark:text-zinc-500 hover:text-emerald-500 dark:hover:text-emerald-400 transition-all hover:scale-105 active:scale-95 shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded"
           title={isTaskCompleted ? 'Mark as incomplete' : 'Mark as complete'}
         >
           {isTaskCompleted ? (
@@ -91,7 +91,7 @@ export function ListTaskCard({
         {/* Task Title & Details */}
         <div className="min-w-0 flex-1">
           <span
-            className={`text-xs font-bold ${
+            className={`text-[13px] font-semibold leading-snug ${
               isTaskCompleted
                 ? 'line-through text-slate-400 dark:text-zinc-500'
                 : 'text-slate-900 dark:text-white'
@@ -100,7 +100,7 @@ export function ListTaskCard({
             {task.title}
           </span>
           {task.description && (
-            <p className="text-[11px] text-slate-500 dark:text-zinc-300 truncate mt-0.5 font-normal">
+            <p className="text-[11.5px] text-slate-500 dark:text-zinc-400 truncate mt-0.5 font-normal">
               {task.description}
             </p>
           )}
@@ -115,19 +115,21 @@ export function ListTaskCard({
       >
         {/* Priority Flag Pill */}
         <span
-          className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+          className={`text-[10px] font-medium px-2 py-0.5 rounded ${
             task.priority === 'P1'
-              ? 'bg-red-500/10 dark:bg-red-950/60 text-red-600 dark:text-red-300 border border-red-500/20 dark:border-red-500/40'
+              ? 'bg-rose-50 text-rose-700 border border-rose-200/80 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-900/50'
               : task.priority === 'P2'
-              ? 'bg-amber-500/10 dark:bg-amber-950/60 text-amber-600 dark:text-amber-300 border border-amber-500/20 dark:border-amber-500/40'
-              : 'bg-slate-500/10 dark:bg-white/[0.08] text-slate-600 dark:text-zinc-200 border border-slate-500/20 dark:border-white/[0.12]'
+              ? 'bg-amber-50 text-amber-700 border border-amber-200/80 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900/50'
+              : task.priority === 'P3'
+              ? 'bg-blue-50 text-blue-700 border border-blue-200/80 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-900/50'
+              : 'bg-slate-50 text-slate-600 border border-slate-200/80 dark:bg-zinc-800/60 dark:text-zinc-300 dark:border-zinc-700/60'
           }`}
         >
           {task.priority}
         </span>
 
         {task.due_date && (
-          <span className="text-[10px] text-slate-400 dark:text-zinc-300 hidden sm:inline font-mono font-medium">
+          <span className="text-[10px] font-medium text-slate-500 dark:text-zinc-300 hidden sm:inline tabular-nums">
             {task.due_date === todayDateStr ? 'Today' : task.due_date}
           </span>
         )}
@@ -135,10 +137,10 @@ export function ListTaskCard({
         {/* ETA / Effort Duration Pill */}
         {(task.duration || task.estimated_minutes || task.focused_minutes) && (
           <span
-            className="text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1 bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200/70 dark:border-indigo-700/50 text-indigo-600 dark:text-indigo-300"
+            className="text-[10px] font-medium px-2 py-0.5 rounded flex items-center gap-1 bg-slate-50 dark:bg-white/[0.04] border border-slate-200/70 dark:border-white/[0.08] text-slate-600 dark:text-zinc-300"
             title={`Estimated effort / ETA: ${formatDuration(task.duration || task.estimated_minutes || task.focused_minutes)}`}
           >
-            <Hourglass className="w-2.5 h-2.5 text-indigo-500 dark:text-indigo-400" />
+            <Hourglass className="w-2.5 h-2.5 text-slate-400 dark:text-zinc-400" />
             <span>{formatDuration(task.duration || task.estimated_minutes || task.focused_minutes)}</span>
           </span>
         )}
@@ -147,10 +149,11 @@ export function ListTaskCard({
         <button
           type="button"
           onClick={(e) => handlePostponeToTomorrow(task.id, e)}
-          className="text-[10px] font-semibold text-slate-400 dark:text-zinc-300 hover:text-amber-500 dark:hover:text-amber-300 px-1.5 py-0.5 rounded hover:bg-slate-100 dark:hover:bg-white/[0.08] transition-colors hidden md:inline-flex items-center gap-1"
+          className="text-[10px] font-medium text-slate-500 dark:text-zinc-300 hover:text-slate-800 dark:hover:text-white px-2 py-0.5 rounded border border-slate-200/70 dark:border-white/[0.08] bg-slate-50 dark:bg-white/[0.04] hover:bg-slate-100 dark:hover:bg-white/[0.08] transition-colors hidden md:inline-flex items-center gap-1"
           title="Postpone to Tomorrow"
         >
-          <span>⏩ Tomorrow</span>
+          <Clock className="w-3 h-3 text-slate-400" />
+          <span>Tomorrow</span>
         </button>
 
         {/* Pin to Big 3 Button */}
