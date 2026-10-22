@@ -52,16 +52,16 @@ export function ListTaskCard({
         if (onCardDragEnd) onCardDragEnd(task, info);
       }}
       onClick={() => handleOpenTaskModal(task)}
-      className={`group bg-white dark:bg-[#151c2d] border rounded-xl p-3 shadow-2xs hover:shadow-xs transition-all flex items-center justify-between gap-4 cursor-grab active:cursor-grabbing select-none relative ${
+      className={`group bg-white dark:bg-[#121622] border rounded-xl p-3 shadow-[0_1px_3px_rgba(15,23,42,0.05),0_1px_2px_rgba(15,23,42,0.03)] dark:shadow-[0_2px_6px_rgba(0,0,0,0.3)] hover:shadow-[0_8px_20px_-4px_rgba(15,23,42,0.07)] dark:hover:shadow-[0_8px_20px_-4px_rgba(0,0,0,0.4)] transition-all flex items-center justify-between gap-4 cursor-grab active:cursor-grabbing select-none relative ${
         isTaskCompleted
-          ? 'border-slate-200/60 dark:border-white/[0.06] opacity-60'
-          : 'border-slate-200/80 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/[0.18] dark:hover:bg-[#182136]'
+          ? 'border-slate-200/60 dark:border-white/[0.06] opacity-60 bg-slate-50/40 dark:bg-[#10141f]'
+          : 'border-slate-200/80 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/[0.18]'
       }`}
     >
       <div className="flex items-center gap-3 min-w-0 flex-1">
-        {/* Tactile Drag Handle Affordance */}
+        {/* Tactile Drag Handle Affordance (reveals on hover) */}
         <div
-          className="text-slate-300 dark:text-zinc-500 group-hover:text-slate-500 dark:group-hover:text-zinc-300 shrink-0 cursor-grab active:cursor-grabbing p-0.5 rounded hover:bg-slate-100 dark:hover:bg-white/[0.08] transition-colors"
+          className="text-slate-300 dark:text-zinc-500 opacity-30 group-hover:opacity-100 group-hover:text-slate-500 dark:group-hover:text-zinc-300 shrink-0 cursor-grab active:cursor-grabbing p-0.5 rounded hover:bg-slate-100 dark:hover:bg-white/[0.08] transition-all"
           title="Drag to reorder task"
           onPointerDown={(e) => {
             // Natural drag handle
@@ -78,7 +78,7 @@ export function ListTaskCard({
             toggleTaskCompleted(task);
           }}
           onPointerDown={(e) => e.stopPropagation()}
-          className="text-slate-300 dark:text-zinc-500 hover:text-emerald-500 dark:hover:text-emerald-400 transition-all hover:scale-105 active:scale-95 shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded"
+          className="text-slate-300 dark:text-zinc-600 hover:text-emerald-500 dark:hover:text-emerald-400 transition-all hover:scale-110 active:scale-95 shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-full"
           title={isTaskCompleted ? 'Mark as incomplete' : 'Mark as complete'}
         >
           {isTaskCompleted ? (
@@ -90,15 +90,33 @@ export function ListTaskCard({
 
         {/* Task Title & Details */}
         <div className="min-w-0 flex-1">
-          <span
-            className={`text-[13px] font-semibold leading-snug ${
-              isTaskCompleted
-                ? 'line-through text-slate-400 dark:text-zinc-500'
-                : 'text-slate-900 dark:text-white'
-            }`}
-          >
-            {task.title}
-          </span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span
+              className={`text-[13.5px] font-semibold leading-snug tracking-tight ${
+                isTaskCompleted
+                  ? 'line-through text-slate-400 dark:text-zinc-500'
+                  : 'text-slate-900 dark:text-zinc-100'
+              }`}
+            >
+              {task.title}
+            </span>
+            {task.tags &&
+              task.tags.map((rawTag) => {
+                const cleanTag =
+                  typeof rawTag === 'string'
+                    ? rawTag.replace(/^#+/, '').trim()
+                    : String(rawTag).trim();
+                if (!cleanTag) return null;
+                return (
+                  <span
+                    key={cleanTag}
+                    className="text-[10px] font-medium text-slate-500 dark:text-zinc-400 bg-slate-100/70 dark:bg-white/[0.04] border border-slate-200/60 dark:border-white/[0.06] px-1.5 py-0.2 rounded"
+                  >
+                    #{cleanTag}
+                  </span>
+                );
+              })}
+          </div>
           {task.description && (
             <p className="text-[11.5px] text-slate-500 dark:text-zinc-400 truncate mt-0.5 font-normal">
               {task.description}

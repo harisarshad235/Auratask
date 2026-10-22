@@ -5420,10 +5420,11 @@ export default function App() {
                               </div>
                               <button
                                 onClick={(e) => handlePostponeToTomorrow(task.id, e)}
-                                className="text-slate-400 hover:text-amber-500 font-medium opacity-80 group-hover:opacity-100"
+                                className="text-slate-400 hover:text-amber-500 font-medium opacity-80 group-hover:opacity-100 flex items-center gap-1 text-[10px]"
                                 title="Push to Next Day"
                               >
-                                ⏩ +1d
+                                <Clock className="w-2.5 h-2.5" />
+                                <span>+1d</span>
                               </button>
                             </div>
                           </div>
